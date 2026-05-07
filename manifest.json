@@ -1,0 +1,26 @@
+{
+  "name": "子どもの気質チェック",
+  "short_name": "気質チェック",
+  "description": "お子さんの気質タイプを診断し、合った声かけがわかるアプリ",
+  "start_url": "./kishitu-check.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF5F8",
+  "theme_color": "#FF6BAE",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
