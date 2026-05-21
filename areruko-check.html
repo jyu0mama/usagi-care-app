@@ -6,7 +6,7 @@
   <title>外ではいい子・家では荒れる子 タイプ診断</title>
 
   <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#4A90D9">
+  <meta name="theme-color" content="#A8C8EE">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -22,7 +22,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
-      background: linear-gradient(160deg, #EEF6FF 0%, #E8F4FF 50%, #F0F8FF 100%);
+      background: linear-gradient(160deg, #F5F9FF 0%, #EFF6FF 50%, #F5F9FF 100%);
       min-height: 100vh;
       color: #2d3a4a;
     }
@@ -36,7 +36,7 @@
       align-items: center;
       text-align: center;
       padding: 0 0 60px;
-      background: linear-gradient(170deg, #5BA8E8 0%, #4A90D9 45%, #6EC6F0 100%);
+      background: linear-gradient(170deg, #C5DCF5 0%, #A8C8EE 45%, #C8E8F8 100%);
       min-height: 100vh;
     }
 
@@ -56,15 +56,15 @@
     .top-title {
       font-size: 22px;
       font-weight: 900;
-      color: #fff;
+      color: #3A5A7C;
       line-height: 1.45;
       margin-bottom: 6px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      text-shadow: none;
     }
 
     .top-subtitle {
       font-size: 13px;
-      color: rgba(255,255,255,0.88);
+      color: #6A8AA8;
       margin-bottom: 6px;
       line-height: 1.6;
     }
@@ -73,22 +73,22 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255,255,255,0.22);
-      border: 1.5px solid rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.6);
+      border: 1.5px solid rgba(100,160,210,0.35);
       border-radius: 30px;
       padding: 7px 18px;
       font-size: 13px;
       font-weight: 700;
-      color: #fff;
+      color: #5A86A8;
       margin: 10px 0 18px;
     }
 
     .top-notice {
-      background: rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.55);
       border-radius: 16px;
       padding: 14px 16px;
       font-size: 12px;
-      color: rgba(255,255,255,0.92);
+      color: #6A8AA8;
       line-height: 1.7;
       margin-bottom: 24px;
       text-align: left;
@@ -96,7 +96,7 @@
 
     .btn-primary {
       background: #fff;
-      color: #4A90D9;
+      color: #6AA8D8;
       border: none;
       border-radius: 50px;
       padding: 18px 56px;
@@ -111,7 +111,7 @@
 
     /* ===== QUIZ ===== */
     .q-header {
-      background: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
       padding: 20px 20px 28px;
       color: #fff;
       position: sticky;
@@ -163,7 +163,7 @@
       border: 2px solid transparent;
     }
     .q-item.checked {
-      border-color: var(--type-color, #4A90D9);
+      border-color: var(--type-color, #8BBCE0);
       background: var(--type-light, #EEF6FF);
     }
 
@@ -180,8 +180,8 @@
       margin-top: 1px;
     }
     .q-item.checked .q-checkbox {
-      background: var(--type-color, #4A90D9);
-      border-color: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
+      border-color: var(--type-color, #8BBCE0);
     }
 
     .check-icon { display: none; color: #fff; font-size: 16px; font-weight: 700; line-height: 1; }
@@ -194,7 +194,7 @@
       padding: 16px;
       position: sticky;
       bottom: 0;
-      background: linear-gradient(to top, rgba(238,246,255,1) 70%, rgba(238,246,255,0) 100%);
+      background: linear-gradient(to top, rgba(245,249,255,1) 70%, rgba(245,249,255,0) 100%);
     }
 
     .q-count-label {
@@ -203,11 +203,11 @@
       color: #888;
       margin-bottom: 10px;
     }
-    .q-count-label span { color: var(--type-color, #4A90D9); font-weight: 700; font-size: 16px; }
+    .q-count-label span { color: var(--type-color, #8BBCE0); font-weight: 700; font-size: 16px; }
 
     .btn-next {
       width: 100%;
-      background: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
       color: #fff;
       border: none;
       border-radius: 50px;
@@ -222,13 +222,13 @@
 
     /* ===== RESULT ===== */
     .result-header {
-      background: linear-gradient(135deg, #4A90D9 0%, #5BB8F0 100%);
+      background: linear-gradient(135deg, #A8C8EE 0%, #B8DCF8 100%);
       padding: 32px 20px 40px;
       text-align: center;
-      color: #fff;
+      color: #3A5A7C;
     }
     .result-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
-    .result-header p { font-size: 14px; opacity: 0.85; line-height: 1.6; }
+    .result-header p { font-size: 14px; opacity: 0.75; line-height: 1.6; }
 
     .result-cards { padding: 20px 16px 0; }
 
@@ -253,7 +253,7 @@
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
       color: #fff;
       font-size: 16px;
       font-weight: 900;
@@ -270,11 +270,11 @@
     .result-type-info { flex: 1; }
     .result-type-name { font-size: 16px; font-weight: 800; color: #2d3a4a; margin-bottom: 2px; }
     .result-type-sub { font-size: 12px; color: #888; }
-    .result-score { font-size: 20px; font-weight: 900; color: var(--type-color, #4A90D9); }
+    .result-score { font-size: 20px; font-weight: 900; color: var(--type-color, #8BBCE0); }
     .result-score span { font-size: 12px; font-weight: 500; color: #aaa; }
 
-    .result-bar-wrap { height: 8px; background: #EEF6FF; margin: 0 16px 16px; border-radius: 10px; overflow: hidden; }
-    .result-bar-fill { height: 100%; background: var(--type-color, #4A90D9); border-radius: 10px; transition: width 0.8s ease; }
+    .result-bar-wrap { height: 8px; background: #EDF4FC; margin: 0 16px 16px; border-radius: 10px; overflow: hidden; }
+    .result-bar-fill { height: 100%; background: var(--type-color, #8BBCE0); border-radius: 10px; transition: width 0.8s ease; }
 
     .result-tap-hint {
       display: flex;
@@ -282,7 +282,7 @@
       gap: 6px;
       padding: 0 16px 14px;
       font-size: 12px;
-      color: var(--type-color, #4A90D9);
+      color: var(--type-color, #8BBCE0);
       font-weight: 600;
     }
 
@@ -325,7 +325,7 @@
     .btn-retry {
       display: block;
       margin: 20px 0 0;
-      background: linear-gradient(135deg, #4A90D9, #5BB8F0);
+      background: linear-gradient(135deg, #A8C8EE, #B8DCF8);
       color: #fff;
       border: none;
       border-radius: 50px;
@@ -340,7 +340,7 @@
 
     /* ===== DETAIL ===== */
     .detail-header {
-      background: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
       padding: 20px 20px 32px;
       color: #fff;
     }
@@ -383,14 +383,14 @@
       font-size: 14px;
       color: #444;
       line-height: 1.8;
-      border-left: 4px solid var(--type-color, #4A90D9);
+      border-left: 4px solid var(--type-color, #8BBCE0);
     }
 
     .detail-section-title { font-size: 16px; font-weight: 800; color: #2d3a4a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 
     .keyword-badge {
       display: inline-block;
-      background: var(--type-color, #4A90D9);
+      background: var(--type-color, #8BBCE0);
       color: #fff;
       border-radius: 30px;
       padding: 8px 20px;
@@ -410,7 +410,7 @@
       margin-bottom: 8px;
       box-shadow: 0 2px 8px rgba(74,144,217,0.07);
     }
-    .action-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-color, #4A90D9); flex-shrink: 0; margin-top: 7px; }
+    .action-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-color, #8BBCE0); flex-shrink: 0; margin-top: 7px; }
     .action-text { font-size: 15px; color: #333; line-height: 1.6; }
 
     .ng-section { background: linear-gradient(135deg, #FFF0F0, #FFF5F0); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
@@ -433,7 +433,7 @@ const TYPES = [
   {
     id: 1, no: "①",
     name: "過剰適応型", sub: "外で頑張りすぎて家で爆発",
-    color: "#5B9BE8", light: "#EEF4FF", emoji: "😤",
+    color: "#8BBDE8", light: "#EEF4FF", emoji: "😤",
     summary: "外で感情や緊張を抑え込み、家で一気に解放している可能性があります。",
     keyword: "頑張りすぎている",
     questions: [
@@ -456,7 +456,7 @@ const TYPES = [
   {
     id: 2, no: "②",
     name: "安全基地型", sub: "親だから感情を出せる",
-    color: "#E8726E", light: "#FFF0F0", emoji: "🏠",
+    color: "#EFA9A6", light: "#FFF3F3", emoji: "🏠",
     summary: "「ここなら見捨てられない」という安心感の中で、抑えていた感情を出している可能性があります。",
     keyword: "安心して感情を出している",
     questions: [
@@ -477,7 +477,7 @@ const TYPES = [
   {
     id: 3, no: "③",
     name: "感情調整未熟型", sub: "感情ブレーキが未熟",
-    color: "#E8A838", light: "#FFF8EC", emoji: "🌋",
+    color: "#EEC574", light: "#FFFAEF", emoji: "🌋",
     summary: "脳の感情調整機能がまだ未熟で、刺激や感情をうまく処理しきれていない可能性があります。",
     keyword: "感情ブレーキが未熟",
     questions: [
@@ -498,7 +498,7 @@ const TYPES = [
   {
     id: 4, no: "④",
     name: "愛着不安型", sub: "本当に愛されているか確認",
-    color: "#E85598", light: "#FFF0F8", emoji: "💔",
+    color: "#EE8DBE", light: "#FFF3F9", emoji: "💔",
     summary: "「本当に大丈夫？」「見捨てられない？」を確認するような行動が出ている可能性があります。",
     keyword: "本当に大丈夫？",
     questions: [
@@ -519,7 +519,7 @@ const TYPES = [
   {
     id: 5, no: "⑤",
     name: "発達特性型", sub: "刺激・特性による疲労",
-    color: "#38B89E", light: "#EDFAF7", emoji: "🧩",
+    color: "#6EC9B5", light: "#F0FAF8", emoji: "🧩",
     summary: "ASD傾向・ADHD傾向・HSC気質など、特性由来の疲労や調整困難が背景にある可能性があります。",
     keyword: "頑張って適応している",
     questions: [
@@ -540,7 +540,7 @@ const TYPES = [
   {
     id: 6, no: "⑥",
     name: "家庭内相互作用型", sub: "親子の反応ループ",
-    color: "#3B9EE8", light: "#EEF6FF", emoji: "🔄",
+    color: "#78BAE8", light: "#EEF6FF", emoji: "🔄",
     summary: "子どもの問題だけでなく、親子間の「反応パターン」が固定化している可能性があります。",
     keyword: "反応ループ",
     questions: [
@@ -561,7 +561,7 @@ const TYPES = [
   {
     id: 7, no: "⑦",
     name: "ストレス・身体状態型", sub: "身体疲労・神経疲労",
-    color: "#7A9ECC", light: "#EEF4FA", emoji: "😴",
+    color: "#9AB8D8", light: "#EFF5FA", emoji: "😴",
     summary: "神経疲労・睡眠不足・感覚疲労など、身体状態の影響が大きい可能性があります。",
     keyword: "脳と身体が限界",
     questions: [
