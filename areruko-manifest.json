@@ -11,13 +11,13 @@
   "lang": "ja",
   "icons": [
     {
-      "src": "./icon.svg",
+      "src": "./areruko-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./icon-maskable.svg",
+      "src": "./areruko-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
