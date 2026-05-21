@@ -2,10 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=./areruko-check.html?v=2">
-  <title>診断アプリ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>診断アプリ一覧</title>
+  <style>
+    body { font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+           background: linear-gradient(160deg, #FFF5F8 0%, #EEF6FF 100%); min-height: 100vh;
+           margin: 0; padding: 40px 20px; }
+    h1 { text-align: center; color: #444; font-size: 20px; margin-bottom: 28px; }
+    .card { display: block; background: #fff; border-radius: 20px; padding: 20px;
+            margin: 0 auto 16px; max-width: 360px; text-decoration: none; color: #333;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08); border-left: 6px solid #ccc; }
+    .card.kishitu { border-left-color: #FF6BAE; }
+    .card.areruko { border-left-color: #7AB0E0; }
+    .title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #888; }
+  </style>
 </head>
 <body>
-  <p>移動中… <a href="./areruko-check.html?v=2">こちらをタップ</a></p>
+  <h1>診断アプリ一覧</h1>
+  <a class="card kishitu" href="./kishitu-check.html">
+    <div class="title">🌈 子どもの気質チェック</div>
+    <div class="sub">9つの項目でお子さんの気質タイプを診断</div>
+  </a>
+  <a class="card areruko" href="./areruko/">
+    <div class="title">🏠 外ではいい子・家で荒れる子 タイプ診断</div>
+    <div class="sub">7タイプ別チェックリスト＆対処まとめ</div>
+  </a>
 </body>
 </html>

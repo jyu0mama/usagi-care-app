@@ -1,8 +1,8 @@
-{
+﻿{
   "name": "外ではいい子・家では荒れる子 タイプ診断",
   "short_name": "荒れる子診断",
   "description": "外ではいい子なのに家で荒れる子のタイプを診断し、対処法がわかるアプリ",
-  "start_url": "./areruko-check.html?v=2",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
@@ -11,13 +11,13 @@
   "lang": "ja",
   "icons": [
     {
-      "src": "./areruko-icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "./areruko-icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
