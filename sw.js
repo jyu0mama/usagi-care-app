@@ -1,7 +1,8 @@
-const CACHE = 'kishitu-v1';
+const CACHE = 'apps-v3';
 
 const PRECACHE = [
   './kishitu-check.html',
+  './areruko-check.html',
   './manifest.json',
   './icon.svg',
   './icon-maskable.svg',
@@ -24,6 +25,13 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  // ナビゲーションリクエスト（HTMLページ遷移）はキャッシュを使わずネットワーク優先
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then((cached) => {
       if (cached) return cached;
@@ -33,8 +41,7 @@ self.addEventListener('fetch', (e) => {
           const clone = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, clone));
           return res;
-        })
-        .catch(() => caches.match('./kishitu-check.html'));
+        });
     })
   );
 });
