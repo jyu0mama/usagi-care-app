@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>外ではいい子・家では荒れる子 タイプ診断</title>
 
-  <link rel="manifest" href="./manifest.json">
+  <link rel="manifest" href="./areruko-manifest.json">
   <meta name="theme-color" content="#A8C8EE">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,14 +13,21 @@
   <meta name="apple-mobile-web-app-title" content="荒れる子診断">
   <link rel="apple-touch-icon" href="./icon.svg">
 
-  <!-- 旧キャッシュ・SW を即座に解除 -->
+  <!-- SW・キャッシュを完全排除（気質チェックアプリとの干渉防止） -->
   <script>
     if ('serviceWorker' in navigator) {
-      // 旧 kishitu キャッシュを削除
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
-      // 登録済み SW をすべてアップデート強制 → 新 SW に切り替え
+      // 全キャッシュ削除
+      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
+      // 全SWをunregister → ページリロードで干渉なし状態にする
       navigator.serviceWorker.getRegistrations().then(regs => {
-        regs.forEach(reg => reg.update());
+        if (regs.length > 0 && !sessionStorage.getItem('sw-done')) {
+          Promise.all(regs.map(r => r.unregister())).then(() => {
+            sessionStorage.setItem('sw-done', '1');
+            location.reload();
+          });
+        } else {
+          sessionStorage.setItem('sw-done', '1');
+        }
       });
     }
   </script>
