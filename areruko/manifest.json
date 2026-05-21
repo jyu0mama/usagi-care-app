@@ -1,10 +1,9 @@
 {
-  "id": "/usagi-care-app/areruko/",
   "name": "外ではいい子・家では荒れる子 タイプ診断",
   "short_name": "荒れる子診断",
   "description": "外ではいい子なのに家で荒れる子のタイプを診断し、対処法がわかるアプリ",
-  "start_url": "/usagi-care-app/areruko/",
-  "scope": "/usagi-care-app/areruko/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#F5F9FF",
@@ -13,13 +12,13 @@
   "icons": [
     {
       "src": "./icon.svg",
-      "sizes": "any",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
       "src": "./icon.svg",
-      "sizes": "any",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"
     }

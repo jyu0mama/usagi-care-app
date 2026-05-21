@@ -1,10 +1,9 @@
 {
-  "id": "/usagi-care-app/kishitu/",
   "name": "子どもの気質チェック",
   "short_name": "気質チェック",
   "description": "お子さんの気質タイプを診断し、合った声かけがわかるアプリ",
-  "start_url": "/usagi-care-app/kishitu/",
-  "scope": "/usagi-care-app/kishitu/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FFF5F8",
@@ -13,13 +12,13 @@
   "icons": [
     {
       "src": "./icon.svg",
-      "sizes": "any",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
       "src": "./icon-maskable.svg",
-      "sizes": "any",
+      "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"
     }

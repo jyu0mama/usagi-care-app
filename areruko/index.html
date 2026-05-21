@@ -14,21 +14,11 @@
   <link rel="apple-touch-icon" href="./icon.svg">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
 
-  <!-- SW・キャッシュを完全排除（気質チェックアプリとの干渉防止） -->
+  <!-- Service Worker 登録（PWAインストール条件を満たすため） -->
   <script>
     if ('serviceWorker' in navigator) {
-      // 全キャッシュ削除
-      caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))));
-      // 全SWをunregister → ページリロードで干渉なし状態にする
-      navigator.serviceWorker.getRegistrations().then(regs => {
-        if (regs.length > 0 && !sessionStorage.getItem('sw-done')) {
-          Promise.all(regs.map(r => r.unregister())).then(() => {
-            sessionStorage.setItem('sw-done', '1');
-            location.reload();
-          });
-        } else {
-          sessionStorage.setItem('sw-done', '1');
-        }
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
       });
     }
   </script>
