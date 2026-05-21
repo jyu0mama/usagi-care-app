@@ -2,7 +2,7 @@
   "name": "子どもの気質チェック",
   "short_name": "気質チェック",
   "description": "お子さんの気質タイプを診断し、合った声かけがわかるアプリ",
-  "start_url": "./kishitu-check.html",
+  "start_url": "./areruko-check.html?v=2",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

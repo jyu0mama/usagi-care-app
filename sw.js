@@ -1,47 +1,16 @@
-const CACHE = 'apps-v3';
+// キャッシュ一切使わない・全リクエストをネットワークに流す
+// 旧キャッシュはactivate時に全削除
 
-const PRECACHE = [
-  './kishitu-check.html',
-  './areruko-check.html',
-  './manifest.json',
-  './icon.svg',
-  './icon-maskable.svg',
-];
-
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(PRECACHE))
-  );
-  self.skipWaiting();
-});
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (e) => {
-  // ナビゲーションリクエスト（HTMLページ遷移）はキャッシュを使わずネットワーク優先
-  if (e.request.mode === 'navigate') {
-    e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
-    );
-    return;
-  }
-  e.respondWith(
-    caches.match(e.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(e.request)
-        .then((res) => {
-          if (!res || !res.ok || res.type === 'opaque') return res;
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, clone));
-          return res;
-        });
-    })
-  );
+  e.respondWith(fetch(e.request));
 });
