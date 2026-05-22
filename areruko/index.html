@@ -383,19 +383,26 @@
       padding: 14px 16px;
     }
 
-    .simple-type-tips {
-      margin-top: 16px;
-      text-align: left;
-    }
+    .simple-type-section { margin-top: 18px; text-align: left; }
 
-    .simple-tips-title {
+    .simple-section-title {
       font-size: 14px;
       font-weight: 800;
-      color: var(--type-color, #A8C8EE);
-      margin-bottom: 10px;
+      margin-bottom: 9px;
       display: flex;
       align-items: center;
       gap: 6px;
+      color: #2d3a4a;
+    }
+
+    .simple-keyword {
+      display: inline-block;
+      background: var(--type-color, #A8C8EE);
+      color: #fff;
+      border-radius: 30px;
+      padding: 8px 20px;
+      font-size: 15px;
+      font-weight: 800;
     }
 
     .simple-tip-item {
@@ -412,6 +419,30 @@
 
     .simple-tip-check {
       color: var(--type-color, #A8C8EE);
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .simple-ng-box {
+      background: #FFF3F3;
+      border-radius: 12px;
+      padding: 8px 14px;
+    }
+    .simple-ng-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #7a7a7a;
+      line-height: 1.6;
+      padding: 6px 0;
+      border-bottom: 1px dashed #F2DADA;
+    }
+    .simple-ng-item:last-child { border-bottom: none; }
+    .simple-ng-x {
+      color: #E58787;
       font-weight: 800;
       flex-shrink: 0;
       font-size: 13px;
@@ -845,14 +876,32 @@ function ResultScreen({ sortedTypes, onRetry }) {
                 <div className="simple-type-name">{type.name}</div>
                 <div className="simple-type-sub">「{type.sub}」タイプ</div>
                 <div className="simple-type-summary">{type.summary}</div>
-                <div className="simple-type-tips">
-                  <div className="simple-tips-title">💡 このタイプに向く かんたん対処法</div>
-                  {type.actions.slice(0, 3).map((a, j) => (
+
+                <div className="simple-type-section">
+                  <div className="simple-section-title">🔑 キーワード</div>
+                  <div className="simple-keyword">「{type.keyword}」</div>
+                </div>
+
+                <div className="simple-type-section">
+                  <div className="simple-section-title">✅ 有効な対応</div>
+                  {type.actions.map((a, j) => (
                     <div key={j} className="simple-tip-item">
                       <span className="simple-tip-check">✓</span>
                       <span>{a}</span>
                     </div>
                   ))}
+                </div>
+
+                <div className="simple-type-section">
+                  <div className="simple-section-title">⛔ NGな対応</div>
+                  <div className="simple-ng-box">
+                    {type.ng.map((g, j) => (
+                      <div key={j} className="simple-ng-item">
+                        <span className="simple-ng-x">✕</span>
+                        <span>{g}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}
