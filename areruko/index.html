@@ -449,6 +449,80 @@
       margin-top: 2px;
     }
 
+    /* ===== PIE CHART ===== */
+    .pie-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+    .pie-chart {
+      width: 184px;
+      height: 184px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 18px rgba(74,144,217,0.18);
+    }
+    .pie-hole {
+      width: 104px;
+      height: 104px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .pie-hole-emoji { font-size: 34px; line-height: 1; }
+    .pie-hole-label { font-size: 11px; color: #999; margin-top: 3px; }
+
+    .pie-legend {
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(74,144,217,0.08);
+    }
+    .pie-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .pie-legend-dot { width: 13px; height: 13px; border-radius: 4px; flex-shrink: 0; }
+    .pie-legend-name { flex: 1; color: #555; }
+    .pie-legend-score { font-weight: 800; color: #2d3a4a; }
+
+    /* ===== HEADLINE ===== */
+    .result-headline-wrap { text-align: center; margin-bottom: 18px; }
+    .result-headline-label { font-size: 13px; color: #888; margin-bottom: 7px; }
+    .result-headline {
+      font-size: 23px;
+      font-weight: 900;
+      color: #3A5A7C;
+      background: linear-gradient(135deg, #EEF6FF, #F5EEFF);
+      border-radius: 16px;
+      padding: 16px 14px;
+      line-height: 1.4;
+    }
+
+    /* ===== ASSESSMENT ===== */
+    .assessment-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      box-shadow: 0 3px 14px rgba(74,144,217,0.1);
+    }
+    .assessment-main-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #2d3a4a;
+      text-align: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #EEF2F8;
+    }
+    .keyword-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
     .btn-retry {
       display: block;
       margin: 20px 0 0;
@@ -844,14 +918,47 @@ function TopScreen({ onStart }) {
   );
 }
 
-/* ===== RESULT SCREEN（簡易版）===== */
+/* ===== RESULT SCREEN（円グラフ＋総合所見）===== */
 function ResultScreen({ sortedTypes, onRetry }) {
+  const total = sortedTypes.reduce((s, t) => s + t.score, 0);
   const topScore = sortedTypes[0].score;
-  // 表示タイプ：トップスコアから2以内・スコア1以上・最大3つ
+  // 主要タイプ：トップスコアから2以内・スコア1以上・最大3つ
   const shownTypes = topScore > 0
     ? sortedTypes.filter(t => t.score > 0 && t.score >= topScore - 2).slice(0, 3)
     : [];
   const n = shownTypes.length;
+
+  // 円グラフ（conic-gradient）
+  const withScore = sortedTypes.filter(t => t.score > 0);
+  let acc = 0;
+  const stops = withScore.map(t => {
+    const pct = (t.score / total) * 100;
+    const seg = t.color + " " + acc + "% " + (acc + pct) + "%";
+    acc += pct;
+    return seg;
+  });
+  const pieStyle = total > 0
+    ? { background: "conic-gradient(" + stops.join(", ") + ")" }
+    : { background: "#E0E8F0" };
+
+  // ヘッドラインラベル
+  const shortName = (name) => name.replace(/型$/, "");
+  let headline = "";
+  if (n === 1) headline = shownTypes[0].name;
+  else if (n >= 2) headline = shortName(shownTypes[0].name) + "強めの複合型";
+
+  // 総合所見：主要タイプから統合（上位ほど多く採用・重複除去）
+  const combine = (field, counts) => {
+    const out = [];
+    shownTypes.forEach((t, i) => {
+      (t[field] || []).slice(0, counts[i] || 0).forEach(x => {
+        if (out.indexOf(x) === -1) out.push(x);
+      });
+    });
+    return out;
+  };
+  const combinedActions = combine("actions", [3, 2, 2]);
+  const combinedNg = combine("ng", [2, 1, 1]);
 
   return (
     <div className="screen result-screen" style={{ padding: "0 0 80px" }}>
@@ -865,46 +972,71 @@ function ResultScreen({ sortedTypes, onRetry }) {
           </div>
         ) : (
           <>
-            <div className="result-lead">
-              {n === 1 ? "あなたのお子さんのタイプは…" : "あなたのお子さんに当てはまるタイプは…"}
-            </div>
-            {shownTypes.map((type, i) => (
-              <div key={type.id} className="simple-type-card"
-                style={{ "--type-color": type.color, "--type-light": type.light }}>
-                {n > 1 && <div className="simple-type-rank">当てはまり {i + 1}位</div>}
-                <div className="simple-type-emoji">{type.emoji}</div>
-                <div className="simple-type-name">{type.name}</div>
-                <div className="simple-type-sub">「{type.sub}」タイプ</div>
-                <div className="simple-type-summary">{type.summary}</div>
-
-                <div className="simple-type-section">
-                  <div className="simple-section-title">🔑 キーワード</div>
-                  <div className="simple-keyword">「{type.keyword}」</div>
+            {/* 円グラフ */}
+            <div className="pie-wrap">
+              <div className="pie-chart" style={pieStyle}>
+                <div className="pie-hole">
+                  <div className="pie-hole-emoji">{shownTypes[0].emoji}</div>
+                  <div className="pie-hole-label">回答の割合</div>
                 </div>
+              </div>
+            </div>
 
-                <div className="simple-type-section">
-                  <div className="simple-section-title">✅ 有効な対応</div>
-                  {type.actions.map((a, j) => (
-                    <div key={j} className="simple-tip-item">
-                      <span className="simple-tip-check">✓</span>
-                      <span>{a}</span>
+            {/* 凡例 */}
+            <div className="pie-legend">
+              {withScore.map(t => (
+                <div key={t.id} className="pie-legend-item">
+                  <span className="pie-legend-dot" style={{ background: t.color }}></span>
+                  <span className="pie-legend-name">{t.name}</span>
+                  <span className="pie-legend-score">{Math.round((t.score / total) * 100)}%</span>
+                </div>
+              ))}
+            </div>
+
+            {/* ヘッドライン */}
+            <div className="result-headline-wrap">
+              <div className="result-headline-label">あなたのお子さんは</div>
+              <div className="result-headline">{headline}</div>
+            </div>
+
+            {/* 総合所見 */}
+            <div className="assessment-box">
+              <div className="assessment-main-title">📋 総合所見</div>
+
+              <div className="simple-type-section" style={{ marginTop: 0 }}>
+                <div className="simple-section-title">🔑 キーワード</div>
+                <div className="keyword-row">
+                  {shownTypes.map(t => (
+                    <span key={t.id} className="simple-keyword" style={{ background: t.color }}>
+                      「{t.keyword}」
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="simple-type-section">
+                <div className="simple-section-title">✅ 有効な対応</div>
+                {combinedActions.map((a, j) => (
+                  <div key={j} className="simple-tip-item">
+                    <span className="simple-tip-check">✓</span>
+                    <span>{a}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="simple-type-section">
+                <div className="simple-section-title">⛔ NGな対応</div>
+                <div className="simple-ng-box">
+                  {combinedNg.map((g, j) => (
+                    <div key={j} className="simple-ng-item">
+                      <span className="simple-ng-x">✕</span>
+                      <span>{g}</span>
                     </div>
                   ))}
                 </div>
-
-                <div className="simple-type-section">
-                  <div className="simple-section-title">⛔ NGな対応</div>
-                  <div className="simple-ng-box">
-                    {type.ng.map((g, j) => (
-                      <div key={j} className="simple-ng-item">
-                        <span className="simple-ng-x">✕</span>
-                        <span>{g}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
-            ))}
+            </div>
+
             <div className="final-message">
               「荒れる」のは <strong>“困らせたい”</strong> のではなく<br />
               <strong>“困っている”</strong> サインのことが多くあります。<br /><br />
