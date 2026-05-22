@@ -858,6 +858,9 @@ function App() {
             <div className="progress-bar-fill" style={{ width: progress + "%" }} />
           </div>
         </div>
+        <div style={{ padding: "10px 16px 0", fontSize: "12px", color: "#7A9AB8", textAlign: "center" }}>
+          ✅ あてはまると思う項目だけチェックしてください（0個でもOK）
+        </div>
         <div className="q-list">
           {type.questions.map((q, i) => (
             <div key={i} className={"q-item" + (typeAnswers[i] ? " checked" : "")}
@@ -923,6 +926,8 @@ function ResultScreen({ sortedTypes, onRetry }) {
 
   // 円グラフ（conic-gradient）
   const withScore = sortedTypes.filter(t => t.score > 0);
+  // 全タイプが同スコアかどうか判定
+  const allEqual = withScore.length > 1 && withScore.every(t => t.score === withScore[0].score);
   let acc = 0;
   const stops = withScore.map(t => {
     const pct = (t.score / total) * 100;
@@ -975,6 +980,13 @@ function ResultScreen({ sortedTypes, onRetry }) {
               </div>
             </div>
 
+            {/* 全タイプ同率の場合の注意書き */}
+            {allEqual && (
+              <div style={{ background: "#FFF8E8", border: "1.5px solid #F0C060", borderRadius: "12px", padding: "10px 14px", margin: "0 0 10px", fontSize: "12px", color: "#8A6A20", lineHeight: 1.6 }}>
+                ⚠️ 各タイプに同じ数のチェックが入っているため、割合が均等になっています。<br />
+                <strong>あてはまる項目だけ</strong>チェックして「もう一度診断する」をお試しください。
+              </div>
+            )}
             {/* 凡例 */}
             <div className="pie-legend">
               {withScore.map(t => (
