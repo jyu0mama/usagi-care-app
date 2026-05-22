@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#EEF6FF"/>
+  <!-- outer glow circle -->
+  <circle cx="96" cy="88" r="58" fill="#C5DCF5" opacity="0.6"/>
+  <!-- main circle -->
+  <circle cx="96" cy="88" r="46" fill="#7AB0E0"/>
+  <!-- house outline -->
+  <path d="M 70 100 L 96 76 L 122 100 L 122 118 L 70 118 Z"
+        fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- text -->
+  <text x="96" y="78" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif"
+        font-size="18" text-anchor="middle" fill="white" font-weight="800" letter-spacing="1">荒れる</text>
+  <text x="96" y="98" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif"
+        font-size="13" text-anchor="middle" fill="white" opacity="0.9">子診断</text>
+  <!-- small dots -->
+  <circle cx="60" cy="64" r="5" fill="#C5DCF5" opacity="0.8"/>
+  <circle cx="132" cy="60" r="4" fill="#C5DCF5" opacity="0.6"/>
+  <circle cx="148" cy="80" r="3" fill="white" opacity="0.5"/>
+</svg>

@@ -1,14 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <!-- maskable: safe zone is center 75% (144x144) -->
   <rect width="192" height="192" fill="#FF6BAE"/>
-  <!-- lighter circle (mark) at upper area -->
-  <circle cx="96" cy="70" r="46" fill="#FF8EC4" opacity="0.55"/>
-  <!-- rainbow arcs -->
-  <path d="M 58 82 A 38 38 0 0 1 134 82" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.95"/>
-  <path d="M 67 82 A 29 29 0 0 1 125 82" stroke="#FFD1E8" stroke-width="5.5" fill="none" stroke-linecap="round" opacity="0.9"/>
-  <path d="M 76 82 A 20 20 0 0 1 116 82" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.85"/>
-  <!-- white pill for text (clearly below mark) -->
-  <rect x="28" y="124" width="136" height="52" rx="18" fill="white" opacity="0.92"/>
-  <text x="96" y="150" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="22" text-anchor="middle" fill="#CC3080" font-weight="900" letter-spacing="3">気質</text>
-  <text x="96" y="169" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="15" text-anchor="middle" fill="#E05095" font-weight="700" letter-spacing="1">チェック</text>
+  <circle cx="96" cy="90" r="50" fill="#FF8EC4" opacity="0.5"/>
+  <path d="M 52 112 A 44 44 0 0 1 140 112" stroke="#fff" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.9"/>
+  <path d="M 62 112 A 34 34 0 0 1 130 112" stroke="#FFD1E8" stroke-width="5.5" fill="none" stroke-linecap="round"/>
+  <path d="M 72 112 A 24 24 0 0 1 120 112" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <text x="96" y="82" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="20" text-anchor="middle" fill="white" font-weight="800" letter-spacing="1">気質</text>
+  <text x="96" y="104" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="14" text-anchor="middle" fill="white" opacity="0.9">チェック</text>
 </svg>

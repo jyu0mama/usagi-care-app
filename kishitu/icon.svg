@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <rect width="192" height="192" rx="40" fill="#FFF0F6"/>
-  <!-- glow -->
-  <circle cx="96" cy="72" r="54" fill="#FFD1E8" opacity="0.45"/>
-  <!-- main circle (mark area) -->
-  <circle cx="96" cy="72" r="42" fill="#FF6BAE"/>
-  <!-- rainbow arcs inside circle -->
-  <path d="M 60 84 A 36 36 0 0 1 132 84" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.95"/>
-  <path d="M 69 84 A 27 27 0 0 1 123 84" stroke="#FFD1E8" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.9"/>
-  <path d="M 78 84 A 18 18 0 0 1 114 84" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.85"/>
-  <!-- star dots around circle -->
-  <circle cx="46" cy="46" r="5" fill="#FFD1E8" opacity="0.8"/>
-  <circle cx="146" cy="42" r="4" fill="#FFD1E8" opacity="0.6"/>
-  <circle cx="158" cy="76" r="3" fill="#FF6BAE" opacity="0.4"/>
-  <!-- text on light background (clearly separated from mark) -->
-  <text x="96" y="142" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="24" text-anchor="middle" fill="#CC3080" font-weight="900" letter-spacing="3">気質</text>
-  <text x="96" y="166" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="16" text-anchor="middle" fill="#E05095" font-weight="700" letter-spacing="1">チェック</text>
+  <!-- outer glow circle -->
+  <circle cx="96" cy="88" r="58" fill="#FFD1E8" opacity="0.6"/>
+  <!-- main circle -->
+  <circle cx="96" cy="88" r="46" fill="#FF6BAE"/>
+  <!-- rainbow arcs -->
+  <path d="M 54 108 A 42 42 0 0 1 138 108" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.9"/>
+  <path d="M 62 108 A 34 34 0 0 1 130 108" stroke="#FFD1E8" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.9"/>
+  <path d="M 70 108 A 26 26 0 0 1 122 108" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.8"/>
+  <!-- text -->
+  <text x="96" y="78" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="18" text-anchor="middle" fill="white" font-weight="800" letter-spacing="1">気質</text>
+  <text x="96" y="100" font-family="'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif" font-size="13" text-anchor="middle" fill="white" opacity="0.9">チェック</text>
+  <!-- small dots -->
+  <circle cx="60" cy="64" r="5" fill="#FFD1E8" opacity="0.8"/>
+  <circle cx="132" cy="60" r="4" fill="#FFD1E8" opacity="0.6"/>
+  <circle cx="148" cy="80" r="3" fill="white" opacity="0.5"/>
 </svg>

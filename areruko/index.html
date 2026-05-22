@@ -1,0 +1,1062 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>外ではいい子・家では荒れる子 タイプ診断</title>
+
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#A8C8EE">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="荒れる子診断">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+
+  <!-- Service Worker 登録（PWAインストール条件を満たすため） -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+      background: linear-gradient(160deg, #F5F9FF 0%, #EFF6FF 50%, #F5F9FF 100%);
+      min-height: 100vh;
+      color: #2d3a4a;
+    }
+
+    #root { min-height: 100vh; }
+    .screen { min-height: 100vh; padding: 0 0 80px; display: flex; flex-direction: column; }
+
+    /* ===== TOP ===== */
+    .top-screen {
+      justify-content: flex-start;
+      align-items: center;
+      text-align: center;
+      padding: 0 0 60px;
+      background: linear-gradient(170deg, #C5DCF5 0%, #A8C8EE 45%, #C8E8F8 100%);
+      min-height: 100vh;
+    }
+
+    .top-illust-wrap {
+      width: 100%;
+      background: #fff;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    .top-text-area {
+      width: 100%;
+      padding: 20px 24px 0;
+    }
+
+    .top-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #3A5A7C;
+      line-height: 1.45;
+      margin-bottom: 6px;
+      text-shadow: none;
+    }
+
+    .top-subtitle {
+      font-size: 13px;
+      color: #6A8AA8;
+      margin-bottom: 6px;
+      line-height: 1.6;
+    }
+
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.6);
+      border: 1.5px solid rgba(100,160,210,0.35);
+      border-radius: 30px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #5A86A8;
+      margin: 10px 0 18px;
+    }
+
+    .top-notice {
+      background: rgba(255,255,255,0.55);
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: #6A8AA8;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .btn-primary {
+      background: #fff;
+      color: #6AA8D8;
+      border: none;
+      border-radius: 50px;
+      padding: 18px 56px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+      transition: transform 0.1s, box-shadow 0.1s;
+      letter-spacing: 0.05em;
+    }
+    .btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+
+    /* ===== QUIZ ===== */
+    .q-header {
+      background: var(--type-color, #8BBCE0);
+      padding: 20px 20px 28px;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .q-type-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      display: inline-block;
+      margin-bottom: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .q-type-name { font-size: 20px; font-weight: 900; margin-bottom: 4px; }
+    .q-type-sub { font-size: 13px; opacity: 0.85; }
+
+    .progress-bar-wrap {
+      margin-top: 14px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 10px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #fff;
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    .q-list { padding: 16px 16px 0; flex: 1; }
+
+    .q-item {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: 0 2px 8px rgba(74,144,217,0.08);
+      border: 2px solid transparent;
+    }
+    .q-item.checked {
+      border-color: var(--type-color, #8BBCE0);
+      background: var(--type-light, #EEF6FF);
+    }
+
+    .q-checkbox {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      border: 2.5px solid #ccc;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      margin-top: 1px;
+    }
+    .q-item.checked .q-checkbox {
+      background: var(--type-color, #8BBCE0);
+      border-color: var(--type-color, #8BBCE0);
+    }
+
+    .check-icon { display: none; color: #fff; font-size: 16px; font-weight: 700; line-height: 1; }
+    .q-item.checked .check-icon { display: block; }
+
+    .q-text { font-size: 15px; line-height: 1.6; color: #333; flex: 1; }
+    .q-item.checked .q-text { color: #2d3a4a; font-weight: 600; }
+
+    .q-footer {
+      padding: 16px;
+      position: sticky;
+      bottom: 0;
+      background: linear-gradient(to top, rgba(245,249,255,1) 70%, rgba(245,249,255,0) 100%);
+    }
+
+    .q-count-label {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .q-count-label span { color: var(--type-color, #8BBCE0); font-weight: 700; font-size: 16px; }
+
+    .btn-next {
+      width: 100%;
+      background: var(--type-color, #8BBCE0);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.1s;
+      box-shadow: 0 4px 16px rgba(74,144,217,0.28);
+    }
+    .btn-next:active { transform: scale(0.98); }
+
+    /* ===== RESULT ===== */
+    .result-header {
+      background: linear-gradient(135deg, #A8C8EE 0%, #B8DCF8 100%);
+      padding: 32px 20px 40px;
+      text-align: center;
+      color: #3A5A7C;
+    }
+    .result-header h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+    .result-header p { font-size: 14px; opacity: 0.75; line-height: 1.6; }
+
+    .result-cards { padding: 20px 16px 0; }
+
+    .result-card {
+      background: #fff;
+      border-radius: 20px;
+      margin-bottom: 14px;
+      overflow: hidden;
+      box-shadow: 0 3px 12px rgba(74,144,217,0.1);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .result-card:active { transform: scale(0.98); }
+    .result-card.top-card {
+      box-shadow: 0 6px 24px rgba(74,144,217,0.25);
+      border: 2px solid var(--type-color);
+    }
+
+    .result-card-header { padding: 16px 16px 12px; display: flex; align-items: center; gap: 12px; }
+
+    .result-rank {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--type-color, #8BBCE0);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .result-rank.rank-1 {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      box-shadow: 0 3px 10px rgba(255,165,0,0.4);
+    }
+
+    .result-type-info { flex: 1; }
+    .result-type-name { font-size: 16px; font-weight: 800; color: #2d3a4a; margin-bottom: 2px; }
+    .result-type-sub { font-size: 12px; color: #888; }
+    .result-score { font-size: 20px; font-weight: 900; color: var(--type-color, #8BBCE0); }
+    .result-score span { font-size: 12px; font-weight: 500; color: #aaa; }
+
+    .result-bar-wrap { height: 8px; background: #EDF4FC; margin: 0 16px 16px; border-radius: 10px; overflow: hidden; }
+    .result-bar-fill { height: 100%; background: var(--type-color, #8BBCE0); border-radius: 10px; transition: width 0.8s ease; }
+
+    .result-tap-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px 14px;
+      font-size: 12px;
+      color: var(--type-color, #8BBCE0);
+      font-weight: 600;
+    }
+
+    .result-zero .result-score { color: #ccc; }
+    .result-zero .result-bar-fill { background: #e0e0e0; }
+    .result-zero .result-rank { background: #ddd; }
+    .result-zero .result-type-name { color: #aaa; }
+    .result-zero .result-tap-hint { display: none; }
+
+    .combo-section {
+      margin: 8px 0 0;
+      background: linear-gradient(135deg, #FFF8EC, #FFF0F8);
+      border-radius: 20px;
+      padding: 18px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .combo-title { font-size: 14px; font-weight: 800; color: #E88C3E; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+    .combo-item {
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+      border-left: 4px solid #FFAA66;
+    }
+
+    .final-message {
+      margin: 16px 0 0;
+      background: linear-gradient(135deg, #EEF6FF, #E8F4FF);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.9;
+    }
+
+    /* ===== SIMPLE RESULT CARD ===== */
+    .result-lead {
+      text-align: center;
+      font-size: 14px;
+      color: #6A8AA8;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .simple-type-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(74,144,217,0.12);
+      border-top: 6px solid var(--type-color, #A8C8EE);
+    }
+
+    .simple-type-rank {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--type-color, #A8C8EE);
+      border-radius: 20px;
+      padding: 3px 14px;
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .simple-type-emoji { font-size: 48px; line-height: 1; margin-bottom: 8px; }
+
+    .simple-type-name {
+      font-size: 22px;
+      font-weight: 900;
+      color: #2d3a4a;
+      margin-bottom: 4px;
+    }
+
+    .simple-type-sub {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 14px;
+    }
+
+    .simple-type-summary {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.85;
+      text-align: left;
+      background: var(--type-light, #EEF6FF);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
+    .simple-type-section { margin-top: 18px; text-align: left; }
+
+    .simple-section-title {
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 9px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #2d3a4a;
+    }
+
+    .simple-keyword {
+      display: inline-block;
+      background: var(--type-color, #A8C8EE);
+      color: #fff;
+      border-radius: 30px;
+      padding: 8px 20px;
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .simple-tip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.65;
+      padding: 7px 0;
+      border-bottom: 1px dashed #ECECF2;
+    }
+    .simple-tip-item:last-child { border-bottom: none; }
+
+    .simple-tip-check {
+      color: var(--type-color, #A8C8EE);
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .simple-ng-box {
+      background: #FFF3F3;
+      border-radius: 12px;
+      padding: 8px 14px;
+    }
+    .simple-ng-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: #7a7a7a;
+      line-height: 1.6;
+      padding: 6px 0;
+      border-bottom: 1px dashed #F2DADA;
+    }
+    .simple-ng-item:last-child { border-bottom: none; }
+    .simple-ng-x {
+      color: #E58787;
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    /* ===== PIE CHART ===== */
+    .pie-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+    .pie-chart {
+      width: 184px;
+      height: 184px;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 18px rgba(74,144,217,0.18);
+    }
+    .pie-hole {
+      width: 104px;
+      height: 104px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .pie-hole-emoji { font-size: 34px; line-height: 1; }
+    .pie-hole-label { font-size: 11px; color: #999; margin-top: 3px; }
+
+    .pie-legend {
+      background: #fff;
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(74,144,217,0.08);
+    }
+    .pie-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 5px 0;
+      font-size: 13px;
+    }
+    .pie-legend-dot { width: 13px; height: 13px; border-radius: 4px; flex-shrink: 0; }
+    .pie-legend-name { flex: 1; color: #555; }
+    .pie-legend-score { font-weight: 800; color: #2d3a4a; }
+
+    /* ===== HEADLINE ===== */
+    .result-headline-wrap { text-align: center; margin-bottom: 18px; }
+    .result-headline-label { font-size: 13px; color: #888; margin-bottom: 7px; }
+    .result-headline {
+      font-size: 23px;
+      font-weight: 900;
+      color: #3A5A7C;
+      background: linear-gradient(135deg, #EEF6FF, #F5EEFF);
+      border-radius: 16px;
+      padding: 16px 14px;
+      line-height: 1.4;
+    }
+
+    /* ===== ASSESSMENT ===== */
+    .assessment-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 20px 18px;
+      box-shadow: 0 3px 14px rgba(74,144,217,0.1);
+    }
+    .assessment-main-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #2d3a4a;
+      text-align: center;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #EEF2F8;
+    }
+    .keyword-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .btn-retry {
+      display: block;
+      margin: 20px 0 0;
+      background: linear-gradient(135deg, #A8C8EE, #B8DCF8);
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      padding: 18px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(74,144,217,0.3);
+      width: 100%;
+    }
+
+    /* ===== DETAIL ===== */
+    .detail-header {
+      background: var(--type-color, #8BBCE0);
+      padding: 20px 20px 32px;
+      color: #fff;
+    }
+
+    .btn-back {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      border-radius: 50px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detail-type-no { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+    .detail-type-name { font-size: 24px; font-weight: 900; margin-bottom: 4px; }
+    .detail-type-sub { font-size: 15px; opacity: 0.85; }
+    .detail-score-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 6px 16px;
+      margin-top: 12px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .detail-content { padding: 20px 16px; }
+
+    .detail-summary {
+      background: var(--type-light, #EEF6FF);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #444;
+      line-height: 1.8;
+      border-left: 4px solid var(--type-color, #8BBCE0);
+    }
+
+    .detail-section-title { font-size: 16px; font-weight: 800; color: #2d3a4a; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+    .keyword-badge {
+      display: inline-block;
+      background: var(--type-color, #8BBCE0);
+      color: #fff;
+      border-radius: 30px;
+      padding: 8px 20px;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
+
+    .action-list { margin-bottom: 24px; }
+    .action-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 8px;
+      box-shadow: 0 2px 8px rgba(74,144,217,0.07);
+    }
+    .action-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--type-color, #8BBCE0); flex-shrink: 0; margin-top: 7px; }
+    .action-text { font-size: 15px; color: #333; line-height: 1.6; }
+
+    .ng-section { background: linear-gradient(135deg, #FFF0F0, #FFF5F0); border-radius: 16px; padding: 16px; margin-bottom: 20px; }
+    .ng-title { font-size: 14px; font-weight: 800; color: #E85555; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .ng-item { font-size: 14px; color: #666; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.06); line-height: 1.6; display: flex; align-items: center; gap: 8px; }
+    .ng-item:last-child { border-bottom: none; }
+    .ng-cross { color: #E85555; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+
+    .checked-questions { margin-bottom: 20px; }
+    .checked-q-item { font-size: 13px; color: #555; padding: 8px 12px; background: var(--type-light, #EEF6FF); border-radius: 10px; margin-bottom: 6px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div id="root">
+  <!-- React読み込み前に即座に表示するスプラッシュ（JSなし） -->
+  <div id="static-splash" style="
+    min-height:100vh;
+    background:linear-gradient(170deg,#C5DCF5 0%,#A8C8EE 45%,#C8E8F8 100%);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:flex-start;
+    text-align:center; padding-bottom:60px;
+  ">
+    <div style="width:100%; background:#fff; display:flex; justify-content:center;">
+      <img id="splash-img" style="width:100%; max-width:300px; display:block;" />
+    </div>
+    <div style="padding:20px 24px 0; width:100%;">
+      <div style="font-size:22px; font-weight:900; color:#3A5A7C; line-height:1.45; margin-bottom:6px;">
+        外ではいい子なのに<br>家で荒れる子
+      </div>
+      <div style="font-size:13px; color:#6A8AA8; margin-bottom:16px;">
+        タイプ別チェックリスト＆対処まとめ
+      </div>
+      <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.6); border:1.5px solid rgba(100,160,210,0.35); border-radius:30px; padding:7px 18px; font-size:13px; font-weight:700; color:#5A86A8; margin-bottom:18px;">
+        ⏱ 診断目安時間：約2分
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  // スプラッシュの画像をReactと同じsrcから設定（インラインbase64を流用）
+  document.getElementById('splash-img').src = './img.jpg';
+</script>
+
+<!-- Reactは静的スプラッシュ描画後にロード（描画ブロック防止） -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+const TYPES = [
+  {
+    id: 1, no: "①",
+    name: "過剰適応型", sub: "外で頑張りすぎて家で爆発",
+    color: "#8BBDE8", light: "#EEF4FF", emoji: "😤",
+    summary: "外で感情や緊張を抑え込み、家で一気に解放している可能性があります。",
+    keyword: "外で頑張りすぎて、家で解放している",
+    questions: [
+      "外では「いい子」「問題ない」と言われることが多い",
+      "先生や友だちに気を遣い、空気を読もうとする",
+      "外ではいつもがまんしすぎていたり、緊張した様子がある",
+      "帰宅後や人混みのあとに荒れやすい / 「疲れた」が口癖になっている",
+      "家と外でギャップが大きく、家でだけ甘え・癇癪・反抗が強く出る",
+    ],
+    actions: [
+      "帰宅直後は休息優先・話しかけすぎない",
+      "質問攻めにしない（「今日どうだった？」を控える）",
+      "ひとり時間をつくる／習い事を詰め込みすぎない",
+      "「何もしない時間」を意識的に確保する",
+      "「外で頑張っていること」を親が言語化して伝える",
+    ],
+    ng: ["「外でできるのに！」と比べる","帰宅直後の説教・注意","習い事など過密スケジュール"],
+  },
+  {
+    id: 2, no: "②",
+    name: "安全基地型", sub: "親だから感情を出せる",
+    color: "#EFA9A6", light: "#FFF3F3", emoji: "🏠",
+    summary: "「ここなら見捨てられない」という安心感の中で、抑えていた感情を出している可能性があります。",
+    keyword: "親だから本音を出せている",
+    questions: [
+      "外では落ち着いているのに、親にだけ強く当たる",
+      "「ママ嫌い」と言いながら、そばを離れたがらない",
+      "怒ったあとでもくっついてくる / 抱っこやスキンシップで落ち着く",
+      "「見て」「聞いて」が多い / 親が他の人と話すと怒ったり割り込んだりする",
+      "疲れると甘えが一気に強くなる / 叱られると必要以上に崩れる",
+    ],
+    actions: [
+      "感情は受け止める（行動は制限してもOK）","行動の境界はぶれずに保つ",
+      "スキンシップを増やす","「大好きだよ」などの安心の言葉を増やす",
+      "ぶつかった後の修復（仲直り）を大切にする",
+    ],
+    ng: ["愛情を条件化する（いい子にしたら好きなど）","「そんな子嫌い」と言う","感情を否定する・無視する"],
+  },
+  {
+    id: 3, no: "③",
+    name: "感情調整未熟型", sub: "感情ブレーキが未熟",
+    color: "#EEC574", light: "#FFFAEF", emoji: "🌋",
+    summary: "脳の感情調整機能がまだ未熟で、刺激や感情をうまく処理しきれていない可能性があります。",
+    keyword: "感情のブレーキがまだ育っている途中",
+    questions: [
+      "一度スイッチが入ると止まらない / 落ち着くまでに時間がかかる",
+      "癇癪・興奮中は何を話しかけても入らなくなる",
+      "小さなことで急に爆発する / 言葉より先に手や体が動く",
+      "予定が変わると激しく混乱する / 「ちょっと待って」が苦手",
+      "おなかがすいたり疲れたりすると、急に崩れやすい",
+    ],
+    actions: [
+      "予告を増やす（「あと5分したら終わりだよ」）","視覚化（タイマー・絵・カード）を使う",
+      "睡眠を最優先に整える","深圧刺激（ぎゅっと抱きしめる等）を活用",
+      "落ち着いてから話す・説明する","気持ちの言語化を一緒に練習する",
+    ],
+    ng: ["癇癪中の説教・長い説明","急な切り替えを求める","感情を否定する"],
+  },
+  {
+    id: 4, no: "④",
+    name: "愛着不安型", sub: "本当に愛されているか確認",
+    color: "#EE8DBE", light: "#FFF3F9", emoji: "💔",
+    summary: "「本当に大丈夫？」「見捨てられない？」を確認するような行動が出ている可能性があります。",
+    keyword: "「本当に愛されているか」を確かめようとしている",
+    questions: [
+      "わざと怒らせたり困らせたりする行動（試し行動）が多い",
+      "「嫌い」と言いながらそばを離れない / 甘えたいのに反抗してしまう",
+      "「どうせ嫌いなんでしょ」と言う / 叱られると極端に落ち込む",
+      "ちょっとした親の表情や態度の変化ですぐ不安定になる",
+      "「好き？」「嫌い？」を何度も確認する / ひとりになるのを極端に嫌がる",
+    ],
+    actions: [
+      "親の反応を一定・安定させる","「怒っても大好き」「どんな時も大切」を伝える",
+      "スキンシップを意識的に増やす","一対一の時間を定期的に作る",
+      "ぶつかった後に必ず「修復」する",
+    ],
+    ng: ["突き放す・無視する","愛情を脅しに使う（「そんな子は出て行って」等）","感情を揺さぶる対応"],
+  },
+  {
+    id: 5, no: "⑤",
+    name: "発達特性型", sub: "刺激・特性による疲労",
+    color: "#6EC9B5", light: "#F0FAF8", emoji: "🧩",
+    summary: "ASD傾向・ADHD傾向・HSC気質など、特性由来の疲労や調整困難が背景にある可能性があります。",
+    keyword: "外での頑張りが家で一気に出ている",
+    questions: [
+      "音・光・人混みで疲れやすい / 感覚が過敏だったり鈍感だったりする",
+      "こだわりが強く、予定の変更や気持ちの切り替えがとても苦手",
+      "食べ物・服・場所など好き嫌いが極端 / 独自のペースやこだわりがある",
+      "外ではかなり頑張って合わせている / 帰宅後や集団活動後に一気に崩れる",
+      "「ふつうにして」が伝わりにくい / 不器用さや忘れ物が目立つ",
+    ],
+    actions: [
+      "帰宅後の刺激を減らす（静かな環境・暗い照明等）","見通しを作る（今日の予定を伝える）",
+      "感覚疲労を考慮した休息を取る","得意なことを活かせる場面を作る",
+      "環境調整（刺激の少ない空間）を工夫する","気になる特性は専門家に相談する",
+    ],
+    ng: ["根性論・「頑張れば普通にできる」","「普通」を押し付ける","長時間の刺激環境に居させる"],
+  },
+  {
+    id: 6, no: "⑥",
+    name: "家庭内相互作用型", sub: "親子の反応ループ",
+    color: "#78BAE8", light: "#EEF6FF", emoji: "🔄",
+    summary: "子どもの問題だけでなく、親子間の「反応パターン」が固定化している可能性があります。",
+    keyword: "親子の反応が連鎖してしまっている",
+    questions: [
+      "毎回同じ流れで揉める（「またこのパターン…」と感じる）",
+      "子どもが荒れると親も感情的になり、怒鳴り合いになりやすい",
+      "「ダメ」と言いながら最終的には折れてしまう / 対応が日によってぶれる",
+      "荒れている時だけ関わりが増え、穏やかな時はつい後回しになりがち",
+      "子どもが親の顔色や反応をうかがいながら行動している",
+    ],
+    actions: [
+      "親の反応を一定化する（毎回同じ対応）","問題行動への過剰反応を意識的に減らす",
+      "「良い行動」を見つけて声かけする","注意は短く・シンプルに伝える",
+      "子どもが荒れる前に親が先に落ち着く",
+    ],
+    ng: ["怒鳴り合い・感情的な対応","日替わりルール・一貫性のない対応","長々とした説教"],
+  },
+  {
+    id: 7, no: "⑦",
+    name: "ストレス・身体状態型", sub: "身体疲労・神経疲労",
+    color: "#9AB8D8", light: "#EFF5FA", emoji: "😴",
+    summary: "神経疲労・睡眠不足・感覚疲労など、身体状態の影響が大きい可能性があります。",
+    keyword: "睡眠・食事・疲れが荒れにつながっている",
+    questions: [
+      "寝つきが悪い・睡眠時間が足りない / 朝から機嫌が悪い",
+      "夕方や活動後など疲れたタイミングで荒れやすい / 体力が切れると急に崩れる",
+      "おなかがすくと急激に不機嫌になる / 食事の偏りが大きい",
+      "動画・ゲームを長時間したあと、または刺激の多い日のあとに荒れやすい",
+      "体調不良後にしばらく不安定が続く / 休みの日は比較的落ち着いている",
+    ],
+    actions: [
+      "睡眠を最優先に整える（就寝時間を固定）","空腹対策（帰宅後すぐ軽食など）",
+      "毎日の運動・外遊びを取り入れる","動画・ゲームのスクリーンタイムを調整する",
+      "日中に十分な休息を確保する","感覚刺激の少ない落ち着ける空間をつくる",
+    ],
+    ng: ["睡眠不足を放置する","疲労状態・空腹時に叱る","刺激過多の環境を放置する"],
+  },
+];
+
+/* ===== ILLUST ===== */
+function TantrumIllust() {
+  const src = "./img.jpg";
+  return (
+    <img src={src} alt="荒れる子イラスト" style={{ width: "100%", maxWidth: 300, display: "block", borderRadius: "16px" }} />
+  );
+}
+
+/* ===== APP ===== */
+function App() {
+  const [screen, setScreen] = useState("top");
+  const [currentTypeIdx, setCurrentTypeIdx] = useState(0);
+  const [answers, setAnswers] = useState(TYPES.map(t => new Array(t.questions.length).fill(false)));
+
+  const scores = TYPES.map((t, i) => answers[i].filter(Boolean).length);
+  const sortedTypes = [...TYPES].map((t, i) => ({ ...t, score: scores[i] })).sort((a, b) => b.score - a.score);
+
+  function toggleAnswer(typeIdx, qIdx) {
+    setAnswers(prev => { const n = prev.map(a => [...a]); n[typeIdx][qIdx] = !n[typeIdx][qIdx]; return n; });
+  }
+
+  function handleNext() {
+    if (currentTypeIdx < TYPES.length - 1) { setCurrentTypeIdx(i => i + 1); window.scrollTo(0, 0); }
+    else { setScreen("result"); window.scrollTo(0, 0); }
+  }
+
+  function handleRetry() {
+    setAnswers(TYPES.map(t => new Array(t.questions.length).fill(false)));
+    setCurrentTypeIdx(0);
+    setScreen("top");
+    window.scrollTo(0, 0);
+  }
+
+  if (screen === "top") return <TopScreen onStart={() => { setScreen("quiz"); window.scrollTo(0, 0); }} />;
+
+  if (screen === "quiz") {
+    const type = TYPES[currentTypeIdx];
+    const typeAnswers = answers[currentTypeIdx];
+    const checkedCount = typeAnswers.filter(Boolean).length;
+    const progress = ((currentTypeIdx + 1) / TYPES.length) * 100;
+    return (
+      <div className="screen" style={{ "--type-color": type.color, "--type-light": type.light }}>
+        <div className="q-header" style={{ background: type.color }}>
+          <div className="q-type-badge">{type.no} {currentTypeIdx + 1} / {TYPES.length}</div>
+          <div className="q-type-name">{type.name}</div>
+          <div className="q-type-sub">「{type.sub}」タイプ</div>
+          <div className="progress-bar-wrap">
+            <div className="progress-bar-fill" style={{ width: progress + "%" }} />
+          </div>
+        </div>
+        <div style={{ padding: "10px 16px 0", fontSize: "12px", color: "#7A9AB8", textAlign: "center" }}>
+          ✅ あてはまると思う項目だけチェックしてください（0個でもOK）
+        </div>
+        <div className="q-list">
+          {type.questions.map((q, i) => (
+            <div key={i} className={"q-item" + (typeAnswers[i] ? " checked" : "")}
+              onClick={() => toggleAnswer(currentTypeIdx, i)}>
+              <div className="q-checkbox"><span className="check-icon">✓</span></div>
+              <div className="q-text">{q}</div>
+            </div>
+          ))}
+        </div>
+        <div className="q-footer">
+          <div className="q-count-label"><span>{checkedCount}</span> / {type.questions.length} 項目チェック</div>
+          <button className="btn-next" onClick={handleNext}>
+            {currentTypeIdx < TYPES.length - 1 ? "次のタイプへ →" : "結果を見る ✨"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "result") {
+    return (
+      <ResultScreen
+        sortedTypes={sortedTypes}
+        onRetry={handleRetry}
+      />
+    );
+  }
+
+  return null;
+}
+
+/* ===== TOP SCREEN ===== */
+function TopScreen({ onStart }) {
+  return (
+    <div className="screen top-screen">
+      <div className="top-illust-wrap">
+        <TantrumIllust />
+      </div>
+      <div className="top-text-area">
+        <div className="top-title">外ではいい子なのに<br />家で荒れる子</div>
+        <div className="top-subtitle">かんたん質問で お子さんのタイプがわかる</div>
+        <div className="time-badge">
+          <span>⏱</span> 診断目安時間：約2分
+        </div>
+        <div className="top-notice">
+          ⚠️ これは医療診断ではなく、子どもの状態を整理するための簡易チェックです。多くの子は「複合型」です。当てはまる数が多いタイプほど、傾向が強い可能性があります。
+        </div>
+        <button className="btn-primary" onClick={onStart}>診断スタート</button>
+      </div>
+    </div>
+  );
+}
+
+/* ===== RESULT SCREEN（円グラフ＋総合所見）===== */
+function ResultScreen({ sortedTypes, onRetry }) {
+  const total = sortedTypes.reduce((s, t) => s + t.score, 0);
+  const topScore = sortedTypes[0].score;
+  // 主要タイプ：トップスコアから2以内・スコア1以上・最大3つ
+  const shownTypes = topScore > 0
+    ? sortedTypes.filter(t => t.score > 0 && t.score >= topScore - 2).slice(0, 3)
+    : [];
+  const n = shownTypes.length;
+
+  // 円グラフ（conic-gradient）
+  const withScore = sortedTypes.filter(t => t.score > 0);
+  // 全タイプが同スコアかどうか判定
+  const allEqual = withScore.length > 1 && withScore.every(t => t.score === withScore[0].score);
+  let acc = 0;
+  const stops = withScore.map(t => {
+    const pct = (t.score / total) * 100;
+    const seg = t.color + " " + acc + "% " + (acc + pct) + "%";
+    acc += pct;
+    return seg;
+  });
+  const pieStyle = total > 0
+    ? { background: "conic-gradient(" + stops.join(", ") + ")" }
+    : { background: "#E0E8F0" };
+
+  // ヘッドラインラベル
+  const shortName = (name) => name.replace(/型$/, "");
+  let headline = "";
+  if (n === 1) headline = shownTypes[0].name;
+  else if (n >= 2) headline = shortName(shownTypes[0].name) + "強めの複合型";
+
+  // 総合所見：主要タイプから統合（上位ほど多く採用・重複除去）
+  const combine = (field, counts) => {
+    const out = [];
+    shownTypes.forEach((t, i) => {
+      (t[field] || []).slice(0, counts[i] || 0).forEach(x => {
+        if (out.indexOf(x) === -1) out.push(x);
+      });
+    });
+    return out;
+  };
+  const combinedActions = combine("actions", [3, 2, 2]);
+  const combinedNg = combine("ng", [2, 1, 1]);
+
+  return (
+    <div className="screen result-screen" style={{ padding: "0 0 80px" }}>
+      <div className="result-header">
+        <h2>診断結果</h2>
+      </div>
+      <div style={{ padding: "22px 16px 0" }}>
+        {n === 0 ? (
+          <div className="final-message">
+            今回のチェックでは、はっきりした傾向は見られませんでした。気になることがあれば、また様子を見てから試してみてください。
+          </div>
+        ) : (
+          <>
+            {/* 円グラフ */}
+            <div className="pie-wrap">
+              <div className="pie-chart" style={pieStyle}>
+                <div className="pie-hole">
+                  <div className="pie-hole-emoji">{shownTypes[0].emoji}</div>
+                  <div className="pie-hole-label">回答の割合</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 全タイプ同率の場合の注意書き */}
+            {allEqual && (
+              <div style={{ background: "#FFF8E8", border: "1.5px solid #F0C060", borderRadius: "12px", padding: "10px 14px", margin: "0 0 10px", fontSize: "12px", color: "#8A6A20", lineHeight: 1.6 }}>
+                ⚠️ 各タイプに同じ数のチェックが入っているため、割合が均等になっています。<br />
+                <strong>あてはまる項目だけ</strong>チェックして「もう一度診断する」をお試しください。
+              </div>
+            )}
+            {/* 凡例 */}
+            <div className="pie-legend">
+              {withScore.map(t => (
+                <div key={t.id} className="pie-legend-item">
+                  <span className="pie-legend-dot" style={{ background: t.color }}></span>
+                  <span className="pie-legend-name">{t.name}</span>
+                  <span className="pie-legend-score">{Math.round((t.score / total) * 100)}%</span>
+                </div>
+              ))}
+            </div>
+
+            {/* ヘッドライン */}
+            <div className="result-headline-wrap">
+              <div className="result-headline-label">あなたのお子さんは</div>
+              <div className="result-headline">{headline}</div>
+            </div>
+
+            {/* 総合所見 */}
+            <div className="assessment-box">
+              <div className="assessment-main-title">📋 総合所見</div>
+
+              <div className="simple-type-section" style={{ marginTop: 0 }}>
+                <div className="simple-section-title">✨ このタイプの特徴</div>
+                <div className="keyword-row">
+                  {shownTypes.map(t => (
+                    <span key={t.id} className="simple-keyword" style={{ background: t.color }}>
+                      「{t.keyword}」
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="simple-type-section">
+                <div className="simple-section-title">✅ 有効な対応</div>
+                {combinedActions.map((a, j) => (
+                  <div key={j} className="simple-tip-item">
+                    <span className="simple-tip-check">✓</span>
+                    <span>{a}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="simple-type-section">
+                <div className="simple-section-title">⛔ NGな対応</div>
+                <div className="simple-ng-box">
+                  {combinedNg.map((g, j) => (
+                    <div key={j} className="simple-ng-item">
+                      <span className="simple-ng-x">✕</span>
+                      <span>{g}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="final-message">
+              「荒れる」のは <strong>“困らせたい”</strong> のではなく<br />
+              <strong>“困っている”</strong> サインのことが多くあります。<br /><br />
+              お子さんのタイプに合わせた関わりが、<br />
+              家での落ち着きにつながります。
+            </div>
+          </>
+        )}
+        <button className="btn-retry" onClick={onRetry}>もう一度診断する</button>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
