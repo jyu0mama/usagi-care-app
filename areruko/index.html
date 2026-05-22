@@ -327,6 +327,62 @@
       line-height: 1.9;
     }
 
+    /* ===== SIMPLE RESULT CARD ===== */
+    .result-lead {
+      text-align: center;
+      font-size: 14px;
+      color: #6A8AA8;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .simple-type-card {
+      background: #fff;
+      border-radius: 22px;
+      padding: 24px 20px;
+      margin-bottom: 14px;
+      text-align: center;
+      box-shadow: 0 4px 18px rgba(74,144,217,0.12);
+      border-top: 6px solid var(--type-color, #A8C8EE);
+    }
+
+    .simple-type-rank {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: var(--type-color, #A8C8EE);
+      border-radius: 20px;
+      padding: 3px 14px;
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+
+    .simple-type-emoji { font-size: 48px; line-height: 1; margin-bottom: 8px; }
+
+    .simple-type-name {
+      font-size: 22px;
+      font-weight: 900;
+      color: #2d3a4a;
+      margin-bottom: 4px;
+    }
+
+    .simple-type-sub {
+      font-size: 13px;
+      color: #999;
+      margin-bottom: 14px;
+    }
+
+    .simple-type-summary {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.85;
+      text-align: left;
+      background: var(--type-light, #EEF6FF);
+      border-radius: 14px;
+      padding: 14px 16px;
+    }
+
     .btn-retry {
       display: block;
       margin: 20px 0 0;
@@ -632,10 +688,8 @@ function App() {
   const [screen, setScreen] = useState("top");
   const [currentTypeIdx, setCurrentTypeIdx] = useState(0);
   const [answers, setAnswers] = useState(TYPES.map(t => new Array(t.questions.length).fill(false)));
-  const [detailType, setDetailType] = useState(null);
 
   const scores = TYPES.map((t, i) => answers[i].filter(Boolean).length);
-  const maxScore = Math.max(...scores, 1);
   const sortedTypes = [...TYPES].map((t, i) => ({ ...t, score: scores[i] })).sort((a, b) => b.score - a.score);
 
   function toggleAnswer(typeIdx, qIdx) {
@@ -653,9 +707,6 @@ function App() {
     setScreen("top");
     window.scrollTo(0, 0);
   }
-
-  function openDetail(type) { setDetailType(type); setScreen("detail"); window.scrollTo(0, 0); }
-  function backToResult() { setScreen("result"); window.scrollTo(0, 0); }
 
   if (screen === "top") return <TopScreen onStart={() => { setScreen("quiz"); window.scrollTo(0, 0); }} />;
 
@@ -694,22 +745,12 @@ function App() {
   }
 
   if (screen === "result") {
-    const totalChecked = scores.reduce((a, b) => a + b, 0);
     return (
       <ResultScreen
         sortedTypes={sortedTypes}
-        maxScore={maxScore}
-        totalChecked={totalChecked}
-        onDetail={openDetail}
         onRetry={handleRetry}
       />
     );
-  }
-
-  if (screen === "detail") {
-    const typeIdx = TYPES.findIndex(t => t.id === detailType.id);
-    const checkedQs = detailType.questions.filter((_, i) => answers[typeIdx][i]);
-    return <DetailScreen type={detailType} checkedQuestions={checkedQs} onBack={backToResult} />;
   }
 
   return null;
@@ -724,7 +765,7 @@ function TopScreen({ onStart }) {
       </div>
       <div className="top-text-area">
         <div className="top-title">外ではいい子なのに<br />家で荒れる子</div>
-        <div className="top-subtitle">タイプ別チェックリスト＆対処まとめ</div>
+        <div className="top-subtitle">かんたん質問で お子さんのタイプがわかる</div>
         <div className="time-badge">
           <span>⏱</span> 診断目安時間：約3分
         </div>
@@ -737,112 +778,51 @@ function TopScreen({ onStart }) {
   );
 }
 
-/* ===== RESULT SCREEN ===== */
-function ResultScreen({ sortedTypes, maxScore, totalChecked, onDetail, onRetry }) {
-  const COMBOS = [
-    { types: [1, 2], label: "①過剰適応 × ②安全基地", desc: "外でのストレスを、安心できる親に向けて解放しているパターンです。" },
-    { types: [1, 5], label: "①過剰適応 × ⑤発達特性", desc: "特性により社会適応に大きなエネルギーを使い、家で崩れやすいパターンです。" },
-    { types: [3, 7], label: "③感情調整未熟 × ⑦身体状態", desc: "身体の疲れや空腹が感情コントロールを更に難しくしているパターンです。" },
-    { types: [4, 6], label: "④愛着不安 × ⑥家庭内相互作用", desc: "愛着確認の試し行動に親が強く反応することで、ループが固定化しているパターンです。" },
-  ];
-  const topScoreIds = sortedTypes.slice(0, 2).filter(t => t.score > 0).map(t => t.id);
-  const matchedCombos = COMBOS.filter(c => c.types.every(id => topScoreIds.includes(id)));
+/* ===== RESULT SCREEN（簡易版）===== */
+function ResultScreen({ sortedTypes, onRetry }) {
+  const topScore = sortedTypes[0].score;
+  // 表示タイプ：トップスコアから2以内・スコア1以上・最大3つ
+  const shownTypes = topScore > 0
+    ? sortedTypes.filter(t => t.score > 0 && t.score >= topScore - 2).slice(0, 3)
+    : [];
+  const n = shownTypes.length;
+
+  let combinedMsg;
+  if (n === 0) {
+    combinedMsg = "今回のチェックでは、はっきりした傾向は見られませんでした。気になることがあれば、また様子を見てから試してみてください。";
+  } else if (n === 1) {
+    combinedMsg = "お子さんは上のタイプの傾向が出ています。「荒れる」のは“困らせたい”のではなく“困っている”サインのことが多くあります。背景を知ることが、関わり方を見直す第一歩になります。";
+  } else {
+    combinedMsg = "お子さんは複数のタイプの特徴をあわせ持つ「複合型」の傾向があります。多くの子は複合型です。いくつかの背景が重なって「家で荒れる」につながっていることが多くあります。";
+  }
 
   return (
     <div className="screen result-screen" style={{ padding: "0 0 80px" }}>
       <div className="result-header">
         <h2>診断結果</h2>
-        <p>チェックした項目: 合計 {totalChecked} 項目</p>
       </div>
-      <div style={{ padding: "20px 16px 0" }}>
-        {sortedTypes.map((type, rank) => {
-          const pct = (type.score / 12) * 100;
-          const isTop = rank === 0 && type.score > 0;
-          const isZero = type.score === 0;
-          return (
-            <div key={type.id}
-              className={"result-card" + (isTop ? " top-card" : "") + (isZero ? " result-zero" : "")}
-              style={{ "--type-color": type.color, "--type-light": type.light }}
-              onClick={() => !isZero && onDetail(type)}>
-              <div className="result-card-header">
-                <div className={"result-rank" + (isTop ? " rank-1" : "")}>{isTop ? "★" : rank + 1}</div>
-                <div className="result-type-info">
-                  <div className="result-type-name">{type.emoji} {type.name}</div>
-                  <div className="result-type-sub">「{type.sub}」</div>
-                </div>
-                <div className="result-score">{type.score}<span>/12</span></div>
-              </div>
-              <div className="result-bar-wrap">
-                <div className="result-bar-fill" style={{ width: pct + "%" }} />
-              </div>
-              {!isZero && <div className="result-tap-hint"><span>▶</span> タップして対応方法を見る</div>}
+      <div style={{ padding: "22px 16px 0" }}>
+        {n === 0 ? (
+          <div className="final-message">{combinedMsg}</div>
+        ) : (
+          <>
+            <div className="result-lead">
+              {n === 1 ? "あなたのお子さんのタイプは…" : "あなたのお子さんに当てはまるタイプは…"}
             </div>
-          );
-        })}
-
-        {matchedCombos.length > 0 && (
-          <div className="combo-section">
-            <div className="combo-title">🔗 複合タイプの可能性</div>
-            {matchedCombos.map((c, i) => (
-              <div key={i} className="combo-item"><strong>{c.label}</strong><br />{c.desc}</div>
+            {shownTypes.map((type, i) => (
+              <div key={type.id} className="simple-type-card"
+                style={{ "--type-color": type.color, "--type-light": type.light }}>
+                {n > 1 && <div className="simple-type-rank">当てはまり {i + 1}位</div>}
+                <div className="simple-type-emoji">{type.emoji}</div>
+                <div className="simple-type-name">{type.name}</div>
+                <div className="simple-type-sub">「{type.sub}」タイプ</div>
+                <div className="simple-type-summary">{type.summary}</div>
+              </div>
             ))}
-          </div>
+            <div className="final-message">{combinedMsg}</div>
+          </>
         )}
-
-        <div className="final-message">
-          「荒れる」は、<br />
-          <strong>"困らせたい"</strong>ではなく、<br />
-          <strong>"困っている"</strong>サインのことが多くあります。<br /><br />
-          「どう止めるか」だけでなく、<br />
-          <em>何が背景にあるのか</em> を見つけることが大切です。
-        </div>
-
         <button className="btn-retry" onClick={onRetry}>もう一度診断する</button>
-      </div>
-    </div>
-  );
-}
-
-/* ===== DETAIL SCREEN ===== */
-function DetailScreen({ type, checkedQuestions, onBack }) {
-  return (
-    <div className="screen" style={{ "--type-color": type.color, "--type-light": type.light }}>
-      <div className="detail-header" style={{ background: type.color }}>
-        <button className="btn-back" onClick={onBack}>← 結果に戻る</button>
-        <div className="detail-type-no">{type.no}</div>
-        <div className="detail-type-name">{type.emoji} {type.name}</div>
-        <div className="detail-type-sub">「{type.sub}」タイプ</div>
-        <div className="detail-score-badge">チェック数: {type.score} / 12項目</div>
-      </div>
-      <div className="detail-content">
-        <div className="detail-summary">{type.summary}</div>
-
-        {checkedQuestions.length > 0 && (
-          <div className="checked-questions">
-            <div className="detail-section-title">✓ チェックした項目</div>
-            {checkedQuestions.map((q, i) => <div key={i} className="checked-q-item">✓ {q}</div>)}
-          </div>
-        )}
-
-        <div className="detail-section-title">🔑 キーワード</div>
-        <div className="keyword-badge">「{type.keyword}」</div>
-
-        <div className="detail-section-title">✅ 有効な対応</div>
-        <div className="action-list">
-          {type.actions.map((a, i) => (
-            <div key={i} className="action-item">
-              <div className="action-dot" />
-              <div className="action-text">{a}</div>
-            </div>
-          ))}
-        </div>
-
-        <div className="ng-section">
-          <div className="ng-title">⛔ NGな対応</div>
-          {type.ng.map((n, i) => (
-            <div key={i} className="ng-item"><span className="ng-cross">✕</span>{n}</div>
-          ))}
-        </div>
       </div>
     </div>
   );
