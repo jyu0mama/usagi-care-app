@@ -86,9 +86,12 @@
       color: #555;
     }
     .ans-btn:hover { border-color: #CCC; background: #F5F5F5; }
-    .ans-sel-0 { background: #F2F2F2 !important; border-color: #888 !important; color: #333 !important; font-weight: 700; }
+    /* ✕ 当てはまらない */
+    .ans-sel-0 { background: #FFF0F0 !important; border-color: #E05050 !important; color: #B03030 !important; font-weight: 700; }
+    /* △ どちらとも */
     .ans-sel-1 { background: #FFF7DC !important; border-color: #F5B800 !important; color: #7A5A00 !important; font-weight: 700; }
-    .ans-sel-2 { background: #FFEAF3 !important; border-color: #FF6BAE !important; color: #CC3080 !important; font-weight: 700; }
+    /* ○ 当てはまる */
+    .ans-sel-2 { background: #EDFBF4 !important; border-color: #3BAC7A !important; color: #1E6B48 !important; font-weight: 700; }
 
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(18px); }
@@ -100,6 +103,14 @@
       from { width: 0 !important; }
     }
     .bar-anim { animation: barGrow 0.7s cubic-bezier(0.4,0,0.2,1) both; }
+
+    .hero-img {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 20px;
+      margin-bottom: 8px;
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -223,7 +234,6 @@ const CATEGORIES = [
   },
 ];
 
-// カテゴリインデックス: 0=活動 1=新反応 2=順応 3=反応強 4=気分 5=注持 6=注切 7=感覚 8=継続
 const TYPES = {
   angel: {
     name: "エンジェルタイプ",
@@ -368,8 +378,18 @@ function calcTypeRanking(catScores) {
 function StartScreen({ onStart }) {
   return (
     <div className="fade-up">
-      <div style={{ textAlign: "center", padding: "36px 8px 24px" }}>
-        <div style={{ fontSize: 72, marginBottom: 14 }}>🌈</div>
+      {/* ① トップ画像 */}
+      <div style={{ textAlign: "center", paddingTop: 16, marginBottom: 4 }}>
+        <img
+          src="./hero.png"
+          alt="子どもたちのイラスト"
+          className="hero-img"
+          style={{ margin: "0 auto" }}
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
+      </div>
+
+      <div style={{ textAlign: "center", padding: "8px 8px 20px" }}>
         <h1 style={{ fontSize: 26, fontWeight: 900, color: "#333", marginBottom: 12 }}>
           子どもの気質チェック
         </h1>
@@ -382,17 +402,18 @@ function StartScreen({ onStart }) {
         <p style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 12 }}>📋 回答の選び方</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {[
-            ["0点", "あまり当てはまらない", "#F2F2F2", "#888", "#888"],
-            ["1点", "どちらともいえない",   "#FFF7DC", "#F5B800", "#7A5A00"],
-            ["2点", "よく当てはまる",        "#FFEAF3", "#FF6BAE", "#CC3080"],
-          ].map(([score, label, bg, border, text]) => (
+            ["✕", "0点", "あまり当てはまらない", "#FFF0F0", "#E05050", "#B03030"],
+            ["△", "1点", "どちらともいえない",   "#FFF7DC", "#F5B800", "#7A5A00"],
+            ["○", "2点", "よく当てはまる",        "#EDFBF4", "#3BAC7A", "#1E6B48"],
+          ].map(([mark, score, label, bg, border, text]) => (
             <div key={score} style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <span style={{
-                background: bg, color: text, fontWeight: 700, fontSize: 13,
+                background: bg, color: text, fontWeight: 900, fontSize: 18,
                 border: `2px solid ${border}`, borderRadius: 10,
-                padding: "4px 12px", minWidth: 44, textAlign: "center",
-              }}>{score}</span>
-              <span style={{ color: "#555", fontSize: 14 }}>{label}</span>
+                padding: "4px 10px", minWidth: 44, textAlign: "center",
+                lineHeight: 1.2,
+              }}>{mark}</span>
+              <span style={{ color: "#555", fontSize: 14 }}>{score}：{label}</span>
             </div>
           ))}
         </div>
@@ -420,6 +441,13 @@ function QuizScreen({ catIdx, answers, onAnswer, onNext, onPrev }) {
   const row = answers[catIdx];
   const allDone = row.every((v) => v !== -1);
   const progress = ((catIdx) / CATEGORIES.length) * 100;
+
+  /* ③ 3択ボタン定義: ✕△○ + 色 */
+  const ANS_OPTIONS = [
+    { val: 0, mark: "✕", label: "当てはまらない", markColor: "#E05050" },
+    { val: 1, mark: "△", label: "どちらとも",     markColor: "#D49B00" },
+    { val: 2, mark: "○", label: "当てはまる",     markColor: "#3BAC7A" },
+  ];
 
   return (
     <div className="fade-up">
@@ -467,17 +495,20 @@ function QuizScreen({ catIdx, answers, onAnswer, onNext, onPrev }) {
               {q}
             </p>
             <div style={{ display: "flex", gap: 6 }}>
-              {[
-                { val: 0, emoji: "😐", label: "当てはまらない" },
-                { val: 1, emoji: "🤔", label: "どちらとも" },
-                { val: 2, emoji: "✅", label: "当てはまる" },
-              ].map(({ val, emoji, label }) => (
+              {ANS_OPTIONS.map(({ val, mark, label, markColor }) => (
                 <button
                   key={val}
                   className={`ans-btn${row[qi] === val ? ` ans-sel-${val}` : ""}`}
                   onClick={() => onAnswer(catIdx, qi, val)}
                 >
-                  <div style={{ fontSize: 18, marginBottom: 3 }}>{emoji}</div>
+                  <div style={{
+                    fontSize: 22,
+                    marginBottom: 3,
+                    fontWeight: 900,
+                    color: row[qi] === val ? markColor : "#BBBBBB",
+                    lineHeight: 1,
+                    transition: "color 0.15s",
+                  }}>{mark}</div>
                   <div>{label}</div>
                 </button>
               ))}
