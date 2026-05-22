@@ -383,6 +383,41 @@
       padding: 14px 16px;
     }
 
+    .simple-type-tips {
+      margin-top: 16px;
+      text-align: left;
+    }
+
+    .simple-tips-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--type-color, #A8C8EE);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .simple-tip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      font-size: 14px;
+      color: #555;
+      line-height: 1.65;
+      padding: 7px 0;
+      border-bottom: 1px dashed #ECECF2;
+    }
+    .simple-tip-item:last-child { border-bottom: none; }
+
+    .simple-tip-check {
+      color: var(--type-color, #A8C8EE);
+      font-weight: 800;
+      flex-shrink: 0;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
     .btn-retry {
       display: block;
       margin: 20px 0 0;
@@ -787,15 +822,6 @@ function ResultScreen({ sortedTypes, onRetry }) {
     : [];
   const n = shownTypes.length;
 
-  let combinedMsg;
-  if (n === 0) {
-    combinedMsg = "今回のチェックでは、はっきりした傾向は見られませんでした。気になることがあれば、また様子を見てから試してみてください。";
-  } else if (n === 1) {
-    combinedMsg = "お子さんは上のタイプの傾向が出ています。「荒れる」のは“困らせたい”のではなく“困っている”サインのことが多くあります。背景を知ることが、関わり方を見直す第一歩になります。";
-  } else {
-    combinedMsg = "お子さんは複数のタイプの特徴をあわせ持つ「複合型」の傾向があります。多くの子は複合型です。いくつかの背景が重なって「家で荒れる」につながっていることが多くあります。";
-  }
-
   return (
     <div className="screen result-screen" style={{ padding: "0 0 80px" }}>
       <div className="result-header">
@@ -803,7 +829,9 @@ function ResultScreen({ sortedTypes, onRetry }) {
       </div>
       <div style={{ padding: "22px 16px 0" }}>
         {n === 0 ? (
-          <div className="final-message">{combinedMsg}</div>
+          <div className="final-message">
+            今回のチェックでは、はっきりした傾向は見られませんでした。気になることがあれば、また様子を見てから試してみてください。
+          </div>
         ) : (
           <>
             <div className="result-lead">
@@ -817,9 +845,23 @@ function ResultScreen({ sortedTypes, onRetry }) {
                 <div className="simple-type-name">{type.name}</div>
                 <div className="simple-type-sub">「{type.sub}」タイプ</div>
                 <div className="simple-type-summary">{type.summary}</div>
+                <div className="simple-type-tips">
+                  <div className="simple-tips-title">💡 このタイプに向く かんたん対処法</div>
+                  {type.actions.slice(0, 3).map((a, j) => (
+                    <div key={j} className="simple-tip-item">
+                      <span className="simple-tip-check">✓</span>
+                      <span>{a}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
-            <div className="final-message">{combinedMsg}</div>
+            <div className="final-message">
+              「荒れる」のは <strong>“困らせたい”</strong> のではなく<br />
+              <strong>“困っている”</strong> サインのことが多くあります。<br /><br />
+              お子さんのタイプに合わせた関わりが、<br />
+              家での落ち着きにつながります。
+            </div>
           </>
         )}
         <button className="btn-retry" onClick={onRetry}>もう一度診断する</button>
