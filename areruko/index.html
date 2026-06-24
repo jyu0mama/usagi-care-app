@@ -658,9 +658,18 @@
 <!-- Reactは静的スプラッシュ描画後にロード（描画ブロック防止） -->
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 
-<script type="text/babel">
+<!-- BabelのJSXを従来方式(classic = React.createElement)で変換するプリセットを登録。
+     これをしないと、新しいBabelが import 文を自動挿入してしまい、
+     ブラウザ単体ではReactが起動できず診断が始まらなくなる。 -->
+<script>
+  Babel.registerPreset('react-classic', {
+    presets: [[Babel.availablePresets.react, { runtime: 'classic' }]]
+  });
+</script>
+
+<script type="text/babel" data-presets="react-classic">
 const { useState } = React;
 
 const TYPES = [
