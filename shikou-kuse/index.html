@@ -142,6 +142,21 @@
   .megane-card.posi{border-color:var(--teal);}
   .megane-card.posi h3{color:var(--teal);}
 
+  .aid-card{
+    background:var(--teal-soft);border-radius:var(--radius);
+    border:2px solid var(--teal);
+    padding:20px 18px;margin:16px 0;
+  }
+  .aid-card .tag{font-size:.78rem;color:var(--teal);letter-spacing:.1em;font-weight:bold;}
+  .aid-card h3{font-size:1.05rem;color:var(--ink);margin:2px 0 10px;}
+  .aid-card .aid-phrase{
+    display:block;text-align:center;font-weight:bold;font-size:1.02rem;
+    color:var(--teal);background:#fff;border-radius:12px;
+    padding:12px 10px;margin:10px 0;
+  }
+  .aid-card p{font-size:.88rem;margin:10px 0 0;}
+  .aid-card .aid-note{font-size:.8rem;color:var(--ink-soft);border-top:1px dashed rgba(95,158,160,.4);padding-top:10px;margin-top:12px;}
+
   .stop-card{
     background:linear-gradient(135deg,#fdf3ec,#fbeae6);
     border-radius:var(--radius);padding:20px 18px;margin:16px 0;
@@ -224,7 +239,8 @@
       <p>
         ・あなたのメガネの“配合”（6本のスライダー）<br>
         ・いちばん強くかかっているメガネ<br>
-        ・そのメガネだと、お子さんの“何”が見えにくくなるか
+        ・そのメガネだと、お子さんの“何”が見えにくくなるか<br>
+        ・今夜からできる“応急処置の一手”
       </p>
     </div>
 
@@ -256,6 +272,8 @@
 
     <div id="strong-area"></div>
 
+    <div id="aid-area"></div>
+
     <div class="stop-card" id="stop-card">
       <h3>🔖 今日から使える“止める合図”</h3>
       <ol>
@@ -277,20 +295,14 @@
 
     <div class="next-card">
       <span class="tag">ここから、が本番</span>
-      <h3>でも、じつは——<br>見えたのは、まだ“半分”です</h3>
-      <p>
-        あの「困った行動」は、あなたのメガネ“だけ”で生まれているんじゃ、ありません。
-      </p>
+      <h3>見えたのは、まだ“半分”です</h3>
       <div class="cross">
         あなたのメガネ × お子さんの性質
-        <small>この2つが出会う“交差点”で、生まれています</small>
+        <small>「困った行動」は、この2つが出会う“交差点”で生まれています</small>
       </div>
-      <p>
-        同じメガネのママでも、相手が「まず動く子」なのか、「じっくり考える子」なのか、「気持ちで動く子」なのかで——<b>ズレる場所も、かけるべき“橋”も、まったく違う</b>んです。
-      </p>
       <p class="lead-back">
-        その続きは、noteの本文で。<br>
-        このまま、読み進めてください。
+        あなたとお子さん“専用”の関わり方を、いま準備中です。<br>
+        次のnoteを、楽しみにお待ちくださいね。
       </p>
     </div>
 
@@ -360,16 +372,16 @@ var MEGANE_NAME = {
   outlook_A:"「なんとかなる」メガネ",     outlook_B:"「最悪を想定」メガネ"
 };
 
-/* ゆがみ早見（§A-5）：このメガネが強いと見えにくくなるもの
-   ※“小さな一手”（対策）は本編で扱うため、簡易版には入れない */
+/* ゆがみ早見（§A-5）：このメガネが強いと見えにくくなるもの＋応急処置の一手
+   ※一手は「いちばん強いメガネ1つ」にだけ“応急処置”として表示する（本対応は本編） */
 var YUGAMI = {
-  move_A:      {mienikui:"子の“考える時間”を『遅い・のろい』と誤読しがち"},
-  move_B:      {mienikui:"子の“まず動く”を『落ち着きがない』と誤読しがち"},
-  focus_B:     {mienikui:"できている所より“危うい所”ばかり目に入る"},
-  standard_B:  {mienikui:"その子の個性を“平均より遅れ／劣り”と誤読しがち"},
-  understand_A:{mienikui:"子の独自のやり方を“間違い”と誤読しがち"},
-  convince_B:  {mienikui:"途中の粘り・工夫を見落としがち"},
-  outlook_B:   {mienikui:"小さなつまずきを“大問題”に拡大しがち"}
+  move_A:      {mienikui:"子の“考える時間”を『遅い・のろい』と誤読しがち", itte:"「今、考えてるんだね」と待つ"},
+  move_B:      {mienikui:"子の“まず動く”を『落ち着きがない』と誤読しがち", itte:"動くのも学び方の一つ、と見る"},
+  focus_B:     {mienikui:"できている所より“危うい所”ばかり目に入る", itte:"1日1回「今日できてたこと」を口に出す"},
+  standard_B:  {mienikui:"その子の個性を“平均より遅れ／劣り”と誤読しがち", itte:"比較を『みんな』→『昨日のこの子』へ"},
+  understand_A:{mienikui:"子の独自のやり方を“間違い”と誤読しがち", itte:"「その手もアリだね」を一度言う"},
+  convince_B:  {mienikui:"途中の粘り・工夫を見落としがち", itte:"結果でなく“やり方”をほめる"},
+  outlook_B:   {mienikui:"小さなつまずきを“大問題”に拡大しがち", itte:"「本当に危険？ 私の不安？」と一呼吸"}
 };
 
 /* ゆがみ早見に無い極 → 強みとして働きやすい（ポジ表示） */
@@ -561,6 +573,26 @@ function renderResult(results){
   }
   document.getElementById("strong-area").innerHTML = area;
 
+  /* --- 応急処置カード（いちばん強いメガネ1つにだけ表示。本対応は本編） --- */
+  var aid = null;
+  st.list.some(function(r){
+    var y = YUGAMI[r.id + "_" + r.pole];
+    if (y && y.itte){ aid = {itte:y.itte, name:MEGANE_NAME[r.id + "_" + r.pole]}; return true; }
+    return false;
+  });
+  if (aid){
+    document.getElementById("aid-area").innerHTML =
+      '<div class="aid-card">' +
+      '<span class="tag">今夜から、これだけ</span>' +
+      '<h3>🩹 ' + aid.name + 'の“応急処置”</h3>' +
+      '<span class="aid-phrase">' + aid.itte + '</span>' +
+      '<p>試してみて、お子さんの反応が少しでも変わったら——それが「メガネが変わると、見え方が変わる」証拠です。</p>' +
+      '<p class="aid-note">※これはメガネを一瞬ゆるめる“応急処置”です。お子さんのタイプに合わせた“本対応”は、また別のもの。その話は、このあとで。</p>' +
+      '</div>';
+  } else {
+    document.getElementById("aid-area").innerHTML = "";
+  }
+
   /* --- 結果まとめカード（自動表示） --- */
   var meganeNames = st.list.map(function(r){
     return MEGANE_NAME[r.id + "_" + r.pole] || "";
@@ -570,6 +602,7 @@ function renderResult(results){
     '<div class="summary-card">' +
     '<h3>📝 あなたの結果まとめ</h3>' +
     '<div class="srow"><b>強いメガネ</b><span>' + meganeNames + '</span></div>' +
+    (aid ? '<div class="srow"><b>応急処置</b><span>' + aid.itte + '</span></div>' : '') +
     '<div class="srow"><b>止める合図</b><span>「これは事実？ わたしのメガネ？」</span></div>' +
     '<div class="memo">この画面をスクショして、保存しておいてください。<br>このあとの話が、ぐっと“自分ごと”になります。</div>' +
     '</div>';
