@@ -457,7 +457,6 @@ function renderQuestion(){
 
 function pick(v, btn){
   answers[current] = v;
-  saveProgress();
   document.querySelectorAll(".choice").forEach(function(c){c.classList.remove("picked");});
   btn.classList.add("picked");
   setTimeout(function(){
@@ -475,21 +474,14 @@ function goBack(){
   else { show("screen-intro"); }
 }
 
-function saveProgress(){
-  try { localStorage.setItem(LS_KEY, JSON.stringify(answers)); } catch(e){}
-}
-function loadProgress(){
-  try {
-    var raw = localStorage.getItem(LS_KEY);
-    if (!raw) return;
-    var arr = JSON.parse(raw);
-    if (Array.isArray(arr) && arr.length === ORDER.length) answers = arr;
-  } catch(e){}
+/* 回答は保存しない（開くたびにトップから始める）。
+   保存すると、再訪時にいきなり前回の結果画面が開いて混乱するため。 */
+function clearSaved(){
+  try { localStorage.removeItem(LS_KEY); } catch(e){}
 }
 
 function retry(){
   answers = new Array(ORDER.length).fill(null);
-  try { localStorage.removeItem(LS_KEY); } catch(e){}
   current = 0;
   show("screen-intro");
 }
@@ -614,11 +606,8 @@ function renderResult(results){
 }
 
 /* ================= 起動 ================= */
-loadProgress();
-if (answers.every(function(a){return a !== null;})){
-  /* 全問回答済み（リロード）→ 結果を復元 */
-  finish();
-}
+/* 旧バージョンで保存された回答が残っていると混乱のもとなので消しておく */
+clearSaved();
 </script>
 </body>
 </html>
