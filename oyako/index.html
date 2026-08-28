@@ -1499,7 +1499,10 @@ function HomeScreen({ profile, onScene, onSetup }) {
   const currentChild = hasChild ? profile.children[profile.currentChildIdx || 0] : null;
   return (
     <div className="page">
-      <div style={{ paddingTop: 20, marginBottom: 16 }}>
+      <div style={{ textAlign: 'center', margin: '16px 0 8px' }}>
+        <img src="./hero.png" alt="" style={{ width: '72%', maxWidth: 260, display: 'block', margin: '0 auto' }} />
+      </div>
+      <div style={{ paddingTop: 4, marginBottom: 16 }}>
         <div style={{ fontSize: 11, color: '#AAA', marginBottom: 4 }}>親子まるごと診断</div>
         <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.2 }}>
           困った場面を<br />開いてください
