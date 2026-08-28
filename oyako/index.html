@@ -1508,7 +1508,7 @@ function HomeScreen({ onTab }) {
   ];
   return (
     <div style={{ paddingBottom: 80 }}>
-      <div style={{ background: '#FDF4EE', textAlign: 'center', padding: '28px 20px 0' }}>
+      <div style={{ background: 'transparent', textAlign: 'center', padding: '28px 20px 0' }}>
         <div style={{ fontSize: 11, color: '#AAA', letterSpacing: '0.06em', marginBottom: 6 }}>親子まるごと診断</div>
         <div style={{ fontSize: 21, fontWeight: 900, color: '#2C2C2C', lineHeight: 1.4, marginBottom: 16 }}>
           わが子のタイプと、<br />あなたの関わり方がわかる
@@ -1521,7 +1521,7 @@ function HomeScreen({ onTab }) {
             style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
                      boxShadow: '0 2px 14px rgba(0,0,0,0.07)', cursor: 'pointer', border: 'none', textAlign: 'left' }}>
-            <img src={item.icon} alt="" style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }} />
+            <img src={item.icon} alt="" style={{ width: 60, height: 60, objectFit: 'contain', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 17, fontWeight: 700, color: '#2C2C2C', marginBottom: 3 }}>{item.title}</div>
               <div style={{ fontSize: 13, color: '#888' }}>{item.sub}</div>
