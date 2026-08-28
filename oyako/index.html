@@ -1489,8 +1489,11 @@ function NavBar({ tab, onTab }) {
     <div className="nav-bar">
       {items.map(it => (
         <div key={it.id} className={`nav-item ${tab === it.id ? 'active' : ''}`} onClick={() => onTab(it.id)}>
-          <img src={it.icon} alt={it.label} className="nav-icon-img"
-            style={{ opacity: tab === it.id ? 1 : 0.6, mixBlendMode: 'multiply' }} />
+          <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#fff',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src={it.icon} alt={it.label} style={{ width: 38, height: 38, objectFit: 'contain',
+              opacity: tab === it.id ? 1 : 0.55 }} />
+          </div>
           <span className="nav-label" style={tab === it.id ? { color: 'var(--primary)' } : {}}>{it.label}</span>
         </div>
       ))}
@@ -1521,7 +1524,11 @@ function HomeScreen({ onTab }) {
             style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
                      boxShadow: '0 2px 14px rgba(0,0,0,0.07)', cursor: 'pointer', border: 'none', textAlign: 'left' }}>
-            <img src={item.icon} alt="" style={{ width: 64, height: 64, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'multiply' }} />
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#fff',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden',
+                          boxShadow: '0 1px 6px rgba(0,0,0,0.08)' }}>
+              <img src={item.icon} alt="" style={{ width: 56, height: 56, objectFit: 'contain' }} />
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 17, fontWeight: 700, color: '#2C2C2C', marginBottom: 3 }}>{item.title}</div>
               <div style={{ fontSize: 13, color: '#888' }}>{item.sub}</div>
