@@ -29,7 +29,7 @@
       color: var(--text);
       -webkit-text-size-adjust: 100%;
     }
-    #root { max-width: 540px; margin: 0 auto; min-height: 100vh; padding-bottom: 72px; }
+    #root { max-width: 540px; margin: 0 auto; min-height: 100vh; padding-bottom: 90px; }
     button { cursor: pointer; font-family: inherit; border: none; background: none; }
     a { color: var(--primary); text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -172,13 +172,13 @@
     .card45-text { font-size: 14px; line-height: 1.7; color: #333; }
 
     /* NAV */
-    .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 540px; background: #FFF; border-top: 1px solid #EEE; display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom)); z-index: 100; }
-    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; cursor: pointer; }
+    .nav-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 540px; background: #FFF; border-top: 1.5px solid #E0EEEA; display: flex; padding: 6px 0 max(10px, env(safe-area-inset-bottom)); z-index: 100; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 2px; cursor: pointer; }
     .nav-icon { font-size: 22px; line-height: 1; }
-    .nav-label { font-size: 10px; color: var(--text-sub); font-weight: 600; }
+    .nav-label { font-size: 11px; color: var(--text-sub); font-weight: 600; }
     .nav-item.active .nav-icon { filter: none; }
     .nav-item.active .nav-label { color: var(--primary); font-weight: 700; }
-    .nav-icon-img { width: 28px; height: 28px; object-fit: contain; }
+    .nav-icon-img { width: 44px; height: 44px; object-fit: contain; }
     .page-title { font-size: 18px; font-weight: 700; }
     .back-btn { font-size: 26px; padding: 4px 8px 4px 0; color: var(--text-sub); }
 
@@ -1490,7 +1490,7 @@ function NavBar({ tab, onTab }) {
       {items.map(it => (
         <div key={it.id} className={`nav-item ${tab === it.id ? 'active' : ''}`} onClick={() => onTab(it.id)}>
           <img src={it.icon} alt={it.label} className="nav-icon-img"
-            style={{ opacity: tab === it.id ? 1 : 0.45 }} />
+            style={{ opacity: tab === it.id ? 1 : 0.55 }} />
           <span className="nav-label" style={tab === it.id ? { color: 'var(--primary)' } : {}}>{it.label}</span>
         </div>
       ))}
