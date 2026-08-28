@@ -1493,17 +1493,50 @@ function NavBar({ tab, onTab }) {
   );
 }
 
-/* ── HomeScreen ── */
-function HomeScreen({ profile, onScene, onSetup }) {
+/* ── HomeScreen（トップ画面） ── */
+function HomeScreen({ onTab }) {
+  const NAV_CARDS = [
+    { id: 'home',      icon: '📋', title: '場面を引く',    sub: '今日の困りごとに応えるカード' },
+    { id: 'diagnosis', icon: '🔍', title: '診断する',      sub: 'メガネ・子どものタイプを調べる' },
+    { id: 'cards',     icon: '🃏', title: 'カードを見る',  sub: '45通りの親子相性カード' },
+    { id: 'settings',  icon: '⚙️', title: '設定',          sub: 'プロフィールを確認・変更する' },
+  ];
+  return (
+    <div style={{ paddingBottom: 80 }}>
+      <div style={{ background: '#FDF4EE', textAlign: 'center', padding: '28px 20px 0' }}>
+        <div style={{ fontSize: 11, color: '#AAA', letterSpacing: '0.06em', marginBottom: 6 }}>親子まるごと診断</div>
+        <div style={{ fontSize: 21, fontWeight: 900, color: '#2C2C2C', lineHeight: 1.4, marginBottom: 16 }}>
+          わが子のタイプと、<br />あなたの関わり方がわかる
+        </div>
+        <img src="./hero.png" alt="" style={{ width: '82%', maxWidth: 300, display: 'block', margin: '0 auto' }} />
+      </div>
+      <div style={{ padding: '20px 16px 0' }}>
+        {NAV_CARDS.map(item => (
+          <button key={item.id} onClick={() => onTab(item.id)}
+            style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
+                     width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                     boxShadow: '0 2px 14px rgba(0,0,0,0.07)', cursor: 'pointer', border: 'none', textAlign: 'left' }}>
+            <span style={{ fontSize: 26 }}>{item.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 2 }}>{item.title}</div>
+              <div style={{ fontSize: 12, color: '#888' }}>{item.sub}</div>
+            </div>
+            <span style={{ fontSize: 20, color: '#CCC' }}>›</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── SceneListScreen（場面一覧） ── */
+function SceneListScreen({ profile, onScene, onSetup, onBack }) {
   const hasChild = profile?.children?.length > 0;
   const currentChild = hasChild ? profile.children[profile.currentChildIdx || 0] : null;
   return (
     <div className="page">
-      <div style={{ textAlign: 'center', margin: '16px 0 8px' }}>
-        <img src="./hero.png" alt="" style={{ width: '72%', maxWidth: 260, display: 'block', margin: '0 auto' }} />
-      </div>
-      <div style={{ paddingTop: 4, marginBottom: 16 }}>
-        <div style={{ fontSize: 11, color: '#AAA', marginBottom: 4 }}>親子まるごと診断</div>
+      <div style={{ paddingTop: 20, marginBottom: 16 }}>
+        <div style={{ fontSize: 11, color: '#AAA', marginBottom: 4 }}>場面カード</div>
         <div style={{ fontSize: 20, fontWeight: 800, lineHeight: 1.2 }}>
           困った場面を<br />開いてください
         </div>
@@ -2222,8 +2255,8 @@ function SettingsScreen({ profile, onEdit, onBack }) {
    ============================================================ */
 function App() {
   const [profile, setProfile] = useState(() => loadProfile());
-  const [tab, setTab] = useState('home');
-  const [screen, setScreen] = useState('home');
+  const [tab, setTab] = useState('top');
+  const [screen, setScreen] = useState('top');
   const [sceneParam, setSceneParam] = useState(null);
 
   function saveProfile(p) {
@@ -2241,13 +2274,13 @@ function App() {
       return { ...c, diagnosis: result };
     });
     saveProfile(updated);
-    setTab('home');
-    setScreen('home');
+    setTab('top');
+    setScreen('top');
   }
 
   function handleTabChange(t) {
     setTab(t);
-    if (t === 'home') setScreen('home');
+    if (t === 'home') setScreen('scene-list');
     else if (t === 'diagnosis') setScreen('diagnosis');
     else if (t === 'cards') setScreen('cards45');
     else if (t === 'settings') setScreen('settings');
@@ -2258,50 +2291,56 @@ function App() {
     setScreen('scene-card');
   }
 
+  function goTop() { setTab('top'); setScreen('top'); }
+
   return (
     <div>
-      {screen === 'home' && (
-        <HomeScreen
+      {screen === 'top' && (
+        <HomeScreen onTab={handleTabChange} />
+      )}
+      {screen === 'scene-list' && (
+        <SceneListScreen
           profile={profile}
           onScene={handleSceneOpen}
           onSetup={() => setScreen('setup')}
+          onBack={goTop}
         />
       )}
       {screen === 'setup' && (
         <SetupWizard
           profile={profile}
-          onSave={p => { saveProfile(p); setScreen('home'); setTab('home'); }}
-          onBack={() => setScreen('home')}
+          onSave={p => { saveProfile(p); goTop(); }}
+          onBack={() => { setScreen('scene-list'); setTab('home'); }}
         />
       )}
       {screen === 'scene-card' && sceneParam && (
         <SceneCardScreen
           scene={sceneParam}
           profile={profile}
-          onBack={() => { setScreen('home'); setSceneParam(null); }}
+          onBack={() => { setScreen('scene-list'); setTab('home'); setSceneParam(null); }}
         />
       )}
       {screen === 'diagnosis' && (
         <DiagnosisScreen
           profile={profile}
-          onBack={() => { setScreen('home'); setTab('home'); }}
+          onBack={goTop}
           onDone={handleDiagnosisDone}
         />
       )}
       {screen === 'cards45' && (
         <Card45Screen
           profile={profile}
-          onBack={() => { setScreen('home'); setTab('home'); }}
+          onBack={goTop}
         />
       )}
       {screen === 'settings' && (
         <SettingsScreen
           profile={profile}
           onEdit={() => setScreen('setup')}
-          onBack={() => { setScreen('home'); setTab('home'); }}
+          onBack={goTop}
         />
       )}
-      {screen !== 'setup' && screen !== 'scene-card' && (
+      {screen !== 'setup' && screen !== 'scene-card' && screen !== 'top' && (
         <NavBar tab={tab} onTab={handleTabChange} />
       )}
     </div>
