@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+  <title>わが家の新ルートMAP</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+  <script>
+    Babel.registerPreset('react-classic', {
+      presets: [[Babel.availablePresets.react, { runtime: 'classic' }]]
+    });
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #F7FAF8;
+      --card: #FFFFFF;
+      --primary: #3D8C7E;
+      --primary-light: #E8F4F1;
+      --primary-dark: #2D6B61;
+      --text: #2D2D2D;
+      --text-sub: #666;
+      --border: #E0E4E2;
+      --max-w: 540px;
+    }
+    html, body { background: var(--bg); font-family: -apple-system,'Hiragino Kaku Gothic ProN','Meiryo',sans-serif; color: var(--text); min-height: 100vh; }
+    #root { max-width: var(--max-w); margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+    .screen { flex: 1; padding: 16px 16px 88px; overflow-y: auto; }
+    .screen-header { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+    .btn:active { opacity: .8; }
+    .btn:disabled { opacity: .4; cursor: default; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn-small { padding: 8px 14px; font-size: 14px; width: auto; display: inline-block; border-radius: 8px; }
+    .tag-chip { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 13px; background: var(--primary-light); color: var(--primary-dark); margin: 2px; }
+    .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--max-w); background: #fff; border-top: 1px solid var(--border); display: flex; z-index: 100; }
+    .nav-item { flex: 1; padding: 10px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10px; color: var(--text-sub); background: none; border: none; cursor: pointer; }
+    .nav-item.active { color: var(--primary); }
+    .nav-icon { font-size: 20px; line-height: 1; }
+    .select-list { list-style: none; }
+    .select-item { padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .select-item:last-child { border-bottom: none; }
+    .select-item:active { background: var(--primary-light); }
+    .select-item.selected { background: var(--primary-light); color: var(--primary-dark); font-weight: 700; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .type-btn { padding: 12px 8px; border-radius: 10px; text-align: center; cursor: pointer; border: 2px solid var(--border); background: var(--card); font-size: 14px; font-weight: 600; transition: all .15s; }
+    .type-btn.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+    .input { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 16px; background: #fff; font-family: inherit; }
+    .input:focus { outline: none; border-color: var(--primary); }
+    .textarea { width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; background: #fff; resize: none; min-height: 80px; font-family: inherit; }
+    .textarea:focus { outline: none; border-color: var(--primary); }
+    .label { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 8px; display: block; }
+    .text-sub { font-size: 13px; color: var(--text-sub); }
+    .text-sm { font-size: 14px; }
+    .mt8 { margin-top: 8px; }
+    .mt12 { margin-top: 12px; }
+    .mt16 { margin-top: 16px; }
+    .mb8 { margin-bottom: 8px; }
+    .mb12 { margin-bottom: 12px; }
+    .step-progress { display: flex; gap: 6px; margin-bottom: 20px; }
+    .step-dot { flex: 1; height: 4px; border-radius: 2px; background: var(--border); }
+    .step-dot.done { background: var(--primary); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+    .badge-green { background: var(--primary-light); color: var(--primary-dark); }
+    .section-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+    .empty { text-align: center; padding: 40px 20px; color: var(--text-sub); }
+    .trend-box { background: var(--primary-light); border-left: 4px solid var(--primary); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+    .trend-text { font-size: 15px; font-weight: 700; color: var(--primary-dark); line-height: 1.5; }
+    .trend-sub { font-size: 12px; color: #4A8A7E; margin-top: 6px; }
+    .rec-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .rec-item:last-child { border-bottom: none; }
+    .rec-date { font-size: 12px; color: var(--text-sub); min-width: 44px; padding-top: 2px; }
+    .rec-body { flex: 1; }
+    .rec-scene { font-size: 14px; font-weight: 600; }
+    .rec-tag { font-size: 13px; color: var(--primary-dark); margin-top: 2px; }
+    .rec-note { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
+    .child-tab { display: flex; gap: 8px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+    .child-tab-btn { padding: 6px 14px; border-radius: 20px; border: 2px solid var(--border); background: var(--card); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .child-tab-btn.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+    .prev-hint { background: #FFF8F0; border: 1px solid #F0D0A0; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .prev-hint-label { font-size: 11px; color: #A0714A; font-weight: 700; margin-bottom: 4px; }
+    .prev-hint-tag { font-size: 15px; font-weight: 700; color: #7A5030; }
+    .prev-hint-date { font-size: 11px; color: #B08060; margin-top: 2px; }
+    .check { color: var(--primary); font-weight: 700; }
+    .bar-wrap { height: 6px; background: #e8ece9; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--primary); border-radius: 3px; }
+    .msg-box { background: var(--primary-light); color: var(--primary-dark); padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+    .save-icon { font-size: 56px; text-align: center; padding-top: 24px; margin-bottom: 8px; }
+    .flex-row { display: flex; gap: 8px; }
+    .flex-1 { flex: 1; }
+    .back-btn { background: none; border: none; font-size: 22px; cursor: pointer; padding: 4px 8px 4px 0; color: var(--text); }
+    .row-header { display: flex; align-items: center; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel" data-presets="react-classic">
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const STORAGE_KEY_PROFILE = 'routemap_v1_profile';
+const STORAGE_KEY_RECORDS = 'routemap_v1_records';
+const MIN_RECORDS = 3;
+const MIN_RATIO = 0.4;
+const MAX_CHILDREN = 3;
+
+const GLASSES = [
+  { id: 'move_A', name: 'まず動くメガネ' },
+  { id: 'move_B', name: 'じっくりメガネ' },
+  { id: 'focus_A', name: 'ゴール志向メガネ' },
+  { id: 'focus_B', name: 'リスク発見メガネ' },
+  { id: 'judge_A', name: '自分基準メガネ' },
+  { id: 'judge_B', name: 'まわりの目メガネ' },
+  { id: 'process_A', name: '正しい手順メガネ' },
+  { id: 'process_B', name: '選択肢メガネ' },
+  { id: 'feel_A', name: '感覚メガネ' },
+  { id: 'feel_B', name: '結果・数字メガネ' },
+  { id: 'outlook_A', name: '楽観メガネ' },
+  { id: 'outlook_B', name: '最悪想定メガネ' },
+];
+
+const CHILD_TYPES = [
+  { id: 'nikoniko', name: 'にこにこ' },
+  { id: 'monoshiri', name: 'ものしり' },
+  { id: 'gungun', name: 'ぐんぐん' },
+  { id: 'funwari', name: 'ふんわり' },
+  { id: 'tokoton', name: 'とことん' },
+];
+
+const PARENT_TYPES = [
+  { id: 'shokunin', name: '職人' },
+  { id: 'sewayaku', name: '世話役' },
+  { id: 'kaitakusha', name: '開拓者' },
+  { id: 'hyogensha', name: '表現者' },
+  { id: 'tankyusha', name: '探究者' },
+  { id: 'mamorite', name: '守り手' },
+  { id: 'boukensha', name: '冒険者' },
+  { id: 'leader', name: 'リーダー' },
+  { id: 'kikite', name: '聞き手' },
+];
+
+const SCENES = [
+  { id: 'morning', name: '朝、動かない' },
+  { id: 'switch', name: '切り替えられない（ゲーム・動画）' },
+  { id: 'homework', name: '宿題に取りかからない' },
+  { id: 'sleep', name: '夜、寝ない' },
+  { id: 'tantrum', name: 'かんしゃく・爆発' },
+  { id: 'scolded', name: '注意されると怒る・投げ出す' },
+  { id: 'blame', name: '人のせいにする' },
+  { id: 'reluctant', name: '登園・登校しぶり' },
+  { id: 'outside', name: '外で声が出ない・挨拶' },
+  { id: 'friends', name: '友だちとのトラブル' },
+  { id: 'perfection', name: '失敗を怖がる・完璧主義' },
+  { id: 'newthing', name: '新しいことに尻込みする' },
+  { id: 'silence', name: '気持ちが言えない・ダンマリ' },
+];
+
+const TAGS = [
+  { id: 'step', label: '何から始めるかを示した' },
+  { id: 'choice', label: '選んでもらった' },
+  { id: 'wait', label: '声をかけずに待った' },
+  { id: 'receive', label: 'まず気持ちを受け止めた' },
+  { id: 'reason', label: '大丈夫だと思える理由を伝えた' },
+  { id: 'together', label: '最初だけ一緒にやった' },
+  { id: 'shorten', label: '小さく区切った' },
+  { id: 'leave', label: '一度、間を置いた' },
+];
+
+const TAG_TRENDS = {
+  step: '何から始めるかを示すと、動きやすい',
+  choice: '選択肢を渡すと、動きやすい',
+  wait: '声をかけずに待つほうが、動きやすい',
+  receive: 'まず気持ちを受け止めると、届きやすい',
+  reason: '大丈夫だと思える理由があると、動きやすい',
+  together: '最初だけ一緒にやると、動き出しやすい',
+  shorten: '小さく区切ると、取りかかりやすい',
+  leave: '一度間を置くほうが、戻ってきやすい',
+};
+
+const CHILD_TYPE_TAGS = {
+  nikoniko: ['choice', 'receive'],
+  monoshiri: ['reason', 'step'],
+  gungun: ['wait', 'shorten'],
+  funwari: ['receive', 'together'],
+  tokoton: ['step', 'wait'],
+};
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function loadProfile() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_PROFILE)) || null; } catch { return null; }
+}
+function saveProfile(p) { localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(p)); }
+function loadRecords() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY_RECORDS)) || []; } catch { return []; }
+}
+function saveRecords(r) { localStorage.setItem(STORAGE_KEY_RECORDS, JSON.stringify(r)); }
+
+function genId() { return 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6); }
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function formatDate(s) {
+  if (!s) return '';
+  const parts = s.split('-');
+  return parseInt(parts[1]) + '/' + parseInt(parts[2]);
+}
+
+function calcTrend(records, childId) {
+  const recs = records.filter(r => r.childId === childId);
+  const total = recs.length;
+  if (total < MIN_RECORDS) return null;
+  const cnt = {};
+  recs.forEach(r => { cnt[r.tag] = (cnt[r.tag] || 0) + 1; });
+  const sorted = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+  const [topTag, topCount] = sorted[0];
+  if (topCount / total < MIN_RATIO) return null;
+  return { tag: topTag, count: topCount, total };
+}
+
+function getLastRecord(records, childId, sceneId) {
+  const recs = records.filter(r => r.childId === childId && r.sceneId === sceneId);
+  if (!recs.length) return null;
+  return recs.sort((a, b) => b.date.localeCompare(a.date))[0];
+}
+
+function exportJSON(profile, records) {
+  const data = { version: 1, exportedAt: new Date().toISOString(), profile, records };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'routemap_backup_' + todayStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importJSON(jsonStr, currentRecords) {
+  const data = JSON.parse(jsonStr);
+  if (!data.version || !data.profile || !Array.isArray(data.records)) throw new Error('形式が正しくありません');
+  const existingIds = new Set(currentRecords.map(r => r.id));
+  const newRecs = data.records.filter(r => !existingIds.has(r.id));
+  return { profile: data.profile, newRecords: newRecs };
+}
+
+function generatePrintText(profile, records, childId) {
+  const child = profile.children.find(c => c.id === childId);
+  const recs = records.filter(r => r.childId === childId).sort((a, b) => b.date.localeCompare(a.date));
+  const trend = calcTrend(records, childId);
+  const lines = ['わが家の新ルートMAP', child.name + '（' + todayStr() + '時点 / 記録 ' + recs.length + '件）', ''];
+  if (trend) {
+    lines.push('■ いま見えている傾向');
+    lines.push('　' + child.name + 'には、' + TAG_TRENDS[trend.tag] + 'ようです');
+    lines.push('');
+  }
+  lines.push('■ 記録');
+  recs.forEach(r => {
+    const s = SCENES.find(x => x.id === r.sceneId);
+    const t = TAGS.find(x => x.id === r.tag);
+    lines.push('　' + formatDate(r.date) + '　' + (s ? s.name : r.sceneId) + '　→ ' + (t ? t.label : r.tag) + (r.note ? '　メモ：' + r.note : ''));
+  });
+  return lines.join('\n');
+}
+
+/* ============================================================
+   SETUP SCREEN
+   ============================================================ */
+function SetupScreen({ onComplete }) {
+  const [step, setStep] = React.useState(0);
+  const [childName, setChildName] = React.useState('');
+  const [childType, setChildType] = React.useState('');
+  const [childSubType, setChildSubType] = React.useState('');
+  const [glasses, setGlasses] = React.useState([]);
+  const [parentType, setParentType] = React.useState('');
+
+  function toggleGlass(id) {
+    setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
+  }
+
+  function finish() {
+    const profile = {
+      version: 1,
+      parent: { glasses, parentType: parentType || null },
+      children: [{ id: 'c1', name: childName.trim(), type: childType, subType: childSubType || null }]
+    };
+    saveProfile(profile);
+    onComplete(profile);
+  }
+
+  return (
+    <div className="screen">
+      <div style={{ paddingTop: 8, marginBottom: 20 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--primary-dark)' }}>わが家の新ルートMAP</div>
+        <div className="text-sub mt8">うまくいった日に、残していくアプリです</div>
+      </div>
+      <div className="step-progress">
+        {[0,1,2].map(i => <div key={i} className={'step-dot' + (i <= step ? ' done' : '')} />)}
+      </div>
+
+      {step === 0 && (
+        <div>
+          <div className="section-title">お子さんについて</div>
+          <div className="card">
+            <label className="label">名前（またはニックネーム）</label>
+            <input className="input" value={childName} onChange={e => setChildName(e.target.value)} placeholder="例：はな" maxLength={20} />
+          </div>
+          <div className="card">
+            <label className="label">お子さんのタイプ</label>
+            <div className="grid-2 mt8">
+              {CHILD_TYPES.map(t => (
+                <div key={t.id} className={'type-btn' + (childType === t.id ? ' selected' : '')} onClick={() => setChildType(t.id)}>{t.name}</div>
+              ))}
+            </div>
+          </div>
+          <div className="card">
+            <label className="label">2番目のタイプ（任意）</label>
+            <div className="grid-2 mt8">
+              {[...CHILD_TYPES.filter(t => t.id !== childType), { id: '', name: 'なし' }].map(t => (
+                <div key={t.id} className={'type-btn' + (childSubType === t.id ? ' selected' : '')} onClick={() => setChildSubType(t.id)}>{t.name}</div>
+              ))}
+            </div>
+          </div>
+          <button className="btn btn-primary" onClick={() => setStep(1)} disabled={!childName.trim() || !childType}>次へ</button>
+        </div>
+      )}
+
+      {step === 1 && (
+        <div>
+          <div className="section-title">わたしの強いメガネ（1〜2個）</div>
+          <div className="text-sub mb12">本編アプリで診断したメガネを選んでください</div>
+          <div className="card">
+            <div className="grid-2">
+              {GLASSES.map(g => (
+                <div key={g.id} className={'type-btn' + (glasses.includes(g.id) ? ' selected' : '')} onClick={() => toggleGlass(g.id)}>{g.name}</div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-row">
+            <button className="btn btn-outline flex-1" onClick={() => setStep(0)}>戻る</button>
+            <button className="btn btn-primary flex-1" onClick={() => setStep(2)} disabled={glasses.length === 0}>次へ</button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div>
+          <div className="section-title">わたしの親タイプ（任意）</div>
+          <div className="text-sub mb12">選ばない場合はそのままはじめられます</div>
+          <div className="card">
+            <div className="grid-3">
+              {PARENT_TYPES.map(t => (
+                <div key={t.id} className={'type-btn' + (parentType === t.id ? ' selected' : '')} onClick={() => setParentType(prev => prev === t.id ? '' : t.id)}>{t.name}</div>
+              ))}
+            </div>
+          </div>
+          <div className="flex-row">
+            <button className="btn btn-outline flex-1" onClick={() => setStep(1)}>戻る</button>
+            <button className="btn btn-primary flex-1" onClick={finish}>はじめる</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   RECORD FLOW
+   ============================================================ */
+function RecordFlow({ profile, records, onSave, onCancel }) {
+  const startStep = profile.children.length > 1 ? 'child' : 'scene';
+  const [flowStep, setFlowStep] = React.useState(startStep);
+  const [childId, setChildId] = React.useState(profile.children.length === 1 ? profile.children[0].id : '');
+  const [sceneId, setSceneId] = React.useState('');
+  const [tag, setTag] = React.useState('');
+  const [note, setNote] = React.useState('');
+  const [saved, setSaved] = React.useState(false);
+  const [prevRec, setPrevRec] = React.useState(null);
+
+  const child = profile.children.find(c => c.id === childId);
+  const scene = SCENES.find(s => s.id === sceneId);
+  const tagObj = TAGS.find(t => t.id === tag);
+
+  function selectScene(sid) {
+    setSceneId(sid);
+    setFlowStep('tag');
+  }
+
+  function doSave() {
+    const rec = {
+      id: genId(),
+      date: todayStr(),
+      childId,
+      sceneId,
+      tag,
+      note: note.trim(),
+      snapshot: { childType: child.type, glasses: [...profile.parent.glasses] }
+    };
+    const prev = getLastRecord(records, childId, sceneId);
+    const newRecs = [rec, ...records];
+    saveRecords(newRecs);
+    setPrevRec(prev);
+    setSaved(true);
+    onSave(newRecs);
+  }
+
+  if (saved) {
+    return (
+      <div className="screen">
+        <div className="save-icon">✓</div>
+        <div style={{ textAlign: 'center', fontSize: 16, fontWeight: 700, marginBottom: 20 }}>記録しました</div>
+        <div className="card">
+          <div className="text-sub mb8">{child ? child.name : ''}｜{scene ? scene.name : ''}</div>
+          <div style={{ fontSize: 15, fontWeight: 700 }}>「{tagObj ? tagObj.label : ''}」</div>
+          {note && <div className="text-sub mt8">{note}</div>}
+        </div>
+        {prevRec && (
+          <div className="prev-hint">
+            <div className="prev-hint-label">前回この場面でうまくいったのは</div>
+            <div className="prev-hint-tag">「{TAGS.find(t => t.id === prevRec.tag) ? TAGS.find(t => t.id === prevRec.tag).label : ''}」</div>
+            <div className="prev-hint-date">（{formatDate(prevRec.date)}）</div>
+          </div>
+        )}
+        <button className="btn btn-primary mt8" onClick={onCancel}>ホームへ戻る</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="screen">
+      <div className="row-header">
+        <button className="back-btn" onClick={flowStep === 'child' || flowStep === 'scene' ? onCancel : () => setFlowStep(flowStep === 'tag' ? 'scene' : 'child')}>←</button>
+        <div style={{ fontSize: 16, fontWeight: 700 }}>
+          {flowStep === 'child' && '誰のことを記録しますか？'}
+          {flowStep === 'scene' && 'うまくいった場面は？'}
+          {flowStep === 'tag' && '何が効きましたか？'}
+        </div>
+      </div>
+
+      {flowStep === 'child' && (
+        <ul className="select-list card">
+          {profile.children.map(c => (
+            <li key={c.id} className="select-item" onClick={() => { setChildId(c.id); setFlowStep('scene'); }}>
+              {c.name}<span style={{ color: 'var(--text-sub)' }}>→</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {flowStep === 'scene' && (
+        <div>
+          {child && <div className="text-sub mb12">{child.name}</div>}
+          <ul className="select-list card">
+            {SCENES.map(s => {
+              const prev = childId ? getLastRecord(records, childId, s.id) : null;
+              return (
+                <li key={s.id} className="select-item" onClick={() => selectScene(s.id)}>
+                  <span>{s.name}</span>
+                  {prev && <span className="badge badge-green">前回あり</span>}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {flowStep === 'tag' && (
+        <div>
+          {child && <div className="text-sub mb8">{child.name}｜{scene ? scene.name : ''}</div>}
+
+          {getLastRecord(records, childId, sceneId) && (
+            <div className="prev-hint">
+              <div className="prev-hint-label">前回うまくいったのは</div>
+              <div className="prev-hint-tag">「{TAGS.find(t => t.id === getLastRecord(records, childId, sceneId).tag)?.label}」</div>
+              <div className="prev-hint-date">（{formatDate(getLastRecord(records, childId, sceneId).date)}）</div>
+            </div>
+          )}
+
+          <div className="section-title">何が効いた？</div>
+          <ul className="select-list card mb12">
+            {TAGS.map(t => (
+              <li key={t.id} className={'select-item' + (tag === t.id ? ' selected' : '')} onClick={() => setTag(prev => prev === t.id ? '' : t.id)}>
+                {t.label}
+                {tag === t.id && <span className="check">✓</span>}
+              </li>
+            ))}
+          </ul>
+
+          <div className="card mb12">
+            <label className="label">メモ（任意）</label>
+            <textarea className="textarea" value={note} onChange={e => setNote(e.target.value)} rows={3} />
+          </div>
+
+          <button className="btn btn-primary" onClick={doSave} disabled={!tag}>保存する</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   HOME SCREEN
+   ============================================================ */
+function HomeScreen({ profile, records, onRecord }) {
+  const [selectedChildId, setSelectedChildId] = React.useState(profile.children[0].id);
+  const selectedChild = profile.children.find(c => c.id === selectedChildId);
+  const trend = calcTrend(records, selectedChildId);
+  const childRecords = records.filter(r => r.childId === selectedChildId).slice(0, 5);
+  const totalForChild = records.filter(r => r.childId === selectedChildId).length;
+
+  return (
+    <div className="screen">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: 'var(--primary-dark)' }}>わが家の新ルートMAP</div>
+      </div>
+
+      {profile.children.length > 1 && (
+        <div className="child-tab">
+          {profile.children.map(c => (
+            <button key={c.id} className={'child-tab-btn' + (selectedChildId === c.id ? ' active' : '')} onClick={() => setSelectedChildId(c.id)}>{c.name}</button>
+          ))}
+        </div>
+      )}
+
+      <button className="btn btn-primary mb12" onClick={onRecord}>＋ うまくいったことを記録する</button>
+
+      {trend ? (
+        <div className="trend-box">
+          <div className="text-sub" style={{ fontSize: 11, marginBottom: 4 }}>いま見えている傾向</div>
+          <div className="trend-text">{selectedChild.name}には、{TAG_TRENDS[trend.tag]}ようです</div>
+          <div className="trend-sub">{trend.count}件 / {trend.total}件の記録から</div>
+          <div className="trend-sub">これは今の記録から見えている傾向です。場面や体調で変わります</div>
+        </div>
+      ) : totalForChild === 0 ? (
+        <div className="card">
+          <div className="text-sub" style={{ lineHeight: 1.7 }}>記録がまだありません。<br />うまくいった日に、ここへ残していきましょう。</div>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="text-sub">あと{MIN_RECORDS - totalForChild}件記録すると、傾向が見えてきます</div>
+        </div>
+      )}
+
+      {childRecords.length > 0 && (
+        <div>
+          <div className="section-title mt16">最近の記録</div>
+          <div className="card">
+            {childRecords.map((r, i) => {
+              const s = SCENES.find(sc => sc.id === r.sceneId);
+              const t = TAGS.find(tg => tg.id === r.tag);
+              return (
+                <div key={r.id} className="rec-item" style={i === 0 ? { paddingTop: 0 } : {}}>
+                  <div className="rec-date">{formatDate(r.date)}</div>
+                  <div className="rec-body">
+                    <div className="rec-scene">{s ? s.name : r.sceneId}</div>
+                    <div className="rec-tag">→ {t ? t.label : r.tag}</div>
+                    {r.note && <div className="rec-note">{r.note}</div>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   HISTORY SCREEN
+   ============================================================ */
+function HistoryScreen({ profile, records }) {
+  const [selectedChildId, setSelectedChildId] = React.useState(profile.children[0].id);
+  const childRecords = records.filter(r => r.childId === selectedChildId).sort((a, b) => b.date.localeCompare(a.date));
+
+  return (
+    <div className="screen">
+      <div className="screen-header">記録一覧</div>
+      {profile.children.length > 1 && (
+        <div className="child-tab">
+          {profile.children.map(c => (
+            <button key={c.id} className={'child-tab-btn' + (selectedChildId === c.id ? ' active' : '')} onClick={() => setSelectedChildId(c.id)}>{c.name}</button>
+          ))}
+        </div>
+      )}
+      {childRecords.length === 0 ? (
+        <div className="empty">まだ記録がありません</div>
+      ) : (
+        <div className="card">
+          {childRecords.map((r, i) => {
+            const s = SCENES.find(sc => sc.id === r.sceneId);
+            const t = TAGS.find(tg => tg.id === r.tag);
+            return (
+              <div key={r.id} className="rec-item" style={i === 0 ? { paddingTop: 0 } : {}}>
+                <div className="rec-date">{formatDate(r.date)}</div>
+                <div className="rec-body">
+                  <div className="rec-scene">{s ? s.name : r.sceneId}</div>
+                  <div className="rec-tag">→ {t ? t.label : r.tag}</div>
+                  {r.note && <div className="rec-note">{r.note}</div>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   TREND SCREEN
+   ============================================================ */
+function TrendScreen({ profile, records }) {
+  const [selectedChildId, setSelectedChildId] = React.useState(profile.children[0].id);
+  const selectedChild = profile.children.find(c => c.id === selectedChildId);
+  const trend = calcTrend(records, selectedChildId);
+  const childRecords = records.filter(r => r.childId === selectedChildId);
+  const tagCount = {};
+  childRecords.forEach(r => { tagCount[r.tag] = (tagCount[r.tag] || 0) + 1; });
+  const tagsSorted = TAGS.map(t => ({ ...t, count: tagCount[t.id] || 0 })).sort((a, b) => b.count - a.count).filter(t => t.count > 0);
+
+  const expectedTags = CHILD_TYPE_TAGS[selectedChild.type] || [];
+  const showMismatch = trend && !expectedTags.includes(trend.tag) && childRecords.length >= MIN_RECORDS;
+
+  return (
+    <div className="screen">
+      <div className="screen-header">傾向</div>
+      {profile.children.length > 1 && (
+        <div className="child-tab">
+          {profile.children.map(c => (
+            <button key={c.id} className={'child-tab-btn' + (selectedChildId === c.id ? ' active' : '')} onClick={() => setSelectedChildId(c.id)}>{c.name}</button>
+          ))}
+        </div>
+      )}
+
+      {childRecords.length < MIN_RECORDS ? (
+        <div className="card">
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{selectedChild.name}の傾向</div>
+          <div className="text-sub">あと{MIN_RECORDS - childRecords.length}件記録すると、傾向が見えてきます</div>
+        </div>
+      ) : (
+        <>
+          {trend ? (
+            <div className="trend-box">
+              <div className="text-sub" style={{ fontSize: 11, marginBottom: 4 }}>いま見えている傾向</div>
+              <div className="trend-text">{selectedChild.name}には、{TAG_TRENDS[trend.tag]}ようです</div>
+              <div className="trend-sub">{trend.count}件 / {trend.total}件の記録から</div>
+              <div className="trend-sub mt8">これは今の記録から見えている傾向です。場面や体調で変わります</div>
+            </div>
+          ) : (
+            <div className="card">
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>まだ、はっきりした傾向は出ていません</div>
+              <div className="text-sub">記録がたまってくると、傾向が見えてきます</div>
+            </div>
+          )}
+
+          {showMismatch && (
+            <div className="card">
+              <div style={{ fontSize: 13, color: 'var(--primary-dark)', lineHeight: 1.8 }}>
+                一般に、{CHILD_TYPES.find(t => t.id === selectedChild.type)?.name}タイプは{TAGS.find(t => t.id === expectedTags[0])?.label}お子さんが多いのですが、
+                {selectedChild.name}には、{TAGS.find(t => t.id === trend.tag)?.label}ときの方が、動いているようです。
+              </div>
+            </div>
+          )}
+
+          {tagsSorted.length > 0 && (
+            <>
+              <div className="section-title mt12">記録の内訳</div>
+              <div className="card">
+                {tagsSorted.map(t => (
+                  <div key={t.id} style={{ marginBottom: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span style={{ fontSize: 13 }}>{t.label}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700 }}>{t.count}件</span>
+                    </div>
+                    <div className="bar-wrap">
+                      <div className="bar-fill" style={{ width: (childRecords.length > 0 ? Math.round(t.count / childRecords.length * 100) : 0) + '%' }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   SETTINGS SCREEN
+   ============================================================ */
+function SettingsScreen({ profile, records, onProfileUpdate, onRecordsUpdate }) {
+  const [editing, setEditing] = React.useState(false);
+  const [editGlasses, setEditGlasses] = React.useState([...profile.parent.glasses]);
+  const [addingChild, setAddingChild] = React.useState(false);
+  const [newChildName, setNewChildName] = React.useState('');
+  const [newChildType, setNewChildType] = React.useState('');
+  const [importText, setImportText] = React.useState('');
+  const [msg, setMsg] = React.useState('');
+  const fileRef = React.useRef();
+
+  function showMsg(text) { setMsg(text); setTimeout(() => setMsg(''), 4000); }
+
+  function toggleEditGlass(id) {
+    setEditGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
+  }
+
+  function saveGlasses() {
+    const updated = { ...profile, parent: { ...profile.parent, glasses: editGlasses } };
+    saveProfile(updated);
+    onProfileUpdate(updated);
+    setEditing(false);
+    showMsg('設定を保存しました。これまでの記録はそのまま残ります。');
+  }
+
+  function addChild() {
+    if (!newChildName.trim() || !newChildType) return;
+    const updated = { ...profile, children: [...profile.children, { id: 'c' + Date.now(), name: newChildName.trim(), type: newChildType, subType: null }] };
+    saveProfile(updated);
+    onProfileUpdate(updated);
+    setAddingChild(false);
+    setNewChildName('');
+    setNewChildType('');
+  }
+
+  function handleExportJSON() { exportJSON(profile, records); }
+
+  function handleImport() {
+    try {
+      const { profile: p, newRecords } = importJSON(importText, records);
+      const merged = [...records, ...newRecords];
+      saveProfile(p); saveRecords(merged);
+      onProfileUpdate(p); onRecordsUpdate(merged);
+      setImportText('');
+      showMsg('インポートしました（新規記録 ' + newRecords.length + '件）');
+    } catch(e) { showMsg('エラー：' + e.message); }
+  }
+
+  function handlePrint() {
+    const text = generatePrintText(profile, records, profile.children[0].id);
+    const w = window.open('', '_blank');
+    if (!w) { showMsg('ポップアップをゆるしてください'); return; }
+    w.document.write('<pre style="font-family:monospace;white-space:pre-wrap;padding:20px;font-size:14px">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</pre>');
+    w.document.close();
+    w.print();
+  }
+
+  return (
+    <div className="screen">
+      <div className="screen-header">設定</div>
+      {msg && <div className="msg-box">{msg}</div>}
+
+      <div className="section-title">お子さんの情報</div>
+      {profile.children.map(c => (
+        <div className="card" key={c.id} style={{ marginBottom: 8 }}>
+          <div style={{ fontWeight: 700 }}>{c.name}</div>
+          <div className="text-sub">{CHILD_TYPES.find(t => t.id === c.type)?.name}{c.subType ? '・' + CHILD_TYPES.find(t => t.id === c.subType)?.name : ''}</div>
+        </div>
+      ))}
+      {profile.children.length < MAX_CHILDREN && !addingChild && (
+        <button className="btn btn-outline btn-small mb12" onClick={() => setAddingChild(true)}>お子さんを追加</button>
+      )}
+      {addingChild && (
+        <div className="card mb12">
+          <label className="label">名前</label>
+          <input className="input mb8" value={newChildName} onChange={e => setNewChildName(e.target.value)} maxLength={20} />
+          <label className="label">タイプ</label>
+          <div className="grid-2 mt8 mb8">
+            {CHILD_TYPES.map(t => (
+              <div key={t.id} className={'type-btn' + (newChildType === t.id ? ' selected' : '')} onClick={() => setNewChildType(t.id)}>{t.name}</div>
+            ))}
+          </div>
+          <div className="flex-row">
+            <button className="btn btn-outline flex-1" onClick={() => setAddingChild(false)}>キャンセル</button>
+            <button className="btn btn-primary flex-1" onClick={addChild} disabled={!newChildName.trim() || !newChildType}>追加</button>
+          </div>
+        </div>
+      )}
+
+      <div className="section-title">わたしのメガネ</div>
+      <div className="card mb8">
+        <div>{profile.parent.glasses.map(g => { const gl = GLASSES.find(x => x.id === g); return <span key={g} className="tag-chip">{gl ? gl.name : g}</span>; })}</div>
+        {!editing && <button className="btn btn-outline btn-small mt8" onClick={() => { setEditGlasses([...profile.parent.glasses]); setEditing(true); }}>変更</button>}
+      </div>
+      {editing && (
+        <div className="card mb12">
+          <label className="label">選び直す（1〜2個）</label>
+          <div className="grid-2 mt8 mb8">
+            {GLASSES.map(g => (
+              <div key={g.id} className={'type-btn' + (editGlasses.includes(g.id) ? ' selected' : '')} onClick={() => toggleEditGlass(g.id)}>{g.name}</div>
+            ))}
+          </div>
+          <div className="flex-row">
+            <button className="btn btn-outline flex-1" onClick={() => setEditing(false)}>キャンセル</button>
+            <button className="btn btn-primary flex-1" onClick={saveGlasses} disabled={editGlasses.length === 0}>保存</button>
+          </div>
+        </div>
+      )}
+
+      <div className="section-title">手元に残す</div>
+      <div className="card">
+        <div style={{ marginBottom: 8 }}>
+          <button className="btn btn-outline btn-small" onClick={handleExportJSON}>JSONでバックアップ</button>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <button className="btn btn-outline btn-small" onClick={handlePrint}>印刷用テキストを開く</button>
+        </div>
+        <label className="label">JSONをインポート</label>
+        <textarea className="textarea mb8" rows={3} value={importText} onChange={e => setImportText(e.target.value)} placeholder={'{"version":1,...}'} />
+        <button className="btn btn-outline btn-small" onClick={handleImport} disabled={!importText.trim()}>インポートする</button>
+      </div>
+
+      <div style={{ fontSize: 11, color: '#bbb', textAlign: 'center', marginTop: 24 }}>わが家の新ルートMAP</div>
+    </div>
+  );
+}
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+function NavBar({ screen, onChange }) {
+  const items = [
+    { id: 'home', icon: '🏠', label: 'ホーム' },
+    { id: 'history', icon: '📋', label: '記録一覧' },
+    { id: 'trend', icon: '📊', label: '傾向' },
+    { id: 'settings', icon: '⚙️', label: '設定' },
+  ];
+  return (
+    <nav className="nav">
+      {items.map(i => (
+        <button key={i.id} className={'nav-item' + (screen === i.id ? ' active' : '')} onClick={() => onChange(i.id)}>
+          <span className="nav-icon">{i.icon}</span>
+          {i.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+/* ============================================================
+   APP
+   ============================================================ */
+function App() {
+  const [profile, setProfile] = React.useState(loadProfile);
+  const [records, setRecords] = React.useState(loadRecords);
+  const [screen, setScreen] = React.useState('home');
+  const [recording, setRecording] = React.useState(false);
+
+  if (!profile) {
+    return <SetupScreen onComplete={p => setProfile(p)} />;
+  }
+
+  if (recording) {
+    return (
+      <RecordFlow
+        profile={profile}
+        records={records}
+        onSave={newRecs => setRecords(newRecs)}
+        onCancel={() => setRecording(false)}
+      />
+    );
+  }
+
+  return (
+    <>
+      {screen === 'home' && (
+        <HomeScreen profile={profile} records={records} onRecord={() => setRecording(true)} />
+      )}
+      {screen === 'history' && (
+        <HistoryScreen profile={profile} records={records} />
+      )}
+      {screen === 'trend' && (
+        <TrendScreen profile={profile} records={records} />
+      )}
+      {screen === 'settings' && (
+        <SettingsScreen
+          profile={profile}
+          records={records}
+          onProfileUpdate={p => setProfile(p)}
+          onRecordsUpdate={r => setRecords(r)}
+        />
+      )}
+      <NavBar screen={screen} onChange={setScreen} />
+    </>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
