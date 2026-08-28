@@ -10,15 +10,16 @@
   <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
   <style>
     :root {
-      --primary: #D96A2A;
-      --primary-bg: #FDF4EE;
-      --bg: #FAFAF8;
+      --primary: #4A9A87;
+      --primary-bg: #EAF5F2;
+      --primary-dark: #2D7A68;
+      --bg: #F4FAF8;
       --card: #FFFFFF;
-      --text: #2C2C2C;
-      --text-sub: #777;
-      --border: #EEE;
+      --text: #222222;
+      --text-sub: #666;
+      --border: #E0EEEA;
       --r: 16px;
-      --shadow: 0 2px 14px rgba(0,0,0,0.07);
+      --shadow: 0 2px 16px rgba(0,0,0,0.08);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -45,12 +46,12 @@
     .card-bordered { border: 1.5px solid var(--border); box-shadow: none; }
 
     /* BUTTONS */
-    .btn { border-radius: 50px; padding: 13px 24px; font-size: 15px; font-weight: 700; width: 100%; transition: opacity 0.15s, transform 0.1s; display: block; text-align: center; }
+    .btn { border-radius: 50px; padding: 15px 24px; font-size: 16px; font-weight: 700; width: 100%; transition: opacity 0.15s, transform 0.1s; display: block; text-align: center; }
     .btn:active { transform: scale(0.98); }
-    .btn-primary { background: linear-gradient(135deg, #E8843A, #D05A25); color: #fff; }
+    .btn-primary { background: linear-gradient(135deg, #5DB5A0, #3A8A77); color: #fff; }
     .btn-primary:disabled { background: #CCC; }
-    .btn-secondary { background: #F3F3F0; color: var(--text); }
-    .btn-ghost { background: none; color: var(--primary); font-size: 14px; font-weight: 600; padding: 8px; width: auto; border-radius: 8px; }
+    .btn-secondary { background: #EEF3F1; color: var(--text); }
+    .btn-ghost { background: none; color: var(--primary); font-size: 15px; font-weight: 600; padding: 8px; width: auto; border-radius: 8px; }
 
     /* SCENE BUTTON */
     .scene-btn {
@@ -65,16 +66,16 @@
       width: 100%;
       text-align: left;
     }
-    .scene-btn:active { background: #F9F0E8; transform: scale(0.99); }
-    .scene-btn-label { font-size: 15px; font-weight: 600; }
-    .scene-btn-num { font-size: 12px; color: var(--text-sub); margin-bottom: 2px; }
-    .scene-arrow { color: var(--text-sub); font-size: 16px; }
-    .scene-new { background: #FFF3EA; border-left: 3px solid var(--primary); }
+    .scene-btn:active { background: #E8F5F1; transform: scale(0.99); }
+    .scene-btn-label { font-size: 16px; font-weight: 600; }
+    .scene-btn-num { font-size: 13px; color: var(--text-sub); margin-bottom: 2px; }
+    .scene-arrow { color: var(--text-sub); font-size: 18px; }
+    .scene-new { background: #EFF8F5; border-left: 3px solid var(--primary); }
 
     /* TAG / BADGE */
     .tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .tag-gray { background: #F0F0EE; color: #555; }
-    .tag-orange { background: #FEE9D7; color: #C05820; }
+    .tag-orange { background: #D6F0EA; color: #2D7A68; }
     .tag-blue { background: #E3EEF9; color: #2A6099; }
 
     /* TYPE CHIPS */
@@ -119,34 +120,34 @@
     /* GLASSES LIST */
     .glasses-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .glasses-item { border-radius: 12px; padding: 12px; border: 2px solid #EEE; background: #FFF; cursor: pointer; transition: all 0.15s; }
-    .glasses-item.selected { border-color: var(--primary); background: #FFF4ED; }
+    .glasses-item.selected { border-color: var(--primary); background: var(--primary-bg); }
     .glasses-label { font-size: 11px; color: var(--text-sub); margin-bottom: 3px; }
     .glasses-name { font-size: 14px; font-weight: 700; }
 
     /* PARENT TYPES */
     .ptype-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .ptype-item { border-radius: 12px; padding: 12px; border: 2px solid #EEE; background: #FFF; cursor: pointer; transition: all 0.15s; }
-    .ptype-item.selected { border-color: var(--primary); background: #FFF4ED; }
-    .ptype-item.highlighted { border-color: #E0B080; background: #FFFCF5; }
-    .ptype-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-    .ptype-desc { font-size: 11px; color: var(--text-sub); line-height: 1.4; }
+    .ptype-item.selected { border-color: var(--primary); background: var(--primary-bg); }
+    .ptype-item.highlighted { border-color: #7ABFB0; background: #F0FAF7; }
+    .ptype-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .ptype-desc { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
 
     /* DIAGNOSIS */
     .q-card { background: var(--card); border-radius: 14px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
-    .q-text { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 14px; }
+    .q-text { font-size: 17px; font-weight: 600; line-height: 1.6; margin-bottom: 18px; }
     .q-scale { display: flex; gap: 6px; }
-    .q-btn { flex: 1; border-radius: 10px; padding: 10px 4px; font-size: 12px; border: 2px solid #EEE; background: #FFF; cursor: pointer; text-align: center; transition: all 0.12s; line-height: 1.3; }
-    .q-btn.sel { border-color: var(--primary); background: #FFF0E4; font-weight: 700; color: var(--primary); }
-    .q-btn-na { font-size: 11px; color: var(--text-sub); border: 1.5px solid #E0E0E0; border-radius: 8px; padding: 8px 10px; cursor: pointer; text-align: center; background: #FFF; margin-top: 8px; width: 100%; }
+    .q-btn { flex: 1; border-radius: 10px; padding: 12px 4px; font-size: 12px; border: 2px solid #DDE8E5; background: #FFF; cursor: pointer; text-align: center; transition: all 0.12s; line-height: 1.3; }
+    .q-btn.sel { border-color: var(--primary); background: var(--primary-bg); font-weight: 700; color: var(--primary); }
+    .q-btn-na { font-size: 13px; color: var(--text-sub); border: 1.5px solid #E0E0E0; border-radius: 8px; padding: 10px; cursor: pointer; text-align: center; background: #FFF; margin-top: 8px; width: 100%; }
     .q-btn-na.sel { border-color: #AAA; background: #F0F0F0; color: #444; font-weight: 700; }
-    .q-progress { height: 4px; background: #EEE; border-radius: 2px; margin-bottom: 16px; overflow: hidden; }
-    .q-progress-bar { height: 100%; background: linear-gradient(90deg, #E8843A, #D05A25); border-radius: 2px; transition: width 0.3s; }
+    .q-progress { height: 5px; background: #DDE8E5; border-radius: 3px; margin-bottom: 18px; overflow: hidden; }
+    .q-progress-bar { height: 100%; background: linear-gradient(90deg, #5DB5A0, #3A8A77); border-radius: 3px; transition: width 0.3s; }
 
     /* RADAR */
     .radar-wrap { display: flex; justify-content: center; margin: 10px 0; }
 
     /* RESULT */
-    .result-label { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 4px; color: var(--primary); }
+    .result-label { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 4px; color: var(--primary); }
     .result-sub { font-size: 13px; text-align: center; color: var(--text-sub); margin-bottom: 16px; }
     .type-dist { display: flex; flex-direction: column; gap: 7px; margin-top: 14px; }
     .type-bar-row { display: flex; align-items: center; gap: 8px; }
@@ -156,10 +157,10 @@
     .type-bar-pct { width: 36px; font-size: 12px; color: var(--text-sub); text-align: right; }
 
     /* COMBO */
-    .combo-box { background: #FFF8F0; border: 1.5px solid #E8C090; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-    .combo-title { font-size: 13px; font-weight: 700; color: #8A4500; margin-bottom: 6px; }
-    .combo-text { font-size: 13px; color: #5A3010; line-height: 1.6; margin-bottom: 8px; }
-    .combo-hint { font-size: 12px; color: #7A4020; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 8px; }
+    .combo-box { background: #EFF8F5; border: 1.5px solid #8FCFC2; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .combo-title { font-size: 14px; font-weight: 700; color: #2D7A68; margin-bottom: 6px; }
+    .combo-text { font-size: 14px; color: #1E5548; line-height: 1.6; margin-bottom: 8px; }
+    .combo-hint { font-size: 13px; color: #2D6B5E; background: rgba(255,255,255,0.6); border-radius: 8px; padding: 8px; }
 
     /* CARD 45 */
     .card45-item { border-radius: 12px; padding: 14px; border: 1.5px solid #EEE; background: #FFF; margin-bottom: 8px; cursor: pointer; }
@@ -167,7 +168,7 @@
     .card45-head { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
     .card45-sketch { font-size: 12px; color: var(--text-sub); line-height: 1.4; }
     .card45-section { margin-bottom: 16px; }
-    .card45-section-title { font-size: 13px; font-weight: 700; color: var(--primary); border-bottom: 1.5px solid var(--primary-bg); padding-bottom: 5px; margin-bottom: 10px; }
+    .card45-section-title { font-size: 14px; font-weight: 700; color: var(--primary); border-bottom: 1.5px solid var(--primary-bg); padding-bottom: 5px; margin-bottom: 10px; }
     .card45-text { font-size: 14px; line-height: 1.7; color: #333; }
 
     /* NAV */
@@ -177,6 +178,9 @@
     .nav-label { font-size: 10px; color: var(--text-sub); font-weight: 600; }
     .nav-item.active .nav-icon { filter: none; }
     .nav-item.active .nav-label { color: var(--primary); font-weight: 700; }
+    .nav-icon-img { width: 28px; height: 28px; object-fit: contain; }
+    .page-title { font-size: 18px; font-weight: 700; }
+    .back-btn { font-size: 26px; padding: 4px 8px 4px 0; color: var(--text-sub); }
 
     /* SETUP */
     .setup-step-indicator { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
@@ -1476,17 +1480,18 @@ function RadarChart({ pct }) {
 /* ── NavBar ── */
 function NavBar({ tab, onTab }) {
   const items = [
-    { id: 'home', icon: '📋', label: '場面' },
-    { id: 'diagnosis', icon: '🔍', label: '診断' },
-    { id: 'cards', icon: '🃏', label: 'カード' },
-    { id: 'settings', icon: '⚙️', label: '設定' },
+    { id: 'home',      icon: './icon-scene.png',     label: '場面' },
+    { id: 'diagnosis', icon: './icon-diagnosis.png', label: '診断' },
+    { id: 'cards',     icon: './icon-cards.png',     label: 'カード' },
+    { id: 'settings',  icon: './icon-settings.png',  label: '設定' },
   ];
   return (
     <div className="nav-bar">
       {items.map(it => (
         <div key={it.id} className={`nav-item ${tab === it.id ? 'active' : ''}`} onClick={() => onTab(it.id)}>
-          <span className="nav-icon">{it.icon}</span>
-          <span className="nav-label" style={tab === it.id ? { color: '#D96A2A' } : {}}>{it.label}</span>
+          <img src={it.icon} alt={it.label} className="nav-icon-img"
+            style={{ opacity: tab === it.id ? 1 : 0.45 }} />
+          <span className="nav-label" style={tab === it.id ? { color: 'var(--primary)' } : {}}>{it.label}</span>
         </div>
       ))}
     </div>
@@ -1496,10 +1501,10 @@ function NavBar({ tab, onTab }) {
 /* ── HomeScreen（トップ画面） ── */
 function HomeScreen({ onTab }) {
   const NAV_CARDS = [
-    { id: 'home',      icon: '📋', title: '場面を引く',    sub: '今日の困りごとに応えるカード' },
-    { id: 'diagnosis', icon: '🔍', title: '診断する',      sub: 'メガネ・子どものタイプを調べる' },
-    { id: 'cards',     icon: '🃏', title: 'カードを見る',  sub: '45通りの親子相性カード' },
-    { id: 'settings',  icon: '⚙️', title: '設定',          sub: 'プロフィールを確認・変更する' },
+    { id: 'home',      icon: './icon-scene.png',     title: '場面を引く',    sub: '今日の困りごとに応えるカード' },
+    { id: 'diagnosis', icon: './icon-diagnosis.png', title: '診断する',      sub: 'メガネ・子どものタイプを調べる' },
+    { id: 'cards',     icon: './icon-cards.png',     title: 'カードを見る',  sub: '45通りの親子相性カード' },
+    { id: 'settings',  icon: './icon-settings.png',  title: '設定',          sub: 'プロフィールを確認・変更する' },
   ];
   return (
     <div style={{ paddingBottom: 80 }}>
@@ -1516,10 +1521,10 @@ function HomeScreen({ onTab }) {
             style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginBottom: 10,
                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
                      boxShadow: '0 2px 14px rgba(0,0,0,0.07)', cursor: 'pointer', border: 'none', textAlign: 'left' }}>
-            <span style={{ fontSize: 26 }}>{item.icon}</span>
+            <img src={item.icon} alt="" style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: '#2C2C2C', marginBottom: 2 }}>{item.title}</div>
-              <div style={{ fontSize: 12, color: '#888' }}>{item.sub}</div>
+              <div style={{ fontSize: 17, fontWeight: 700, color: '#2C2C2C', marginBottom: 3 }}>{item.title}</div>
+              <div style={{ fontSize: 13, color: '#888' }}>{item.sub}</div>
             </div>
             <span style={{ fontSize: 20, color: '#CCC' }}>›</span>
           </button>
@@ -1568,6 +1573,8 @@ function SceneListScreen({ profile, onScene, onSetup, onBack }) {
           </button>
         );
       })}
+      <div style={{ height: 16 }} />
+      <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
       <div style={{ height: 20 }} />
     </div>
   );
@@ -1756,6 +1763,54 @@ function SceneCardScreen({ scene, profile, onBack }) {
   );
 }
 
+/* ── 親タイプ診断：27問 ── */
+const PQUIZ_SPREAD = 8;
+const PQUIZ_TOP2   = 5;
+const PARENT_QUESTIONS = [
+  { typeId: 'shokunin',   text: 'きちんとしていない状態が、なんとなく落ち着かない' },
+  { typeId: 'shokunin',   text: '終わったあとで「もっとちゃんとできたはず」と思うことが多い' },
+  { typeId: 'shokunin',   text: '雑なところや、抜けているところが、先に目に入る' },
+  { typeId: 'sewayaku',   text: '困っている人がいると、放っておけない' },
+  { typeId: 'sewayaku',   text: '頼まれる前に、先回りして手を出してしまう' },
+  { typeId: 'sewayaku',   text: 'してあげたことに反応がないと、少し寂しくなる' },
+  { typeId: 'kaitakusha', text: '目標を決めて、達成していくのが好きだ' },
+  { typeId: 'kaitakusha', text: '段取りを組んで、効率よく進めるのが得意だ' },
+  { typeId: 'kaitakusha', text: 'がんばった結果が形になると、いちばん満たされる' },
+  { typeId: 'hyogensha',  text: '人と同じでいることに、どこか違和感がある' },
+  { typeId: 'hyogensha',  text: '気持ちの細かい動きに、人より気づくほうだ' },
+  { typeId: 'hyogensha',  text: '自分らしさを手放してまで、合わせたくない' },
+  { typeId: 'tankyusha',  text: '納得できるまで、調べたり考えたりしたい' },
+  { typeId: 'tankyusha',  text: 'ひとりで静かに過ごす時間が、どうしても必要だ' },
+  { typeId: 'tankyusha',  text: '感情よりも、事実や理屈で判断したい' },
+  { typeId: 'mamorite',   text: '先に「困りそうなこと」が思い浮かぶ' },
+  { typeId: 'mamorite',   text: '決めたルールや約束は、きちんと守りたい' },
+  { typeId: 'mamorite',   text: '大事なことは、信頼できる人に相談してから決めたい' },
+  { typeId: 'boukensha',  text: '新しいことや、やったことのないことにわくわくする' },
+  { typeId: 'boukensha',  text: 'どんなことでも、楽しい面を見つけるのが得意だ' },
+  { typeId: 'boukensha',  text: '先まで決められてしまうのは、少し窮屈に感じる' },
+  { typeId: 'leader',     text: '人に任せるより、自分で決めて進めたい' },
+  { typeId: 'leader',     text: '理不尽なことには、黙っていられない' },
+  { typeId: 'leader',     text: '弱っているところを、人に見せたくない' },
+  { typeId: 'kikite',     text: 'もめごとや対立は、できるだけ避けたい' },
+  { typeId: 'kikite',     text: '急かされるのが苦手で、自分のペースでいたい' },
+  { typeId: 'kikite',     text: 'たいていのことは「まあ、いいか」と思える' },
+];
+function scoreParentQuiz(answers) {
+  const scores = {};
+  PARENT_QUESTIONS.forEach((q, i) => {
+    if (!scores[q.typeId]) scores[q.typeId] = 0;
+    scores[q.typeId] += (answers[i] !== undefined ? answers[i] : 0);
+  });
+  const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
+  const sorted = Object.entries(scores)
+    .map(([typeId, score]) => ({ typeId, pct: Math.round(score / total * 100) }))
+    .sort((a, b) => b.pct - a.pct);
+  const spread = sorted[0].pct - sorted[sorted.length - 1].pct;
+  const top12diff = sorted[0].pct - sorted[1].pct;
+  const label = spread <= PQUIZ_SPREAD ? 'unclear' : top12diff <= PQUIZ_TOP2 ? '二枚看板' : '単独';
+  return { sorted, label };
+}
+
 /* ── SetupWizard ── */
 function SetupWizard({ profile, onSave, onBack }) {
   const init = profile || {};
@@ -1764,6 +1819,11 @@ function SetupWizard({ profile, onSave, onBack }) {
   const [parentType, setParentType] = useState(init.parentType || null);
   const [children, setChildren] = useState(init.children || []);
   const [newChild, setNewChild] = useState({ name: '', ageGroup: '0_9' });
+  const [pPhase, setPPhase] = useState('intro'); // intro | questions | result | fallback
+  const [pAnswers, setPAnswers] = useState({});
+  const [pResult, setPResult] = useState(null);
+  const [pQidx, setPQidx] = useState(0);
+  const [pFallback, setPFallback] = useState(null);
 
   function toggleGlass(id) {
     setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
@@ -1821,31 +1881,138 @@ function SetupWizard({ profile, onSave, onBack }) {
 
         {step === 2 && (
           <div>
-            <div className="card">
-              <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>あなたに近い「タイプ」を1つ選んでください</div>
-              <div className="text-sub mb12">9つの短い説明を読んで、いちばん根っこに近いものを選んでください（迷えば2つまで）。</div>
-              {highlightedParents.size > 0 && (
-                <div className="notice-box" style={{ marginBottom: 12, fontSize: 12 }}>
-                  💡 選んだメガネから近いかもしれないタイプを、枠線で示しています
-                </div>
-              )}
-              <div className="ptype-list">
-                {PARENT_TYPES.map(pt => (
-                  <div
-                    key={pt.id}
-                    className={`ptype-item ${parentType === pt.id ? 'selected' : ''} ${highlightedParents.has(pt.id) && parentType !== pt.id ? 'highlighted' : ''}`}
-                    onClick={() => setParentType(parentType === pt.id ? null : pt.id)}
-                  >
-                    <div className="ptype-name">{pt.name}</div>
-                    <div className="ptype-desc">{pt.desc}</div>
+            {/* 診断イントロ */}
+            {pPhase === 'intro' && (
+              <>
+                <div className="card">
+                  <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 10 }}>親タイプ診断（27問）</div>
+                  <div style={{ fontSize: 15, lineHeight: 1.8, color: '#444', marginBottom: 14 }}>
+                    3分ほどで終わります。<br />
+                    子育て場面に限らず、ふだんの自分に当てはまるかで答えてください。
                   </div>
-                ))}
+                  {PARENT_TYPES.map(pt => (
+                    <div key={pt.id} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 14 }}>
+                      <span style={{ fontWeight: 700, width: 60, flexShrink: 0 }}>{pt.name}</span>
+                      <span style={{ color: '#666' }}>……{pt.core}</span>
+                    </div>
+                  ))}
+                  <div style={{ marginTop: 12, fontSize: 13, color: '#999' }}>先に読んでおくと、結果が腑に落ちます</div>
+                </div>
+                {init.parentType && (
+                  <div className="notice-box" style={{ marginBottom: 12, fontSize: 14 }}>
+                    現在の設定：<strong>{PARENT_TYPES.find(p => p.id === init.parentType)?.name}</strong>
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                  <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep(1)}>戻る</button>
+                  <button className="btn btn-primary" style={{ flex: 2 }} onClick={() => { setPQidx(0); setPAnswers({}); setPPhase('questions'); }}>診断をはじめる</button>
+                </div>
+                {init.parentType && (
+                  <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => { setParentType(init.parentType); setStep(3); }}>前の結果を使ってスキップ</button>
+                )}
+              </>
+            )}
+
+            {/* 設問 */}
+            {pPhase === 'questions' && (
+              <div>
+                <div className="q-progress"><div className="q-progress-bar" style={{ width: `${(pQidx / PARENT_QUESTIONS.length) * 100}%` }} /></div>
+                <div style={{ fontSize: 13, color: '#AAA', marginBottom: 12, textAlign: 'right' }}>{pQidx + 1} / {PARENT_QUESTIONS.length}</div>
+                <div className="q-card">
+                  <div className="q-text">{PARENT_QUESTIONS[pQidx].text}</div>
+                  <div className="q-scale">
+                    {[
+                      { v: 0, l: 'ちがう' },
+                      { v: 1, l: 'あまり' },
+                      { v: 2, l: 'どちら' },
+                      { v: 3, l: 'やや' },
+                      { v: 4, l: 'そう' },
+                    ].map(s => (
+                      <button key={s.v} className={`q-btn ${pAnswers[pQidx] === s.v ? 'sel' : ''}`}
+                        onClick={() => {
+                          const next = { ...pAnswers, [pQidx]: s.v };
+                          setPAnswers(next);
+                          if (pQidx < PARENT_QUESTIONS.length - 1) {
+                            setPQidx(pQidx + 1);
+                          } else {
+                            const res = scoreParentQuiz(next);
+                            setPResult(res);
+                            if (res.label === 'unclear') {
+                              setPFallback(null);
+                              setPPhase('fallback');
+                            } else {
+                              setParentType(res.sorted[0].typeId);
+                              setPPhase('result');
+                            }
+                          }
+                        }}>
+                        <div style={{ fontSize: 14, fontWeight: 700 }}>{s.v}</div>
+                        <div style={{ fontSize: 11, marginTop: 2 }}>{s.l}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {pQidx > 0 && (
+                  <button className="btn btn-ghost" onClick={() => setPQidx(pQidx - 1)}>← 前の問いに戻る</button>
+                )}
               </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep(1)}>戻る</button>
-              <button className="btn btn-primary" style={{ flex: 2 }} onClick={() => setStep(3)}>次へ</button>
-            </div>
+            )}
+
+            {/* 結果 */}
+            {pPhase === 'result' && pResult && (
+              <div>
+                <div className="card" style={{ textAlign: 'center', padding: '28px 20px' }}>
+                  <div style={{ fontSize: 13, color: '#888', marginBottom: 10 }}>あなたのタイプ</div>
+                  <div className="result-label">
+                    {PARENT_TYPES.find(p => p.id === pResult.sorted[0].typeId)?.name}
+                    {pResult.label === '二枚看板' && `＋${PARENT_TYPES.find(p => p.id === pResult.sorted[1].typeId)?.name}`}
+                  </div>
+                  <div style={{ fontSize: 15, color: '#555', marginTop: 10 }}>
+                    いちばん大事にしていること：{PARENT_TYPES.find(p => p.id === pResult.sorted[0].typeId)?.core}
+                  </div>
+                </div>
+                <div className="card" style={{ fontSize: 14, color: '#666', lineHeight: 1.9 }}>
+                  これは"今の傾向"です。<br />
+                  責めるためでなく、扱うために知る。<br />
+                  しっくりこなければ、あとで選び直して大丈夫です。
+                </div>
+                <button className="btn btn-primary" onClick={() => setStep(3)}>次へ</button>
+              </div>
+            )}
+
+            {/* フォールバック */}
+            {pPhase === 'fallback' && pResult && (
+              <div>
+                <div className="card">
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>はっきりした傾向は、出ませんでした</div>
+                  <div style={{ fontSize: 14, lineHeight: 1.8, color: '#555', marginBottom: 16 }}>
+                    いくつかの面を、同じくらい持っている方です。
+                  </div>
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>上位に出たのは、この3つでした。</div>
+                  {pResult.sorted.slice(0, 3).map(item => (
+                    <div key={item.typeId}
+                      onClick={() => { setPFallback(item.typeId); setParentType(item.typeId); }}
+                      style={{ borderRadius: 14, padding: '16px', marginBottom: 10, cursor: 'pointer',
+                        border: `2px solid ${pFallback === item.typeId ? 'var(--primary)' : '#DDE8E5'}`,
+                        background: pFallback === item.typeId ? 'var(--primary-bg)' : '#FFF' }}>
+                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>
+                        {PARENT_TYPES.find(p => p.id === item.typeId)?.name}
+                      </div>
+                      <div style={{ fontSize: 14, color: '#888' }}>
+                        ……{PARENT_TYPES.find(p => p.id === item.typeId)?.core}
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ fontSize: 14, color: '#666', lineHeight: 1.9, marginTop: 14 }}>
+                    この中から、選んでください。<br />
+                    なくなったら、いちばん困るもの。<br />
+                    それが崩れたとき、いちばんイライラするもの。<br /><br />
+                    しっくりこなければ、あとで選び直して大丈夫です。
+                  </div>
+                </div>
+                <button className="btn btn-primary" disabled={!pFallback} onClick={() => setStep(3)}>次へ</button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1875,7 +2042,7 @@ function SetupWizard({ profile, onSave, onBack }) {
                       <button
                         key={opt.v}
                         onClick={() => setNewChild(p => ({ ...p, ageGroup: opt.v }))}
-                        style={{ flex: 1, padding: '10px 6px', borderRadius: 10, border: `2px solid ${newChild.ageGroup === opt.v ? '#D96A2A' : '#DDD'}`, background: newChild.ageGroup === opt.v ? '#FFF4ED' : '#FFF', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                        style={{ flex: 1, padding: '12px 6px', borderRadius: 10, border: `2px solid ${newChild.ageGroup === opt.v ? 'var(--primary)' : '#DDE8E5'}`, background: newChild.ageGroup === opt.v ? 'var(--primary-bg)' : '#FFF', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
                       >{opt.l}</button>
                     ))}
                   </div>
@@ -1957,16 +2124,19 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           <button className="back-btn" onClick={onBack}>‹</button>
           <span className="page-title">子ども診断</span>
         </div>
+        <div style={{ textAlign: 'center', background: 'var(--primary-bg)', padding: '12px 0 0' }}>
+          <img src="./hero-child.png" alt="" style={{ width: '70%', maxWidth: 260, display: 'block', margin: '0 auto' }} />
+        </div>
         <div className="page">
           <div className="card">
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>誰の診断をしますか？</div>
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>誰の診断をしますか？</div>
             {children.map(c => (
               <div key={c.id}
                 onClick={() => setSelectedChildId(c.id)}
-                style={{ padding: '12px 14px', borderRadius: 12, border: `2px solid ${selectedChildId === c.id ? '#D96A2A' : '#EEE'}`, background: selectedChildId === c.id ? '#FFF4ED' : '#FFF', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                style={{ padding: '14px', borderRadius: 12, border: `2px solid ${selectedChildId === c.id ? 'var(--primary)' : '#DDE8E5'}`, background: selectedChildId === c.id ? 'var(--primary-bg)' : '#FFF', marginBottom: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700 }}>{c.name}</div>
-                  <div style={{ fontSize: 12, color: '#888' }}>{c.ageGroup === '0_9' ? '0〜9歳（保護者が観察）' : '10歳〜（本人が回答）'}</div>
+                  <div style={{ fontWeight: 700, fontSize: 16 }}>{c.name}</div>
+                  <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{c.ageGroup === '0_9' ? '0〜9歳（保護者が観察）' : '10歳〜（本人が回答）'}</div>
                 </div>
                 {c.diagnosis && <span className="tag tag-orange">{CHILD_TYPE_MAP[c.diagnosis.nearest]?.name}</span>}
               </div>
@@ -1974,22 +2144,25 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           </div>
           {child?.ageGroup === '10plus' && (
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>回答者を選んでください</div>
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>回答者を選んでください</div>
               {[{ v: 'child', l: '本人が回答する', d: '子ども自身が答えます' }, { v: 'parent', l: '保護者の目でも見る', d: 'すでに本人の回答がある場合に、比較用に使います' }].map(opt => (
                 <div key={opt.v} onClick={() => setAnswerer(opt.v)}
-                  style={{ padding: '12px 14px', borderRadius: 12, border: `2px solid ${answerer === opt.v ? '#D96A2A' : '#EEE'}`, background: answerer === opt.v ? '#FFF4ED' : '#FFF', marginBottom: 8, cursor: 'pointer' }}>
-                  <div style={{ fontWeight: 700 }}>{opt.l}</div>
-                  <div style={{ fontSize: 12, color: '#888' }}>{opt.d}</div>
+                  style={{ padding: '14px', borderRadius: 12, border: `2px solid ${answerer === opt.v ? 'var(--primary)' : '#DDE8E5'}`, background: answerer === opt.v ? 'var(--primary-bg)' : '#FFF', marginBottom: 8, cursor: 'pointer' }}>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{opt.l}</div>
+                  <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{opt.d}</div>
                 </div>
               ))}
             </div>
           )}
-          <div className="notice-box" style={{ fontSize: 12 }}>
+          <div className="notice-box" style={{ fontSize: 13 }}>
             {ageGroup === '0_9' ? '保護者がお子さんを観察した印象で答えてください' : answerer === 'child' ? 'お子さん本人が答えてください' : '保護者が観察した印象で答えてください（本人の結果と比較できます）'}
           </div>
-          <button className="btn btn-primary" onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
+          <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
             診断スタート（{total}問）
           </button>
+          <div style={{ height: 20 }} />
+          <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
+          <div style={{ height: 20 }} />
         </div>
       </div>
     );
@@ -2081,15 +2254,16 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
 
 /* ── Card45Screen ── */
 function Card45Screen({ profile, onBack }) {
+  const [selectedParent, setSelectedParent] = useState(null);
   const [selected, setSelected] = useState(null);
-  const parentType = profile?.parentType || null;
-  const child = profile?.children?.[profile?.currentChildIdx || 0] || null;
-  const childType = child?.diagnosis?.nearest || null;
+  const myParentType = profile?.parentType || null;
+  const myChild = profile?.children?.[profile?.currentChildIdx || 0] || null;
+  const myChildType = myChild?.diagnosis?.nearest || null;
 
+  /* カード詳細 */
   if (selected) {
-    const key = selected;
-    const c = CARDS_45[key];
-    const [pid, cid] = key.split('_');
+    const c = CARDS_45[selected];
+    const [pid, cid] = selected.split('_');
     const pname = PARENT_TYPES.find(p => p.id === pid)?.name || pid;
     const cname = CHILD_TYPE_MAP[cid]?.name || cid;
     return (
@@ -2100,14 +2274,14 @@ function Card45Screen({ profile, onBack }) {
         </div>
         <div className="page">
           {!c ? (
-            <div className="card center" style={{ padding: '40px 20px' }}>
+            <div className="card" style={{ textAlign: 'center', padding: '40px 20px' }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🗂️</div>
               <div style={{ fontWeight: 700, marginBottom: 8 }}>このカードは準備中です</div>
               <div className="text-sub">近日公開予定です。</div>
             </div>
           ) : (
             <>
-              <div className="card" style={{ fontSize: 14, color: '#666', lineHeight: 1.6 }}>{c.sketch}</div>
+              <div className="card" style={{ fontSize: 15, color: '#555', lineHeight: 1.7 }}>{c.sketch}</div>
               {[
                 { title: '① かみ合う所', body: c.good },
                 { title: '② いちばんぶつかる所', body: c.clash },
@@ -2123,20 +2297,22 @@ function Card45Screen({ profile, onBack }) {
                 </div>
               ))}
               {c.stopTech && (
-                <div className="card" style={{ background: '#FFF8F0', border: '1.5px solid #E0B080' }}>
-                  <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8, color: '#8A4500' }}>🛑 止める技術ミニ</div>
+                <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--primary)' }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8, color: 'var(--primary-dark)' }}>🛑 止める技術ミニ</div>
                   {[
                     { l: 'サイン', v: c.stopTech.sign },
                     { l: '合図', v: c.stopTech.stop },
                     { l: '差し替え', v: c.stopTech.replace },
                   ].map(r => (
                     <div key={r.l} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                      <span style={{ fontSize: 12, color: '#888', width: 44, flexShrink: 0 }}>{r.l}</span>
-                      <span style={{ fontSize: 13 }}>{r.v}</span>
+                      <span style={{ fontSize: 13, color: '#888', width: 48, flexShrink: 0 }}>{r.l}</span>
+                      <span style={{ fontSize: 14 }}>{r.v}</span>
                     </div>
                   ))}
                 </div>
               )}
+              <div style={{ height: 16 }} />
+              <button className="btn btn-secondary" onClick={() => setSelected(null)}>← タイプ選択に戻る</button>
               <div style={{ height: 20 }} />
             </>
           )}
@@ -2145,6 +2321,47 @@ function Card45Screen({ profile, onBack }) {
     );
   }
 
+  /* 子タイプ選択 */
+  if (selectedParent) {
+    const pt = PARENT_TYPES.find(p => p.id === selectedParent);
+    return (
+      <div>
+        <div className="page-header">
+          <button className="back-btn" onClick={() => setSelectedParent(null)}>‹</button>
+          <span className="page-title">{pt?.name} ×…</span>
+        </div>
+        <div className="page">
+          <div style={{ fontSize: 15, color: '#666', marginBottom: 16 }}>お子さんのタイプを選んでください</div>
+          {myParentType === selectedParent && myChildType && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, marginBottom: 6 }}>▼ あなたとこの子のカード</div>
+              <button className="scene-btn" style={{ border: '2px solid var(--primary)', background: 'var(--primary-bg)' }}
+                onClick={() => setSelected(`${selectedParent}_${myChildType}`)}>
+                <div>
+                  <div className="scene-btn-label">{CHILD_TYPE_MAP[myChildType]?.name}</div>
+                  <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{myChild?.name}</div>
+                </div>
+                <span className="scene-arrow">›</span>
+              </button>
+            </div>
+          )}
+          {CHILD_TYPES.map(ct => (
+            <button key={ct.id} className="scene-btn" onClick={() => setSelected(`${selectedParent}_${ct.id}`)}>
+              <div>
+                <div className="scene-btn-label">{ct.name}</div>
+              </div>
+              <span className="scene-arrow">›</span>
+            </button>
+          ))}
+          <div style={{ height: 16 }} />
+          <button className="btn btn-secondary" onClick={() => setSelectedParent(null)}>← 親タイプ選択に戻る</button>
+          <div style={{ height: 20 }} />
+        </div>
+      </div>
+    );
+  }
+
+  /* 親タイプ選択 */
   return (
     <div>
       <div className="page-header">
@@ -2152,39 +2369,21 @@ function Card45Screen({ profile, onBack }) {
         <span className="page-title">45通りカード</span>
       </div>
       <div className="page">
-        <div className="text-sub" style={{ marginBottom: 16 }}>
-          親9タイプ × 子5タイプ ＝ 45通り。この親子の関係の見取り図です。
+        <div style={{ fontSize: 15, color: '#666', marginBottom: 16 }}>
+          まず、あなたのタイプを選んでください
         </div>
-        {parentType && childType && (
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 12, color: '#AAA', marginBottom: 6 }}>あなたとこの子のカード</div>
-            <div className={`card45-item ${CARDS_45[`${parentType}_${childType}`] ? '' : 'opacity-50'}`}
-              style={{ border: '2px solid #D96A2A' }}
-              onClick={() => setSelected(`${parentType}_${childType}`)}>
-              <div className="card45-head">
-                {PARENT_TYPES.find(p => p.id === parentType)?.name} × {CHILD_TYPE_MAP[childType]?.name}
-              </div>
-              <div className="card45-sketch">
-                {CARDS_45[`${parentType}_${childType}`]?.sketch || '準備中'}
-              </div>
-            </div>
-          </div>
-        )}
         {PARENT_TYPES.map(pt => (
-          <div key={pt.id}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: '#888', margin: '14px 0 6px' }}>{pt.name}</div>
-            {CHILD_TYPES.map(ct => {
-              const key = `${pt.id}_${ct.id}`;
-              const card = CARDS_45[key];
-              return (
-                <div key={key} className="card45-item" onClick={() => setSelected(key)}>
-                  <div className="card45-head">{pt.name} × {ct.name}</div>
-                  <div className="card45-sketch">{card ? card.sketch : '準備中'}</div>
-                </div>
-              );
-            })}
-          </div>
+          <button key={pt.id} className="scene-btn" onClick={() => setSelectedParent(pt.id)}
+            style={myParentType === pt.id ? { border: '2px solid var(--primary)', background: 'var(--primary-bg)' } : {}}>
+            <div>
+              <div className="scene-btn-label">{pt.name}</div>
+              <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{pt.core}</div>
+            </div>
+            <span className="scene-arrow">›</span>
+          </button>
         ))}
+        <div style={{ height: 16 }} />
+        <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
         <div style={{ height: 20 }} />
       </div>
     </div>
@@ -2244,6 +2443,7 @@ function SettingsScreen({ profile, onEdit, onBack }) {
             無料の「思考の癖」診断は→ <a href={FREE_APP_URL} target="_blank" rel="noopener noreferrer">こちら</a>
           </div>
         </div>
+        <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
         <div style={{ height: 20 }} />
       </div>
     </div>
