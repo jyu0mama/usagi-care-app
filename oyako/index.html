@@ -253,15 +253,15 @@ const GLASSES_HINT = {
 };
 
 const PARENT_TYPES = [
-  { id: 'shokunin',   name: '職人',   desc: '丁寧で基準が高い。きちんとしていないと気になる' },
-  { id: 'sewayaku',   name: '世話役', desc: 'よく気づき、人のために動く。つい先回りしてしまう' },
-  { id: 'kaitakusha', name: '開拓者', desc: '前に進む力と段取り。成果や目標に向かうのが好き' },
-  { id: 'hyogensha',  name: '表現者', desc: '感性と共感が豊か。自分や子の"特別さ"を大事にする' },
-  { id: 'tankyusha',  name: '探究者', desc: '深く考え、情報を集める。納得いくまで調べたい' },
-  { id: 'mamorite',   name: '守り手', desc: '安全と安定を用意する。リスクや最悪を先に考える' },
-  { id: 'boukensha',  name: '冒険者', desc: '明るく前向き。「なんとかなる」で挑戦を後押しする' },
-  { id: 'leader',     name: 'リーダー', desc: '決断力があり引っ張る。物事を仕切るのが得意' },
-  { id: 'kikite',     name: '聞き手', desc: '穏やかで受け止め上手。対立や揉めごとを避けたい' },
+  { id: 'shokunin',   name: '職人',     core: 'きちんとしていること',   desc: '丁寧で基準が高い。きちんとしていないと気になる' },
+  { id: 'sewayaku',   name: '世話役',   core: '人の役に立つこと',       desc: 'よく気づき、人のために動く。つい先回りしてしまう' },
+  { id: 'kaitakusha', name: '開拓者',   core: '前に進むこと',           desc: '前に進む力と段取り。成果や目標に向かうのが好き' },
+  { id: 'hyogensha',  name: '表現者',   core: '自分らしさ',             desc: '感性と共感が豊か。自分や子の"特別さ"を大事にする' },
+  { id: 'tankyusha',  name: '探究者',   core: '分かっていること',       desc: '深く考え、情報を集める。納得いくまで調べたい' },
+  { id: 'mamorite',   name: '守り手',   core: '安全であること',         desc: '安全と安定を用意する。リスクや最悪を先に考える' },
+  { id: 'boukensha',  name: '冒険者',   core: '明るくいられること',     desc: '明るく前向き。「なんとかなる」で挑戦を後押しする' },
+  { id: 'leader',     name: 'リーダー', core: '自分で決められること',   desc: '決断力があり引っ張る。物事を仕切るのが得意' },
+  { id: 'kikite',     name: '聞き手',   core: '穏やかであること',       desc: '穏やかで受け止め上手。対立や揉めごとを避けたい' },
 ];
 
 const CHILD_TYPES = [
@@ -1988,25 +1988,31 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                   <div style={{ fontSize: 14, lineHeight: 1.8, color: '#555', marginBottom: 16 }}>
                     いくつかの面を、同じくらい持っている方です。
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>上位に出たのは、この3つでした。</div>
-                  {pResult.sorted.slice(0, 3).map(item => (
-                    <div key={item.typeId}
-                      onClick={() => { setPFallback(item.typeId); setParentType(item.typeId); }}
-                      style={{ borderRadius: 14, padding: '16px', marginBottom: 10, cursor: 'pointer',
-                        border: `2px solid ${pFallback === item.typeId ? 'var(--primary)' : '#DDE8E5'}`,
-                        background: pFallback === item.typeId ? 'var(--primary-bg)' : '#FFF' }}>
-                      <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 4 }}>
-                        {PARENT_TYPES.find(p => p.id === item.typeId)?.name}
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>上位に出たのは、この3つでした。</div>
+                  <div style={{ fontSize: 13, color: '#999', marginBottom: 14 }}>
+                    なくなったら、いちばん困るもの。それが崩れたとき、いちばんイライラするもの。<br />
+                    そのイメージで選んでみてください。
+                  </div>
+                  {pResult.sorted.slice(0, 3).map(item => {
+                    const pt = PARENT_TYPES.find(p => p.id === item.typeId);
+                    const selected = pFallback === item.typeId;
+                    return (
+                      <div key={item.typeId}
+                        onClick={() => { setPFallback(item.typeId); setParentType(item.typeId); }}
+                        style={{ borderRadius: 14, padding: '16px', marginBottom: 10, cursor: 'pointer',
+                          border: `2px solid ${selected ? 'var(--primary)' : '#DDE8E5'}`,
+                          background: selected ? 'var(--primary-bg)' : '#FFF' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                          <div style={{ fontSize: 17, fontWeight: 700 }}>{pt?.name}</div>
+                          <div style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                            いちばん大事：{pt?.core}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 13, color: '#666', lineHeight: 1.7 }}>{pt?.desc}</div>
                       </div>
-                      <div style={{ fontSize: 14, color: '#888' }}>
-                        ……{PARENT_TYPES.find(p => p.id === item.typeId)?.core}
-                      </div>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: 14, color: '#666', lineHeight: 1.9, marginTop: 14 }}>
-                    この中から、選んでください。<br />
-                    なくなったら、いちばん困るもの。<br />
-                    それが崩れたとき、いちばんイライラするもの。<br /><br />
+                    );
+                  })}
+                  <div style={{ fontSize: 13, color: '#999', lineHeight: 1.8, marginTop: 10 }}>
                     しっくりこなければ、あとで選び直して大丈夫です。
                   </div>
                 </div>
