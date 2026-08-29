@@ -912,7 +912,7 @@ function App() {
   const [records, setRecords] = React.useState(loadRecords);
   const [screen, setScreen] = React.useState('home');
   const [recording, setRecording] = React.useState(false);
-  const [showLanding, setShowLanding] = React.useState(!loadProfile());
+  const [showLanding, setShowLanding] = React.useState(true);
 
   if (showLanding) {
     return <LandingScreen onStart={() => setShowLanding(false)} />;
