@@ -1544,33 +1544,44 @@ function HomeScreen({ profile, onTab }) {
           </button>
         ))}
 
-        {/* セットアップ手順（未完了のときだけ表示） */}
-        {!setupDone && (
-          <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginTop: 4,
-                        boxShadow: '0 2px 14px rgba(0,0,0,0.07)' }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#2C2C2C', marginBottom: 4 }}>
-              はじめに設定しておくと…
+        {/* セットアップ手順（常に表示） */}
+        <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginTop: 4,
+                      boxShadow: '0 2px 14px rgba(0,0,0,0.07)' }}>
+          {setupDone ? (
+            <div style={{ fontSize: 14, color: 'var(--primary)', fontWeight: 700, textAlign: 'center', padding: '4px 0' }}>
+              設定完了！わが家専用モードで使えます
             </div>
-            <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: 1.7 }}>
-              お子さんと親のタイプを登録すると、場面カードが<strong>わが家専用</strong>になります。
-            </div>
-            {steps.map((s, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 15, marginTop: 1, flexShrink: 0 }}>{s.done ? '✅' : '⬜'}</span>
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: s.done ? 400 : 600, color: s.done ? '#AAA' : '#333',
-                    textDecoration: s.done ? 'line-through' : 'none' }}>{s.label}</span>
-                  {!s.done && <span style={{ fontSize: 12, color: '#AAA', marginLeft: 4 }}>{s.note}</span>}
-                </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#2C2C2C', marginBottom: 4 }}>
+                はじめに設定しておくと…
               </div>
-            ))}
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: 1.7 }}>
+                登録すると、場面カードが<strong>わが家専用</strong>になります。
+              </div>
+            </>
+          )}
+          {!setupDone && steps.map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 14, marginTop: 1, flexShrink: 0, color: s.done ? 'var(--primary)' : '#CCC' }}>
+                {s.done ? '●' : '○'}
+              </span>
+              <div>
+                <span style={{ fontSize: 13, fontWeight: s.done ? 400 : 600,
+                  color: s.done ? '#AAA' : '#333',
+                  textDecoration: s.done ? 'line-through' : 'none' }}>{s.label}</span>
+                {!s.done && <span style={{ fontSize: 12, color: '#AAA', marginLeft: 4 }}>{s.note}</span>}
+              </div>
+            </div>
+          ))}
+          {!setupDone && (
             <button onClick={() => onTab('settings')}
-              style={{ marginTop: 8, fontSize: 13, color: 'var(--primary)', fontWeight: 700, background: 'none',
+              style={{ marginTop: 6, fontSize: 13, color: 'var(--primary)', fontWeight: 700, background: 'none',
                 border: 'none', cursor: 'pointer', padding: 0 }}>
               設定を開く →
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
