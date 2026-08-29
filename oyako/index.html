@@ -1812,9 +1812,9 @@ function scoreParentQuiz(answers) {
 }
 
 /* ── SetupWizard ── */
-function SetupWizard({ profile, onSave, onBack }) {
+function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
   const init = profile || {};
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(initialStep);
   const [glasses, setGlasses] = useState(init.glasses || []);
   const [parentType, setParentType] = useState(init.parentType || null);
   const [children, setChildren] = useState(init.children || []);
@@ -2391,7 +2391,7 @@ function Card45Screen({ profile, onBack }) {
 }
 
 /* ── SettingsScreen ── */
-function SettingsScreen({ profile, onEdit, onBack }) {
+function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
   const child = profile?.children?.[profile?.currentChildIdx || 0] || null;
   return (
     <div>
@@ -2432,7 +2432,7 @@ function SettingsScreen({ profile, onEdit, onBack }) {
                 </div>
               </div>
             ))}
-            <button className="btn btn-secondary" onClick={onEdit}>変更する</button>
+            <button className="btn btn-secondary" onClick={onEditChild}>変更する</button>
           </div>
         )}
 
@@ -2458,6 +2458,7 @@ function App() {
   const [tab, setTab] = useState('top');
   const [screen, setScreen] = useState('top');
   const [sceneParam, setSceneParam] = useState(null);
+  const [setupInitStep, setSetupInitStep] = useState(1);
 
   function saveProfile(p) {
     setProfile(p);
@@ -2508,9 +2509,11 @@ function App() {
       )}
       {screen === 'setup' && (
         <SetupWizard
+          key={setupInitStep}
+          initialStep={setupInitStep}
           profile={profile}
-          onSave={p => { saveProfile(p); goTop(); }}
-          onBack={() => { setScreen('scene-list'); setTab('home'); }}
+          onSave={p => { saveProfile(p); setSetupInitStep(1); goTop(); }}
+          onBack={() => { setSetupInitStep(1); setScreen('settings'); setTab('settings'); }}
         />
       )}
       {screen === 'scene-card' && sceneParam && (
@@ -2536,7 +2539,8 @@ function App() {
       {screen === 'settings' && (
         <SettingsScreen
           profile={profile}
-          onEdit={() => setScreen('setup')}
+          onEdit={() => { setSetupInitStep(1); setScreen('setup'); }}
+          onEditChild={() => { setSetupInitStep(3); setScreen('setup'); }}
           onBack={goTop}
         />
       )}
