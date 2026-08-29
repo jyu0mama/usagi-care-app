@@ -253,15 +253,15 @@ const GLASSES_HINT = {
 };
 
 const PARENT_TYPES = [
-  { id: 'shokunin',   name: '職人',     core: 'きちんとしていること',   desc: '丁寧で基準が高い。きちんとしていないと気になる' },
-  { id: 'sewayaku',   name: '世話役',   core: '人の役に立つこと',       desc: 'よく気づき、人のために動く。つい先回りしてしまう' },
-  { id: 'kaitakusha', name: '開拓者',   core: '前に進むこと',           desc: '前に進む力と段取り。成果や目標に向かうのが好き' },
-  { id: 'hyogensha',  name: '表現者',   core: '自分らしさ',             desc: '感性と共感が豊か。自分や子の"特別さ"を大事にする' },
-  { id: 'tankyusha',  name: '探究者',   core: '分かっていること',       desc: '深く考え、情報を集める。納得いくまで調べたい' },
-  { id: 'mamorite',   name: '守り手',   core: '安全であること',         desc: '安全と安定を用意する。リスクや最悪を先に考える' },
-  { id: 'boukensha',  name: '冒険者',   core: '明るくいられること',     desc: '明るく前向き。「なんとかなる」で挑戦を後押しする' },
-  { id: 'leader',     name: 'リーダー', core: '自分で決められること',   desc: '決断力があり引っ張る。物事を仕切るのが得意' },
-  { id: 'kikite',     name: '聞き手',   core: '穏やかであること',       desc: '穏やかで受け止め上手。対立や揉めごとを避けたい' },
+  { id: 'shokunin',   name: '職人',     core: 'きちんとしていること',   desc: '正確さと誠実さを大切にする。「もっとちゃんとできたはず」という気持ちが強くなりやすく、子育てにも自分なりの基準がある。雑さや手抜きが目に入りやすい。' },
+  { id: 'sewayaku',   name: '世話役',   core: '人の役に立つこと',       desc: '人の気持ちに敏感で、気づくと先回りして動いている。子どもが喜ぶ顔が自分の喜びになる。反応がないと、少し寂しくなりやすい。' },
+  { id: 'kaitakusha', name: '開拓者',   core: '前に進むこと',           desc: '目標を立て、段取りよく動くのが得意。「こうなってほしい」というビジョンがあり、成果が形になるとよく満たされる。効率を重視する。' },
+  { id: 'hyogensha',  name: '表現者',   core: '自分らしさ',             desc: '感情の細かい動きに敏感で、共感力が高い。子どもの"その子らしさ"を大切にしたいと感じる。人と同じでいることへの違和感を持ちやすい。' },
+  { id: 'tankyusha',  name: '探究者',   core: '分かっていること',       desc: '情報を集め、納得いくまで考えたい。子育て本や理論を調べてから実践したいタイプ。一人で静かに過ごす時間がどうしても必要。' },
+  { id: 'mamorite',   name: '守り手',   core: '安全であること',         desc: '「もしもの時」を先に考え、準備しておきたい。安全と安定を何より大切にする。信頼できる人や決まったルールに安心感を感じる。' },
+  { id: 'boukensha',  name: '冒険者',   core: '明るくいられること',     desc: '前向きでポジティブ。どんな場面でも楽しい面を見つけるのが得意。子育てを明るく楽しもうとするが、先を決められると窮屈になりやすい。' },
+  { id: 'leader',     name: 'リーダー', core: '自分で決められること',   desc: '決断力があり、ぶれない。理不尽には黙っていられない。子どもを守るためなら強くなれる。弱みを見せるのが苦手な面がある。' },
+  { id: 'kikite',     name: '聞き手',   core: '穏やかであること',       desc: '対立を好まず、平和を大切にする。子どもの気持ちをじっくり受け止めようとする。急かされるのが苦手で、自分のペースを大事にする。' },
 ];
 
 const CHILD_TYPES = [
@@ -1580,6 +1580,33 @@ function SceneListScreen({ profile, onScene, onSetup, onBack }) {
   );
 }
 
+/* ── ParentTypeChart（親タイプ分布バー） ── */
+function ParentTypeChart({ sorted, topN }) {
+  const items = topN ? sorted.slice(0, topN) : sorted;
+  const barColors = {
+    shokunin: '#7ABFB0', sewayaku: '#F0A0A0', kaitakusha: '#F0C060',
+    hyogensha: '#C090D0', tankyusha: '#90B0E0', mamorite: '#A0C888',
+    boukensha: '#F0A860', leader: '#E08080', kikite: '#A0C8D8',
+  };
+  return (
+    <div style={{ marginBottom: 4 }}>
+      {items.map((item, i) => {
+        const pt = PARENT_TYPES.find(p => p.id === item.typeId);
+        const isTop = i === 0;
+        return (
+          <div key={item.typeId} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+            <span style={{ fontSize: 12, width: 58, flexShrink: 0, fontWeight: isTop ? 700 : 400, color: isTop ? '#333' : '#888' }}>{pt?.name}</span>
+            <div style={{ flex: 1, height: 10, background: '#EEE', borderRadius: 5, overflow: 'hidden' }}>
+              <div style={{ width: `${item.pct}%`, height: '100%', background: barColors[item.typeId] || '#AAA', borderRadius: 5 }} />
+            </div>
+            <span style={{ fontSize: 12, width: 32, textAlign: 'right', fontWeight: isTop ? 700 : 400, color: isTop ? '#333' : '#999' }}>{item.pct}%</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── MiniTypeChart（子タイプ分布バー） ── */
 function MiniTypeChart({ diag }) {
   if (!diag) return null;
@@ -2005,36 +2032,51 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
             )}
 
             {/* 結果 */}
-            {pPhase === 'result' && pResult && (
-              <div>
-                <div className="card" style={{ textAlign: 'center', padding: '28px 20px' }}>
-                  <div style={{ fontSize: 13, color: '#888', marginBottom: 10 }}>あなたのタイプ</div>
-                  <div className="result-label">
-                    {PARENT_TYPES.find(p => p.id === pResult.sorted[0].typeId)?.name}
-                    {pResult.label === '二枚看板' && `＋${PARENT_TYPES.find(p => p.id === pResult.sorted[1].typeId)?.name}`}
+            {pPhase === 'result' && pResult && (() => {
+              const top1 = PARENT_TYPES.find(p => p.id === pResult.sorted[0].typeId);
+              const top2 = pResult.label === '二枚看板' ? PARENT_TYPES.find(p => p.id === pResult.sorted[1].typeId) : null;
+              return (
+                <div>
+                  <div className="card" style={{ textAlign: 'center', padding: '24px 20px 20px' }}>
+                    <div style={{ fontSize: 13, color: '#888', marginBottom: 8 }}>あなたのタイプ</div>
+                    <div className="result-label">
+                      {top1?.name}{top2 ? `＋${top2.name}` : ''}
+                    </div>
+                    <div style={{ fontSize: 14, color: 'var(--primary)', fontWeight: 600, marginTop: 6, marginBottom: 16 }}>
+                      いちばん大事：{top1?.core}
+                    </div>
+                    <ParentTypeChart sorted={pResult.sorted} />
                   </div>
-                  <div style={{ fontSize: 15, color: '#555', marginTop: 10 }}>
-                    いちばん大事にしていること：{PARENT_TYPES.find(p => p.id === pResult.sorted[0].typeId)?.core}
+                  <div className="card">
+                    <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{top1?.name}とは</div>
+                    <div style={{ fontSize: 14, color: '#555', lineHeight: 1.8 }}>{top1?.desc}</div>
+                    {top2 && (
+                      <>
+                        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 14, marginBottom: 8 }}>{top2.name}とは</div>
+                        <div style={{ fontSize: 14, color: '#555', lineHeight: 1.8 }}>{top2.desc}</div>
+                      </>
+                    )}
                   </div>
+                  <div className="card" style={{ fontSize: 13, color: '#888', lineHeight: 1.9 }}>
+                    これは"今の傾向"です。責めるためでなく、扱うために知る。<br />
+                    しっくりこなければ、あとで選び直して大丈夫です。
+                  </div>
+                  <button className="btn btn-primary" onClick={() => setStep(3)}>次へ</button>
                 </div>
-                <div className="card" style={{ fontSize: 14, color: '#666', lineHeight: 1.9 }}>
-                  これは"今の傾向"です。<br />
-                  責めるためでなく、扱うために知る。<br />
-                  しっくりこなければ、あとで選び直して大丈夫です。
-                </div>
-                <button className="btn btn-primary" onClick={() => setStep(3)}>次へ</button>
-              </div>
-            )}
+              );
+            })()}
 
             {/* フォールバック */}
             {pPhase === 'fallback' && pResult && (
               <div>
                 <div className="card">
-                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10 }}>はっきりした傾向は、出ませんでした</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.8, color: '#555', marginBottom: 16 }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 6 }}>はっきりした傾向は、出ませんでした</div>
+                  <div style={{ fontSize: 14, lineHeight: 1.8, color: '#555', marginBottom: 12 }}>
                     いくつかの面を、同じくらい持っている方です。
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>上位に出たのは、この3つでした。</div>
+                  <ParentTypeChart sorted={pResult.sorted} topN={5} />
+                  <div style={{ fontSize: 11, color: '#BBB', marginBottom: 14, marginTop: 4 }}>上位5タイプの分布</div>
+                  <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>上位3つから選んでください</div>
                   <div style={{ fontSize: 13, color: '#999', marginBottom: 14 }}>
                     なくなったら、いちばん困るもの。それが崩れたとき、いちばんイライラするもの。<br />
                     そのイメージで選んでみてください。
