@@ -1938,6 +1938,7 @@ function scoreParentQuiz(answers) {
 /* ── SetupWizard ── */
 function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
   const init = profile || {};
+  const childOnly = initialStep === 3; // 親設定を経由せず、子どもだけ登録・変更するモード
   const [step, setStep] = useState(initialStep);
   const [glasses, setGlasses] = useState(init.glasses || []);
   const [parentType, setParentType] = useState(init.parentType || null);
@@ -1953,7 +1954,12 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
     setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
   }
   function finish() {
-    onSave({ glasses, parentType, children: children.length > 0 ? children : [], currentChildIdx: 0 });
+    // 「+ 追加」を押さずに名前だけ入力して完了したケースも取りこぼさない
+    let finalChildren = children;
+    if (newChild.name.trim()) {
+      finalChildren = [...children, { id: `c${Date.now()}`, name: newChild.name.trim(), ageGroup: newChild.ageGroup, diagnosis: null }];
+    }
+    onSave({ glasses, parentType, children: finalChildren, currentChildIdx: 0 });
   }
   function addChild() {
     if (!newChild.name.trim()) return;
@@ -1969,12 +1975,14 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
     <div>
       <div className="page-header">
         <button className="back-btn" onClick={onBack}>‹</button>
-        <span className="page-title">初期設定</span>
+        <span className="page-title">{childOnly ? 'お子さんの設定' : '初期設定'}</span>
       </div>
       <div className="page">
-        <div className="setup-step-indicator">
-          {[1, 2, 3].map(s => <div key={s} className={`setup-dot ${step >= s ? 'active' : ''}`} />)}
-        </div>
+        {!childOnly && (
+          <div className="setup-step-indicator">
+            {[1, 2, 3].map(s => <div key={s} className={`setup-dot ${step >= s ? 'active' : ''}`} />)}
+          </div>
+        )}
 
         {step === 1 && (
           <div>
@@ -2199,7 +2207,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
               )}
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStep(2)}>戻る</button>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => childOnly ? onBack() : setStep(2)}>戻る</button>
               <button className="btn btn-primary" style={{ flex: 2 }} onClick={finish}>完了</button>
             </div>
           </div>
@@ -2254,11 +2262,13 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           <button className="back-btn" onClick={onBack}>‹</button>
           <span className="page-title">子ども診断</span>
         </div>
+        <div style={{ textAlign: 'center', background: 'var(--primary-bg)', padding: '12px 0 0' }}>
+          <img src="./hero-child.png" alt="" style={{ width: '70%', maxWidth: 260, display: 'block', margin: '0 auto' }} />
+        </div>
         <div className="page">
           <div className="card center" style={{ padding: '32px 20px' }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>👶</div>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>お子さんが登録されていません</div>
-            <div className="text-sub mb12">設定からお子さんを登録してください</div>
+            <div className="text-sub mb12">設定タブの「お子さんを登録する」から登録してください</div>
           </div>
         </div>
       </div>
@@ -2655,6 +2665,16 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
               </div>
             ))}
             <button className="btn btn-secondary mt12" onClick={onEditChild}>お子さん情報を変更する</button>
+          </div>
+        )}
+
+        {(profile?.children || []).length === 0 && (
+          <div className="card">
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>お子さんの登録</div>
+            <div className="text-sub mb12">
+              まだ登録されていません。親の設定をとばして、お子さんだけ登録できます。
+            </div>
+            <button className="btn btn-primary" onClick={onEditChild}>お子さんを登録する</button>
           </div>
         )}
 
