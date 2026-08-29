@@ -1933,13 +1933,16 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                     3分ほどで終わります。<br />
                     子育て場面に限らず、ふだんの自分に当てはまるかで答えてください。
                   </div>
+                  <div style={{ fontSize: 12, color: '#999', marginBottom: 10 }}>先に読んでおくと、結果が腑に落ちます</div>
                   {PARENT_TYPES.map(pt => (
-                    <div key={pt.id} style={{ display: 'flex', gap: 8, marginBottom: 7, fontSize: 14 }}>
-                      <span style={{ fontWeight: 700, width: 60, flexShrink: 0 }}>{pt.name}</span>
-                      <span style={{ color: '#666' }}>……{pt.core}</span>
+                    <div key={pt.id} style={{ marginBottom: 10, paddingBottom: 10, borderBottom: '1px solid #F0F0EE' }}>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', marginBottom: 3 }}>
+                        <span style={{ fontWeight: 700, fontSize: 15, width: 62, flexShrink: 0 }}>{pt.name}</span>
+                        <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>{pt.core}</span>
+                      </div>
+                      <div style={{ fontSize: 13, color: '#888', paddingLeft: 68, lineHeight: 1.6 }}>{pt.desc}</div>
                     </div>
                   ))}
-                  <div style={{ marginTop: 12, fontSize: 13, color: '#999' }}>先に読んでおくと、結果が腑に落ちます</div>
                 </div>
                 {init.parentType && (
                   <div className="notice-box" style={{ marginBottom: 12, fontSize: 14 }}>
