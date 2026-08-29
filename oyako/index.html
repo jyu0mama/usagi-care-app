@@ -91,8 +91,8 @@
 
     /* NG / OK */
     .ng-ok-box { border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
-    .ng-row { background: #FFF0EC; padding: 12px 14px; display: flex; gap: 8px; align-items: baseline; }
-    .ok-row { background: #EFF9F1; padding: 12px 14px; display: flex; gap: 8px; align-items: baseline; }
+    .ng-row { background: #F7F7F4; padding: 12px 14px; display: flex; gap: 8px; align-items: baseline; border-bottom: 1px solid #EAEAE7; }
+    .ok-row { background: #F7F7F4; padding: 12px 14px; display: flex; gap: 8px; align-items: baseline; }
     .ngok-label { font-size: 13px; font-weight: 700; flex-shrink: 0; }
     .ng-label { color: #C04040; }
     .ok-label { color: #2A8040; }
@@ -1942,6 +1942,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
   const [step, setStep] = useState(initialStep);
   const [glasses, setGlasses] = useState(init.glasses || []);
   const [parentType, setParentType] = useState(init.parentType || null);
+  const [parentResult, setParentResult] = useState(init.parentResult || null); // 親タイプ分布（グラフ用）
   const [children, setChildren] = useState(init.children || []);
   const [newChild, setNewChild] = useState({ name: '', ageGroup: '0_9' });
   const [pPhase, setPPhase] = useState('intro'); // intro | questions | result | fallback
@@ -1959,7 +1960,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
     if (newChild.name.trim()) {
       finalChildren = [...children, { id: `c${Date.now()}`, name: newChild.name.trim(), ageGroup: newChild.ageGroup, diagnosis: null }];
     }
-    onSave({ glasses, parentType, children: finalChildren, currentChildIdx: 0 });
+    onSave({ glasses, parentType, parentResult, children: finalChildren, currentChildIdx: 0 });
   }
   function addChild() {
     if (!newChild.name.trim()) return;
@@ -2072,6 +2073,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                           } else {
                             const res = scoreParentQuiz(next);
                             setPResult(res);
+                            setParentResult(res);
                             if (res.label === 'unclear') {
                               setPFallback(null);
                               setPPhase('fallback');
@@ -2629,7 +2631,13 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                 <div style={{ fontSize: 12, color: '#AAA', marginBottom: 4 }}>親タイプ</div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{pt?.name}</div>
                 <div style={{ fontSize: 13, color: 'var(--primary)', marginBottom: 4 }}>いちばん大事：{pt?.core}</div>
-                <div style={{ fontSize: 13, color: '#666' }}>{pt?.desc}</div>
+                <div style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>{pt?.desc}</div>
+                {profile?.parentResult?.sorted && (
+                  <>
+                    <div style={{ fontSize: 12, color: '#AAA', marginBottom: 6 }}>タイプの内訳（上位3）</div>
+                    <ParentTypeChart sorted={profile.parentResult.sorted} topN={3} />
+                  </>
+                )}
               </div>
             );
           })() : (
