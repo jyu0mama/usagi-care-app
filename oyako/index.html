@@ -1580,6 +1580,28 @@ function SceneListScreen({ profile, onScene, onSetup, onBack }) {
   );
 }
 
+/* ── MiniTypeChart（子タイプ分布バー） ── */
+function MiniTypeChart({ diag }) {
+  if (!diag) return null;
+  return (
+    <div style={{ marginBottom: 4 }}>
+      {diag.sorted.map(tid => {
+        const t = CHILD_TYPE_MAP[tid];
+        const pct = diag.pct[tid];
+        return (
+          <div key={tid} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+            <span style={{ fontSize: 12, width: 54, flexShrink: 0, fontWeight: tid === diag.nearest ? 700 : 400, color: tid === diag.nearest ? '#333' : '#888' }}>{t.name}</span>
+            <div style={{ flex: 1, height: 8, background: '#EEE', borderRadius: 4, overflow: 'hidden' }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: t.barColor, borderRadius: 4 }} />
+            </div>
+            <span style={{ fontSize: 12, width: 30, textAlign: 'right', color: tid === diag.nearest ? '#333' : '#999', fontWeight: tid === diag.nearest ? 700 : 400 }}>{pct}%</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── SceneCardScreen ── */
 function SceneCardScreen({ scene, profile, onBack }) {
   const data = SCENE_DATA[scene.id];
@@ -1587,6 +1609,7 @@ function SceneCardScreen({ scene, profile, onBack }) {
   const currentChild = profile?.children?.[profile?.currentChildIdx || 0] || null;
   const selectedGlasses = profile?.glasses || [];
   const childType = currentChild?.diagnosis?.nearest || null;
+  const [openType, setOpenType] = useState(childType);
 
   if (!data) {
     return (
@@ -1667,27 +1690,47 @@ function SceneCardScreen({ scene, profile, onBack }) {
         {/* ③ タイプ別 */}
         <div className="card">
           <div className="sec-num">③ うちの子には、こう届く</div>
-          {!childType && (
+          {currentChild?.diagnosis ? (
+            <>
+              <MiniTypeChart diag={currentChild.diagnosis} />
+              <div style={{ fontSize: 11, color: '#AAA', marginBottom: 12, marginTop: 2 }}>タップで詳しい言葉かけを見る</div>
+            </>
+          ) : (
             <div className="notice-box" style={{ marginBottom: 12, fontSize: 12 }}>
               お子さんの診断をすると、いちばん近いタイプが先に表示されます
             </div>
           )}
-          {typeOrder.map(tid => {
+          {(currentChild?.diagnosis
+            ? currentChild.diagnosis.sorted
+            : typeOrder
+          ).map(tid => {
             const t = CHILD_TYPE_MAP[tid];
             const row = data.byChildType[tid];
             const easier = data.sayEasier[tid];
+            const pct = currentChild?.diagnosis?.pct?.[tid];
             const isMain = tid === childType;
+            const isOpen = openType === tid;
             return (
-              <div key={tid} className={`type-row ${t.cls}`} style={isMain ? { border: '2px solid #D96A2A' } : {}}>
-                <div className="type-row-head">
+              <div key={tid} style={{ borderRadius: 10, marginBottom: 6, overflow: 'hidden',
+                border: `1.5px solid ${isOpen ? t.barColor : '#E8E8E8'}`,
+                background: isOpen ? '#FAFAFA' : '#FFF' }}>
+                <button onClick={() => setOpenType(isOpen ? null : tid)}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 6, padding: '10px 12px',
+                    background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
                   <span className={`type-name-chip ${t.cls}`}>{t.name}</span>
-                  {isMain && <span style={{ fontSize: 11, color: '#D96A2A', fontWeight: 700 }}>← この子</span>}
-                  <span className="type-note">（{row.note}）</span>
-                </div>
-                <div className="type-say">{row.say}</div>
-                {easier && (
-                  <div className="say-easier-box">
-                    <span style={{ fontSize: 11, color: '#888' }}>もっと小さい一歩｜</span>{easier}
+                  {pct !== undefined && <span style={{ fontSize: 12, color: '#888' }}>{pct}%</span>}
+                  {isMain && <span style={{ fontSize: 11, color: '#D96A2A', fontWeight: 700 }}>この子</span>}
+                  <span style={{ marginLeft: 'auto', fontSize: 13, color: '#BBB' }}>{isOpen ? '▲' : '▼'}</span>
+                </button>
+                {isOpen && (
+                  <div style={{ padding: '4px 12px 12px' }}>
+                    <div style={{ fontSize: 13, color: '#888', marginBottom: 6 }}>{row.note}</div>
+                    <div className="type-say">{row.say}</div>
+                    {easier && (
+                      <div className="say-easier-box">
+                        <span style={{ fontSize: 11, color: '#888' }}>もっと小さい一歩｜</span>{easier}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1924,7 +1967,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                     {[
                       { v: 0, l: 'ちがう' },
                       { v: 1, l: 'あまり' },
-                      { v: 2, l: 'どちら' },
+                      { v: 2, l: 'どちらとも' },
                       { v: 3, l: 'やや' },
                       { v: 4, l: 'そう' },
                     ].map(s => (
@@ -2073,7 +2116,7 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
   const children = profile?.children || [];
   const [selectedChildId, setSelectedChildId] = useState(children[0]?.id || null);
   const [answerer, setAnswerer] = useState('child');
-  const [phase, setPhase] = useState('select'); // select | questions | result
+  const [phase, setPhase] = useState('select'); // select | questions | result | saved
   const [answers, setAnswers] = useState({});
   const [currentQ, setCurrentQ] = useState(0);
   const [result, setResult] = useState(null);
@@ -2163,8 +2206,17 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           <div className="notice-box" style={{ fontSize: 13 }}>
             {ageGroup === '0_9' ? '保護者がお子さんを観察した印象で答えてください' : answerer === 'child' ? 'お子さん本人が答えてください' : '保護者が観察した印象で答えてください（本人の結果と比較できます）'}
           </div>
-          <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
-            診断スタート（{total}問）
+          {child?.diagnosis && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>前回の結果：<strong>{CHILD_TYPE_MAP[child.diagnosis.nearest]?.name}</strong>（{child.diagnosis.label}）</div>
+              <MiniTypeChart diag={child.diagnosis} />
+              <button className="btn btn-secondary" style={{ marginTop: 8 }} onClick={() => { setResult(child.diagnosis); setPhase('saved'); }}>
+                保存済みの結果を詳しく見る
+              </button>
+            </div>
+          )}
+          <button className="btn btn-primary" style={{ marginTop: 4 }} onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
+            {child?.diagnosis ? 'やり直す（再診断）' : `診断スタート（${total}問）`}
           </button>
           <div style={{ height: 20 }} />
           <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
@@ -2207,6 +2259,48 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
               </button>
             )}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === 'saved' && result) {
+    const nearest = CHILD_TYPE_MAP[result.nearest];
+    const blend = result.blendWith ? CHILD_TYPE_MAP[result.blendWith] : null;
+    return (
+      <div>
+        <div className="page-header">
+          <button className="back-btn" onClick={() => setPhase('select')}>‹</button>
+          <span className="page-title">保存済み診断結果</span>
+        </div>
+        <div className="page">
+          <div className="card">
+            <div className="result-sub">{child?.name}のタイプ</div>
+            <div className="result-label">
+              {result.label === 'バランス型' ? 'バランス型' : `${nearest.name}${result.label === '二枚看板' && blend ? ` × ${blend.name}` : ''}`}
+            </div>
+            <div style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 16 }}>（{result.label}）</div>
+            <div className="radar-wrap"><RadarChart pct={result.pct} /></div>
+            <div className="type-dist">
+              {result.sorted.map(tid => {
+                const t = CHILD_TYPE_MAP[tid];
+                return (
+                  <div key={tid} className="type-bar-row">
+                    <span style={{ fontSize: 13, fontWeight: tid === result.nearest ? 700 : 400 }}>{t.name}</span>
+                    <div className="type-bar-track">
+                      <div className="type-bar-fill" style={{ width: `${result.pct[tid]}%`, background: t.barColor }} />
+                    </div>
+                    <span className="type-bar-pct">{result.pct[tid]}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <button className="btn btn-secondary" onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
+            やり直す（再診断）
+          </button>
+          <button className="btn btn-ghost" onClick={() => setPhase('select')}>← 戻る</button>
+          <div style={{ height: 20 }} />
         </div>
       </div>
     );
@@ -2406,6 +2500,7 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
         <span className="page-title">設定</span>
       </div>
       <div className="page">
+        {/* 親の設定 */}
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>わたしの設定</div>
           <div style={{ marginBottom: 8 }}>
@@ -2417,28 +2512,49 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
             </div>
           </div>
           <div className="divider" />
-          <div>
-            <div style={{ fontSize: 12, color: '#AAA', marginBottom: 4 }}>親タイプ</div>
-            <div style={{ fontSize: 14 }}>
-              {profile?.parentType ? PARENT_TYPES.find(p => p.id === profile.parentType)?.name : '未設定'}
+          {profile?.parentType ? (() => {
+            const pt = PARENT_TYPES.find(p => p.id === profile.parentType);
+            return (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: '#AAA', marginBottom: 4 }}>親タイプ</div>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{pt?.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--primary)', marginBottom: 4 }}>いちばん大事：{pt?.core}</div>
+                <div style={{ fontSize: 13, color: '#666' }}>{pt?.desc}</div>
+              </div>
+            );
+          })() : (
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 12, color: '#AAA', marginBottom: 4 }}>親タイプ</div>
+              <div style={{ fontSize: 14 }}>未設定</div>
             </div>
-          </div>
+          )}
           <button className="btn btn-secondary mt12" onClick={onEdit}>設定を変更する</button>
         </div>
 
+        {/* 子どもの診断結果 */}
         {(profile?.children || []).length > 0 && (
           <div className="card">
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>お子さん</div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>お子さんの診断結果</div>
             {profile.children.map((c, i) => (
-              <div key={c.id} style={{ marginBottom: 10 }}>
-                <div style={{ fontWeight: 700, marginBottom: 4 }}>{c.name}</div>
-                <div style={{ fontSize: 12, color: '#888' }}>
-                  {c.ageGroup === '0_9' ? '0〜9歳版' : '10歳〜版'}
-                  {c.diagnosis ? ` ｜ ${CHILD_TYPE_MAP[c.diagnosis.nearest]?.name}（${c.diagnosis.label}）` : ' ｜ 未診断'}
+              <div key={c.id} style={{ marginBottom: i < profile.children.length - 1 ? 16 : 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</span>
+                  <span className="tag tag-gray">{c.ageGroup === '0_9' ? '0〜9歳' : '10歳〜'}</span>
+                  {c.diagnosis && (
+                    <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                      {CHILD_TYPE_MAP[c.diagnosis.nearest]?.name}（{c.diagnosis.label}）
+                    </span>
+                  )}
                 </div>
+                {c.diagnosis ? (
+                  <MiniTypeChart diag={c.diagnosis} />
+                ) : (
+                  <div style={{ fontSize: 13, color: '#AAA' }}>未診断 — 診断タブから診断できます</div>
+                )}
+                {i < profile.children.length - 1 && <div className="divider" style={{ marginTop: 12 }} />}
               </div>
             ))}
-            <button className="btn btn-secondary" onClick={onEditChild}>変更する</button>
+            <button className="btn btn-secondary mt12" onClick={onEditChild}>お子さん情報を変更する</button>
           </div>
         )}
 
