@@ -1499,13 +1499,27 @@ function NavBar({ tab, onTab }) {
 }
 
 /* ── HomeScreen（トップ画面） ── */
-function HomeScreen({ onTab }) {
+function HomeScreen({ profile, onTab }) {
   const NAV_CARDS = [
     { id: 'home',      icon: './icon-scene.png',     title: '場面を引く',    sub: '今日の困りごとに応えるカード' },
     { id: 'diagnosis', icon: './icon-diagnosis.png', title: '診断する',      sub: 'メガネ・子どものタイプを調べる' },
     { id: 'cards',     icon: './icon-cards.png',     title: 'カードを見る',  sub: '45通りの親子相性カード' },
     { id: 'settings',  icon: './icon-settings.png',  title: '設定',          sub: 'プロフィールを確認・変更する' },
   ];
+
+  const hasGlasses   = (profile?.glasses || []).length > 0;
+  const hasParent    = !!profile?.parentType;
+  const hasChild     = (profile?.children || []).length > 0;
+  const hasChildDiag = (profile?.children || []).some(c => !!c.diagnosis);
+  const setupDone    = hasGlasses && hasParent && hasChild && hasChildDiag;
+
+  const steps = [
+    { done: hasGlasses,   label: 'メガネ診断の結果を設定に登録する', note: '（無料アプリで受けてから）' },
+    { done: hasParent,    label: '親タイプを診断する', note: '（設定から・27問・3分）' },
+    { done: hasChild,     label: 'お子さんを登録する', note: '（設定から）' },
+    { done: hasChildDiag, label: 'お子さんの気質を診断する', note: '（診断タブから）' },
+  ];
+
   return (
     <div style={{ paddingBottom: 80 }}>
       <div style={{ background: 'transparent', textAlign: 'center', padding: '28px 20px 0' }}>
@@ -1529,6 +1543,34 @@ function HomeScreen({ onTab }) {
             <span style={{ fontSize: 20, color: '#CCC' }}>›</span>
           </button>
         ))}
+
+        {/* セットアップ手順（未完了のときだけ表示） */}
+        {!setupDone && (
+          <div style={{ background: '#fff', borderRadius: 16, padding: '16px 18px', marginTop: 4,
+                        boxShadow: '0 2px 14px rgba(0,0,0,0.07)' }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#2C2C2C', marginBottom: 4 }}>
+              はじめに設定しておくと…
+            </div>
+            <div style={{ fontSize: 13, color: '#666', marginBottom: 12, lineHeight: 1.7 }}>
+              お子さんと親のタイプを登録すると、場面カードが<strong>わが家専用</strong>になります。
+            </div>
+            {steps.map((s, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 15, marginTop: 1, flexShrink: 0 }}>{s.done ? '✅' : '⬜'}</span>
+                <div>
+                  <span style={{ fontSize: 13, fontWeight: s.done ? 400 : 600, color: s.done ? '#AAA' : '#333',
+                    textDecoration: s.done ? 'line-through' : 'none' }}>{s.label}</span>
+                  {!s.done && <span style={{ fontSize: 12, color: '#AAA', marginLeft: 4 }}>{s.note}</span>}
+                </div>
+              </div>
+            ))}
+            <button onClick={() => onTab('settings')}
+              style={{ marginTop: 8, fontSize: 13, color: 'var(--primary)', fontWeight: 700, background: 'none',
+                border: 'none', cursor: 'pointer', padding: 0 }}>
+              設定を開く →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2603,11 +2645,36 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
           </div>
         )}
 
+        {/* 設定の意味・メガネ診断リンク */}
+        <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--border)' }}>
+          <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8, color: 'var(--primary-dark)' }}>
+            登録しておくと、できること
+          </div>
+          {[
+            '場面カードが「わが家専用」になる（子タイプ順に並び替え＋グラフ表示）',
+            '45通りカードで、あなた×わが子の組み合わせをすぐ開ける',
+            'メガネの歪みが子育てに出ているとき、気づくヒントが加わる',
+          ].map((t, i) => (
+            <div key={i} style={{ display: 'flex', gap: 6, fontSize: 13, color: '#444', marginBottom: 6 }}>
+              <span style={{ color: 'var(--primary)', flexShrink: 0 }}>✓</span><span>{t}</span>
+            </div>
+          ))}
+          <div className="divider" style={{ margin: '10px 0' }} />
+          <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
+            <strong>メガネ診断</strong>がまだの方はこちら（無料・約5分）
+          </div>
+          <a href={FREE_APP_URL} target="_blank" rel="noopener noreferrer"
+            style={{ display: 'block', textAlign: 'center', padding: '10px', borderRadius: 10,
+              background: '#fff', border: '1.5px solid var(--primary)', color: 'var(--primary)',
+              fontWeight: 700, fontSize: 14 }}>
+            無料「思考の癖」診断を受ける →
+          </a>
+        </div>
+
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>このアプリについて</div>
           <div className="text-sub">
-            有料note「親子まるごと診断」の本編アプリです。<br />
-            無料の「思考の癖」診断は→ <a href={FREE_APP_URL} target="_blank" rel="noopener noreferrer">こちら</a>
+            有料note「親子まるごと診断」の本編アプリです。
           </div>
         </div>
         <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
@@ -2664,7 +2731,7 @@ function App() {
   return (
     <div>
       {screen === 'top' && (
-        <HomeScreen onTab={handleTabChange} />
+        <HomeScreen profile={profile} onTab={handleTabChange} />
       )}
       {screen === 'scene-list' && (
         <SceneListScreen
