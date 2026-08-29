@@ -804,17 +804,29 @@ function SettingsScreen({ profile, records, onProfileUpdate, onRecordsUpdate }) 
         </div>
       )}
 
-      <div className="section-title">手元に残す</div>
+      <div className="section-title">データを保存・引き継ぐ</div>
       <div className="card">
+        <p style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 12, lineHeight: 1.7 }}>
+          記録したデータはこの端末にのみ保存されています。<br />
+          機種変更や端末の初期化に備えて、定期的にバックアップをとっておくと安心です。
+        </p>
         <div style={{ marginBottom: 8 }}>
-          <button className="btn btn-outline btn-small" onClick={handleExportJSON}>JSONでバックアップ</button>
+          <button className="btn btn-outline btn-small" onClick={handleExportJSON}>
+            📥 バックアップファイルをダウンロード
+          </button>
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <button className="btn btn-outline btn-small" onClick={handlePrint}>印刷用テキストを開く</button>
+        <div style={{ marginBottom: 20 }}>
+          <button className="btn btn-outline btn-small" onClick={handlePrint}>🖨 印刷用テキストを開く</button>
         </div>
-        <label className="label">JSONをインポート</label>
-        <textarea className="textarea mb8" rows={3} value={importText} onChange={e => setImportText(e.target.value)} placeholder={'{"version":1,...}'} />
-        <button className="btn btn-outline btn-small" onClick={handleImport} disabled={!importText.trim()}>インポートする</button>
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, marginBottom: 4 }}>別の端末からデータを引き継ぐ</p>
+          <p style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8, lineHeight: 1.7 }}>
+            「バックアップファイルをダウンロード」で保存したファイルを開き、<br />
+            中身のテキストをすべてコピーしてここに貼り付けてください。
+          </p>
+          <textarea className="textarea mb8" rows={4} value={importText} onChange={e => setImportText(e.target.value)} placeholder={'バックアップファイルの内容をここに貼り付け…'} />
+          <button className="btn btn-outline btn-small" onClick={handleImport} disabled={!importText.trim()}>このデータで上書きする</button>
+        </div>
       </div>
 
       <div style={{ fontSize: 11, color: '#bbb', textAlign: 'center', marginTop: 24 }}>わが家の新ルートMAP</div>
