@@ -2373,6 +2373,9 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
               </button>
             )}
           </div>
+          {currentQ > 0 && (
+            <button className="btn btn-ghost" onClick={() => setCurrentQ(q => q - 1)}>← 前の問いに戻る</button>
+          )}
         </div>
       </div>
     );
