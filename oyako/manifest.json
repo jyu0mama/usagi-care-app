@@ -1,0 +1,17 @@
+{
+  "name": "親子まるごと診断",
+  "short_name": "親子診断",
+  "description": "13場面の逆引きで、今日の困りごとに応える親子まるごと診断アプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4FAF8",
+  "theme_color": "#4A9A87",
+  "lang": "ja",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

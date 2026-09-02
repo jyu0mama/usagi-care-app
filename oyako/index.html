@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>親子まるごと診断</title>
   <meta name="description" content="13場面の逆引きで、今日の困りごとに応える。親子まるごと診断アプリ">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#4A9A87">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="親子診断">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+  <link rel="icon" href="./icon-192.png">
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
@@ -2833,6 +2840,63 @@ function App() {
 }
 
 ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+
+<style>
+.a2hs-wrap{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;justify-content:center;padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom));pointer-events:none;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN','Meiryo',sans-serif}
+.a2hs{pointer-events:auto;width:100%;max-width:520px;background:#fff;border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.18);padding:16px 16px 14px;transform:translateY(150%);transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.a2hs.show{transform:none}
+.a2hs-top{display:flex;gap:12px;align-items:center}
+.a2hs-ic{width:46px;height:46px;border-radius:11px;flex-shrink:0}
+.a2hs-tt{font-weight:800;font-size:15px;color:#222}
+.a2hs-ds{font-size:12px;color:#666;margin-top:2px;line-height:1.5}
+.a2hs-x{margin-left:auto;border:none;background:none;font-size:15px;color:#c4c4c4;cursor:pointer;align-self:flex-start}
+.a2hs-steps{font-size:12.5px;color:#333;line-height:2;margin-top:10px}
+.a2hs-steps b{font-weight:700}
+.a2hs-sh{display:inline-flex;vertical-align:-3px}
+.a2hs-btns{display:flex;gap:8px;margin-top:12px}
+.a2hs-btn{flex:1;padding:11px;border-radius:11px;border:none;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit}
+.a2hs-btn.p{background:var(--_ac,#4A9A87);color:#fff}
+.a2hs-btn.s{background:#f0f0f0;color:#666}
+</style>
+<script>
+(function(){
+  var CFG={key:'oyako_a2hs',accent:'#4A9A87',icon:'./icon-192.png',name:'「親子まるごと診断」'};
+  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+    window.addEventListener('load',function(){ navigator.serviceWorker.register('./sw.js').catch(function(){}); });
+  }
+  try{
+    var standalone=(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone===true;
+    if(standalone) return;
+    if(localStorage.getItem(CFG.key)) return;
+  }catch(e){}
+  var deferred=null,shown=false;
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); deferred=e; render(); });
+  function kill(persist){ if(persist){try{localStorage.setItem(CFG.key,'1');}catch(e){}} var el=document.querySelector('.a2hs'); if(el)el.classList.remove('show'); setTimeout(function(){var w=document.querySelector('.a2hs-wrap'); if(w)w.remove();},350); }
+  function render(){
+    if(shown) return; shown=true;
+    var share='<svg class="a2hs-sh" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#007aff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+    var steps = deferred
+      ? '<div class="a2hs-steps">ボタンを押すと、この端末にアプリとして追加できます。</div>'
+      : (isIOS
+        ? '<div class="a2hs-steps">1. 画面下の <b>共有 '+share+'</b> をタップ<br>2. <b>「ホーム画面に追加」</b> を選ぶ<br>3. 右上の <b>「追加」</b> をタップ</div>'
+        : '<div class="a2hs-steps">ブラウザのメニューから <b>「ホーム画面に追加」/「インストール」</b> を選んでください。</div>');
+    var btns = deferred
+      ? '<button class="a2hs-btn p" id="a2hs-add">追加する</button><button class="a2hs-btn s" id="a2hs-later">あとで</button>'
+      : '<button class="a2hs-btn p" id="a2hs-ok">わかった</button><button class="a2hs-btn s" id="a2hs-later">今後表示しない</button>';
+    var wrap=document.createElement('div'); wrap.className='a2hs-wrap'; wrap.style.setProperty('--_ac',CFG.accent);
+    wrap.innerHTML='<div class="a2hs"><div class="a2hs-top"><img class="a2hs-ic" src="'+CFG.icon+'" alt=""><div><div class="a2hs-tt">ホーム画面に追加</div><div class="a2hs-ds">'+CFG.name+'をアプリのように使えます</div></div><button class="a2hs-x" id="a2hs-x">✕</button></div>'+steps+'<div class="a2hs-btns">'+btns+'</div></div>';
+    document.body.appendChild(wrap);
+    requestAnimationFrame(function(){ wrap.querySelector('.a2hs').classList.add('show'); });
+    var b;
+    if((b=document.getElementById('a2hs-x'))) b.onclick=function(){ kill(false); };
+    if((b=document.getElementById('a2hs-later'))) b.onclick=function(){ kill(true); };
+    if((b=document.getElementById('a2hs-ok'))) b.onclick=function(){ kill(true); };
+    if((b=document.getElementById('a2hs-add'))) b.onclick=function(){ if(!deferred){kill(true);return;} deferred.prompt(); deferred.userChoice.then(function(){ kill(true); }); };
+  }
+  setTimeout(function(){ render(); }, 800);
+})();
 </script>
 </body>
 </html>
