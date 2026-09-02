@@ -79,6 +79,10 @@
     .seg > button { flex: 1; padding: 8px 4px; background: none; border: none; border-right: 1px solid var(--ink); font-size: 12px; font-weight: 700; font-family: var(--sans); cursor: pointer; color: var(--ink); }
     .seg > button:last-child { border-right: none; }
     .seg > button.on { background: var(--ink); color: #fff; }
+    .tag { display: inline-block; font-size: 10px; letter-spacing: .08em; padding: 3px 8px; border: 1px solid var(--ink); background: none; cursor: pointer; font-family: var(--sans); color: var(--ink); }
+    .tag-on { background: var(--ink); color: #fff; }
+    label.chk { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    label.chk input { width: 16px; height: 16px; }
     /* nav */
     .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--max-w);
       background: var(--bg); border-top: 1px solid var(--ink); display: flex; z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
@@ -86,47 +90,20 @@
       font-size: 10px; letter-spacing: .1em; color: var(--faint); }
     .nav-item.active { color: var(--ink); }
     .nav-item.active span { border-bottom: 1px solid var(--ink); padding-bottom: 3px; }
-    /* timeline (schematic) */
-    .tl2 { display: flex; border: 1px solid var(--line); }
-    .tl2-labels { position: relative; width: 34px; flex-shrink: 0; border-right: 1px solid var(--line); }
-    .tl2-labels > div { position: absolute; left: 4px; font-size: 9px; color: var(--sub); letter-spacing: .05em; }
-    .tl2-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; flex: 1; }
-    .tl2-inner { position: relative; }
-    .tl2-grid { position: absolute; top: 0; border-left: 1px solid var(--line); }
-    .tl2-grid > span { position: absolute; top: 2px; left: 3px; font-size: 8px; color: var(--faint); }
-    .tl2-band { position: absolute; cursor: pointer; }
-    .tl2-study { background: var(--study); }
-    .tl2-job { background: var(--job); }
-    .tl2-school { background: transparent; border: 1px solid var(--line); }
-    .tl2-band.here { outline: 2px solid var(--down); outline-offset: 1px; }
-    .tl2-band.sel { opacity: .55; }
-    .tl2-ms { position: absolute; width: 10px; height: 10px; background: var(--ink); transform: rotate(45deg); cursor: pointer; }
-    .tl2-ms.on { background: var(--down); }
-    .tl2-today { position: absolute; top: 0; width: 0; border-left: 1px solid var(--down); }
-    .tl2-today::before { content: ''; position: absolute; top: 0; left: -3px; border-left: 3px solid transparent; border-right: 3px solid transparent; border-top: 4px solid var(--down); }
-    .tl2-cap { font-size: 10px; color: var(--sub); margin-top: 6px; line-height: 1.6; }
-    .tl2-legend i { display: inline-block; width: 12px; height: 8px; vertical-align: middle; margin-right: 3px; }
-    .tl2-legend i.k-study { background: var(--study); }
-    .tl2-legend i.k-job { background: var(--job); }
-    .tl2-legend i.k-ms { width: auto; height: auto; color: var(--ink); }
-    .tl2-legend i.k-now { width: 0; border-left: 2px solid var(--down); height: 10px; }
-    /* stock chart */
-    .stk-head { display: flex; justify-content: space-between; align-items: flex-start; }
-    .stk-price { font-size: 34px; font-family: var(--serif); letter-spacing: .01em; }
-    .stk-delta { font-size: 13px; margin-top: 2px; }
-    .stk-meta { text-align: right; font-size: 11px; line-height: 1.7; color: var(--sub); }
-    .stk-chart { position: relative; margin-top: 12px; }
-    .stk-yaxis { position: absolute; top: 0; right: 0; height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 8px; color: var(--faint); pointer-events: none; padding-bottom: 16px; }
-    .stk-yaxis > div { background: var(--bg); padding-left: 3px; }
-    .stk-range { margin-top: 10px; }
-    /* phases */
-    .phase { border-top: 1px solid var(--line); padding: 10px 0; }
-    .phase-h { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-    .phase-t { font-size: 13.5px; font-weight: 700; }
-    .now-tag { font-size: 9px; border: 1px solid var(--down); color: var(--down); padding: 1px 5px; margin-left: 6px; letter-spacing: .05em; }
-    .pdot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); flex-shrink: 0; }
-    .pdot.here { background: var(--down); }
-    .pdot.past { background: var(--ink); }
+    /* career index */
+    .idx-hero { border: 1px solid var(--ink); padding: 14px; margin-top: 10px; cursor: pointer; }
+    .idx-now { font-family: var(--serif); font-size: 40px; letter-spacing: .01em; line-height: 1; }
+    .idx-chg { font-family: var(--mono); font-size: 14px; font-weight: 700; }
+    /* rows */
+    .focus-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14px; cursor: pointer; }
+    .focus-row:last-child { border-bottom: 1px solid var(--line); }
+    .status-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; cursor: pointer; }
+    .star { color: var(--ink); }
+    .mom { font-size: 11px; font-family: var(--mono); color: var(--sub); white-space: nowrap; }
+    .proj-row { display: flex; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .proj-row:last-child { border-bottom: 1px solid var(--line); }
+    .star-btn { border: none; background: none; font-size: 17px; cursor: pointer; line-height: 1; padding: 0; color: var(--ink); align-self: flex-start; }
+    .map-proj { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; cursor: pointer; }
   </style>
 </head>
 <body>
