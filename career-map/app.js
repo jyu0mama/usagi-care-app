@@ -4,29 +4,58 @@ const {
   useEffect,
   useMemo
 } = React;
-const KEY = 'careermap_v3';
+const KEY = 'careermap_v4';
 const INDEX_START = 100;
 const FOCUS_MAX = 3;
-const TODAY_MAX = 5;
-const PROJECT_MAX = 6;
+const TODAY_MAX = 3;
 const OUTCOMES = [{
   id: 'career',
-  name: 'CAREER'
+  name: 'CAREER',
+  desc: '博報堂・電通を含め、コンサル・商社など複数の業界・企業を選択肢として持つ。'
 }, {
   id: 'global',
-  name: 'GLOBAL'
+  name: 'GLOBAL',
+  desc: '交換留学を経験し、英語を使って生活・学習できる。'
 }, {
   id: 'research',
-  name: 'RESEARCH'
+  name: 'RESEARCH',
+  desc: '論文執筆・学会発表。'
 }, {
   id: 'project',
-  name: 'PROJECT'
+  name: 'PROJECT',
+  desc: '継続的に動く組織・プロジェクトを作る。'
 }];
 const OUT_MAP = Object.fromEntries(OUTCOMES.map(o => [o.id, o]));
-const IMPACT = {
-  high: '＋＋',
-  med: '＋'
+const ACTIONS = {
+  english: ['Vocabulary', 'Reading', 'Listening', 'Writing', 'Mock Test', 'Other'],
+  research: ['Reading', 'Research Design', 'Data Collection', 'Analysis', 'Writing', 'Presentation', 'Other'],
+  project: ['Planning', 'Meeting', 'Fieldwork', 'Execution', 'Improvement', 'Other'],
+  university: ['授業課題', '復習', '試験対策', 'レポート', 'Other'],
+  career: ['自己分析', '業界研究', 'ES作成', 'Webテスト', '面接準備', 'Other'],
+  study: ['情報収集', '書類準備', 'エッセイ', '手続き', 'Other']
 };
+const ROADMAP = [{
+  year: 2026,
+  summary: '英語・GPA・研究',
+  events: ['英語の現状把握', '英語試験 初回受験', '博報堂インターン', 'GPA維持', '自然環境音研究 開始']
+}, {
+  year: 2027,
+  summary: '留学出願・インターン',
+  events: ['英語スコア確定', 'サマーインターン', '交換留学 出願', '留学先 決定']
+}, {
+  year: 2028,
+  summary: 'Exchange Study',
+  events: ['渡航準備', '交換留学 開始']
+}, {
+  year: 2029,
+  summary: 'Job Hunting',
+  events: ['留学経験の整理', 'インターン', '就職活動']
+}, {
+  year: 2030,
+  summary: 'Graduation',
+  events: ['本選考', '卒業', '就職']
+}];
+const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 const uid = () => 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const WD = ['日', '月', '火', '水', '木', '金', '土'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
@@ -55,7 +84,7 @@ function fmtDate(iso) {
 }
 function fmtFull(iso) {
   const d = parseISO(iso);
-  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}（${WD[d.getDay()]}）`;
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
 function daysUntil(iso) {
   return Math.round((parseISO(iso) - parseISO(todayISO())) / 86400000);
@@ -67,17 +96,11 @@ function daysSince(isoDT) {
 function daysSinceDate(iso) {
   return Math.floor((parseISO(todayISO()) - parseISO(iso)) / 86400000);
 }
+function nowLabel() {
+  const d = new Date();
+  return `${d.getFullYear()} ${MON3[d.getMonth()]}`;
+}
 function seedProjects() {
-  const P = o => ({
-    id: uid(),
-    progress: 0,
-    status: 'active',
-    milestones: [],
-    moveLog: [],
-    nextDeadline: null,
-    nextAction: '',
-    ...o
-  });
   const M = (label, big) => ({
     id: uid(),
     label,
@@ -85,62 +108,68 @@ function seedProjects() {
     doneAt: null,
     big: !!big
   });
+  const P = o => ({
+    id: uid(),
+    status: 'active',
+    deadline: null,
+    milestones: [],
+    moveLog: [],
+    nextActionText: '',
+    ...o
+  });
   return [P({
     name: '英語',
+    emoji: '🔤',
+    kind: 'english',
     outcome: 'global',
-    progress: 15,
     status: 'focus',
     goal: '交換留学の資格を取得し、英語を使える状態になる。',
-    nextAction: '過去問で現在地を測る',
-    nextDeadline: {
-      label: '本試（2026年中・テストセンター型）',
+    deadline: {
+      label: '英語試験 初回受験',
       date: '2026-12-31'
     },
-    milestones: [M('過去問で現在地を把握'), M('本試を受験'), M('出願基準スコアに到達', true), M('公式スコアレポートを入手')]
+    milestones: [M('現状把握（過去問）'), M('英語試験を受験'), M('目標スコア達成', true), M('公式スコアレポート入手')]
   }), P({
-    name: '大学・GPA',
+    name: '大学 / GPA',
+    emoji: '🎓',
+    kind: 'university',
     outcome: 'career',
-    progress: 40,
     status: 'focus',
     goal: '留学と卒業に必要な学業成績を維持する。',
-    nextAction: '秋学期の重い課題を洗い出す',
     milestones: [M('1年秋のGPAを2.0以上で確定', true), M('2年春までの累積GPAで協定校基準クリア', true)]
   }), P({
     name: '自然環境音研究',
+    emoji: '🔬',
+    kind: 'research',
     outcome: 'research',
-    progress: 10,
     status: 'focus',
     goal: '論文執筆・学会発表。',
-    nextAction: '研究テーマを固める',
-    milestones: [M('研究テーマを決定', true), M('データ収集を開始'), M('論文ドラフト完成', true), M('学会発表', true)]
+    milestones: [M('研究テーマ決定', true), M('データ収集を開始'), M('論文ドラフト完成', true), M('学会発表', true)]
   }), P({
     name: '交換留学',
+    emoji: '✈️',
+    kind: 'study',
     outcome: 'global',
-    progress: 35,
-    status: 'active',
     goal: '2028年秋から交換留学する。',
-    nextAction: '英語資格の現在地を確認する',
-    nextDeadline: {
-      label: '学内選考 出願（KEIO IC-NET）',
+    deadline: {
+      label: '学内選考 出願',
       date: '2027-09-15'
     },
-    milestones: [M('英語スコアが出願資格に到達', true), M('学内選考に出願'), M('派遣候補生に内定', true), M('留学先へ出発', true)]
+    milestones: [M('英語資格取得'), M('GPA条件達成'), M('志望校決定'), M('出願書類準備'), M('学内選考 出願'), M('留学決定', true), M('渡航', true)]
   }), P({
     name: '馬佐良プロジェクト',
+    emoji: '🌿',
+    kind: 'project',
     outcome: 'project',
-    progress: 20,
-    status: 'active',
     goal: '慶應公認団体化・継続的な組織化。',
-    nextAction: '公認団体の要件を調べる',
     milestones: [M('公認団体の要件を確認'), M('自分に依存しない運営体制'), M('慶應の公認団体になる', true)]
   }), P({
     name: '就職準備',
+    emoji: '💼',
+    kind: 'career',
     outcome: 'career',
-    progress: 10,
-    status: 'active',
     goal: '2030年の選考に向けて経験・スキルを蓄積する。',
-    nextAction: '博報堂インターンに申し込む',
-    nextDeadline: {
+    deadline: {
       label: '博報堂インターン 申込〆切',
       date: '2026-10-02'
     },
@@ -151,20 +180,14 @@ function defaultState() {
   const ps = seedProjects();
   const pid = n => (ps.find(p => p.name === n) || {}).id;
   return {
-    version: 3,
+    version: 4,
     tipsSeen: false,
     ideal: {
-      headline: '2030年3月・電通／博報堂へ。30代前半で年収1000万。',
-      outcomes: {
-        career: '複数の業界・企業から就職先を選べる。博報堂・電通を含め、コンサル・商社などの選考を受けられる。',
-        global: '交換留学を経験し、英語を使える。海外キャリアも選択肢として持つ。',
-        research: '論文執筆・学会発表。',
-        project: '継続する組織・プロジェクトを作る。'
-      }
+      headline: '2030年3月・目指す企業・業界を選べる状態で就活する。',
+      outcomes: Object.fromEntries(OUTCOMES.map(o => [o.id, o.desc]))
     },
     weights: {
-      taskMed: 1,
-      taskHigh: 2,
+      small: 1,
       focusBonus: 2,
       milestone: 12,
       milestoneBig: 25,
@@ -172,34 +195,45 @@ function defaultState() {
       deadlineNoProgress: -4,
       stallDays: 4,
       deadlineWindow: 30,
-      dailyOrdinaryCap: 6
+      dailyCap: 8
     },
     projects: ps,
-    tasks: [{
+    today: [{
       id: uid(),
-      text: '英語の過去問 Reading を時間を計って解く',
       projectId: pid('英語'),
-      importance: 'high',
-      date: todayISO(),
+      action: 'Reading',
       done: false,
       doneAt: null
     }, {
       id: uid(),
-      text: '統計分析の勉強',
       projectId: pid('自然環境音研究'),
-      importance: 'med',
-      date: todayISO(),
+      action: 'Research Design',
       done: false,
       doneAt: null
     }, {
       id: uid(),
-      text: '授業課題（重い方）',
-      projectId: pid('大学・GPA'),
-      importance: 'high',
-      date: todayISO(),
+      projectId: pid('大学 / GPA'),
+      action: '授業課題',
       done: false,
       doneAt: null
     }],
+    routines: [{
+      id: uid(),
+      name: 'English Routine',
+      projectId: pid('英語'),
+      actions: ['Vocabulary', 'Reading', 'Listening']
+    }, {
+      id: uid(),
+      name: 'Research Routine',
+      projectId: pid('自然環境音研究'),
+      actions: ['Reading', 'Data Collection', 'Analysis']
+    }, {
+      id: uid(),
+      name: 'University Routine',
+      projectId: pid('大学 / GPA'),
+      actions: ['授業課題', '復習', '試験対策']
+    }],
+    activity: [],
     ideas: [{
       id: uid(),
       text: '里山プロジェクトのInstagramを毎日更新する',
@@ -246,10 +280,19 @@ function saveState(s) {
     localStorage.setItem(KEY, JSON.stringify(s));
   } catch (e) {}
 }
+function progressOf(p) {
+  const ms = p.milestones || [];
+  if (!ms.length) return 0;
+  return Math.round(ms.filter(m => m.done).length / ms.length * 100);
+}
+function nextActionOf(p) {
+  const m = (p.milestones || []).find(x => !x.done);
+  return p.nextActionText && p.nextActionText.trim() || (m ? m.label : '—');
+}
 function lastProgressAt(s) {
   let t = 0;
-  (s.tasks || []).forEach(x => {
-    if (x.done && x.doneAt) t = Math.max(t, new Date(x.doneAt).getTime());
+  (s.activity || []).forEach(a => {
+    t = Math.max(t, parseISO(a.date).getTime());
   });
   (s.projects || []).forEach(p => {
     (p.moveLog || []).forEach(m => {
@@ -307,14 +350,15 @@ function ensureIndex(s) {
       });
     }
     (s.projects || []).forEach(p => {
-      if (p.nextDeadline && p.nextDeadline.date) {
-        const du = daysUntil(p.nextDeadline.date);
+      if (p.deadline && p.deadline.date) {
+        const du = daysUntil(p.deadline.date);
         const recent = (p.moveLog || []).some(m => daysSinceDate(m.date) < w.stallDays);
         if (du >= 0 && du <= w.deadlineWindow && !recent) {
           add += w.deadlineNoProgress;
           evs.push({
             reason: `${p.name}：締切まで${du}日、進捗なし`,
-            amt: w.deadlineNoProgress
+            amt: w.deadlineNoProgress,
+            projectId: p.id
           });
         }
       }
@@ -332,11 +376,11 @@ function ensureIndex(s) {
     ...s,
     index: {
       ...s.index,
-      log: nl.slice(-540)
+      log: nl.slice(-560)
     }
   };
 }
-function bumpIndex(s, amt, reason) {
+function bumpIndex(s, amt, reason, projectId) {
   const log = [...(s.index && s.index.log || [])];
   if (!log.length || log[log.length - 1].date !== todayISO()) {
     const prev = log.length ? log[log.length - 1].value : s.index.start || INDEX_START;
@@ -354,7 +398,8 @@ function bumpIndex(s, amt, reason) {
   e.delta = r1((e.delta || 0) + amt);
   e.events = [...(e.events || []), {
     reason,
-    amt: r1(amt)
+    amt: r1(amt),
+    projectId
   }];
   const prev = log.length > 1 ? log[log.length - 2].value : s.index.start || INDEX_START;
   e.value = r1(prev + e.delta);
@@ -367,20 +412,20 @@ function bumpIndex(s, amt, reason) {
     }
   };
 }
-function ordinaryGainToday(s) {
+function gainToday(s) {
   const log = s.index && s.index.log || [];
   if (!log.length || log[log.length - 1].date !== todayISO()) return 0;
-  return (log[log.length - 1].events || []).filter(e => e._ord).reduce((a, e) => a + Math.max(0, e.amt), 0);
+  return (log[log.length - 1].events || []).filter(e => e._sm).reduce((a, e) => a + Math.max(0, e.amt), 0);
 }
 function indexInfo(log, days) {
   const cut = addDaysISO(todayISO(), -days);
   const win = (log || []).filter(e => e.date >= cut);
   const series = win.length ? win : (log || []).slice(-2);
   const now = series.length ? series[series.length - 1].value : INDEX_START;
-  const base = series.length ? series[0].value : INDEX_START;
-  const chg = now - base;
+  const base = series.length ? series.length === 1 ? r1(series[0].value - (series[0].delta || 0)) : series[0].value : INDEX_START;
+  const chg = r1(now - base);
   const pct = base ? chg / base * 100 : 0;
-  const arrow = chg > 0.4 ? '↑' : chg < -0.4 ? '↓' : '→';
+  const arrow = chg > 0.4 ? '↗' : chg < -0.4 ? '↘' : '→';
   return {
     now,
     base,
@@ -399,58 +444,82 @@ function momentum(p) {
   }).reduce((a, m) => a + m.amt, 0);
   if (r === 0 && q === 0) return {
     a: '→',
-    l: 'Stable',
-    note: 'これから'
+    l: 'Stable'
   };
   if (r > q * 1.2 && r > 0) return {
     a: '↗',
-    l: 'Accelerating',
-    note: '最近30日で勢いが増加'
+    l: 'Growing'
   };
   if (r < q * 0.6 || r === 0 && q > 0) return {
     a: '↘',
-    l: 'Slowing',
-    note: '最近、重要な進捗が少ない'
+    l: 'Slowing'
   };
   return {
     a: '→',
-    l: 'Stable',
-    note: '一定のペースで進行'
+    l: 'Stable'
   };
 }
 function projById(s, id) {
   return (s.projects || []).find(p => p.id === id);
 }
-function nextDeadlineAcross(s) {
-  const ds = (s.projects || []).map(p => p.nextDeadline && p.nextDeadline.date ? {
-    ...p.nextDeadline,
-    project: p.name
-  } : null).filter(Boolean).sort((a, b) => a.date.localeCompare(b.date));
-  return ds[0] || null;
+function upcomingDeadlines(s, n) {
+  return (s.projects || []).map(p => p.deadline && p.deadline.date ? {
+    ...p.deadline,
+    project: p.name,
+    emoji: p.emoji
+  } : null).filter(Boolean).filter(d => daysUntil(d.date) >= -1).sort((a, b) => a.date.localeCompare(b.date)).slice(0, n || 3);
 }
-function Meter({
+function Ring({
+  v
+}) {
+  const R = 15,
+    C = 2 * Math.PI * R;
+  return React.createElement("svg", {
+    width: "36",
+    height: "36",
+    viewBox: "0 0 36 36"
+  }, React.createElement("circle", {
+    cx: "18",
+    cy: "18",
+    r: R,
+    fill: "none",
+    stroke: "var(--line)",
+    strokeWidth: "3.5"
+  }), React.createElement("circle", {
+    cx: "18",
+    cy: "18",
+    r: R,
+    fill: "none",
+    stroke: "var(--ink)",
+    strokeWidth: "3.5",
+    strokeLinecap: "round",
+    strokeDasharray: `${C * v / 100} ${C}`,
+    transform: "rotate(-90 18 18)"
+  }));
+}
+function Bar({
   v
 }) {
   return React.createElement("div", {
-    className: "meter"
+    className: "bar"
   }, React.createElement("span", {
     style: {
       width: clamp(v, 0, 100) + '%'
     }
   }));
 }
-function Mom({
+function Trend({
   p
 }) {
   const m = momentum(p);
   return React.createElement("span", {
-    className: "mom"
+    className: `trend t-${m.l.toLowerCase()}`
   }, m.a, " ", m.l);
 }
 function IndexChart({
   log,
   days,
-  showDots,
+  showMarkers,
   onPick,
   h
 }) {
@@ -468,38 +537,58 @@ function IndexChart({
   const vals = pts.map(p => p.value);
   const lo = Math.min(...vals),
     hi = Math.max(...vals);
-  const pad = (hi - lo || 4) * 0.15;
+  const pad = (hi - lo || 4) * 0.18;
   const mn = lo - pad,
     mx = hi + pad,
     rng = mx - mn || 1;
   const W = 320,
-    HT = h || 130;
+    HT = h || 120;
   const x = i => i / (pts.length - 1) * W;
   const y = v => HT - (v - mn) / rng * HT;
   const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.value).toFixed(1)}`).join(' ');
   const area = `0,${HT} ${line} ${W},${HT}`;
+  const up = info.chg >= 0;
+  const col = up ? 'var(--up)' : 'var(--down)';
   return React.createElement("svg", {
-    viewBox: `0 0 ${W} ${HT + 2}`,
+    viewBox: `0 0 ${W} ${HT + 4}`,
     width: "100%",
     preserveAspectRatio: "none",
     style: {
-      display: 'block'
+      display: 'block',
+      overflow: 'visible'
     }
-  }, React.createElement("polygon", {
+  }, React.createElement("defs", null, React.createElement("linearGradient", {
+    id: "cig",
+    x1: "0",
+    y1: "0",
+    x2: "0",
+    y2: "1"
+  }, React.createElement("stop", {
+    offset: "0",
+    stopColor: up ? '#34A853' : '#E5484D',
+    stopOpacity: "0.16"
+  }), React.createElement("stop", {
+    offset: "1",
+    stopColor: up ? '#34A853' : '#E5484D',
+    stopOpacity: "0"
+  }))), React.createElement("polygon", {
     points: area,
-    fill: "#111",
-    opacity: "0.05"
+    fill: "url(#cig)"
   }), React.createElement("polyline", {
     points: line,
     fill: "none",
-    stroke: "#111",
-    strokeWidth: "1.5"
-  }), showDots && pts.map((p, i) => p.events && p.events.length ? React.createElement("circle", {
+    stroke: col,
+    strokeWidth: "2",
+    strokeLinejoin: "round",
+    strokeLinecap: "round"
+  }), showMarkers && pts.map((p, i) => p.events && p.events.length ? React.createElement("circle", {
     key: i,
     cx: x(i),
     cy: y(p.value),
-    r: "3.2",
-    fill: "#111",
+    r: "3.4",
+    fill: "#fff",
+    stroke: col,
+    strokeWidth: "2",
     style: {
       cursor: 'pointer'
     },
@@ -507,9 +596,102 @@ function IndexChart({
   }) : null), React.createElement("circle", {
     cx: x(pts.length - 1),
     cy: y(vals[vals.length - 1]),
-    r: "2.6",
-    fill: "#111"
+    r: "3",
+    fill: col
   }));
+}
+function AddProgress({
+  s,
+  set,
+  onClose
+}) {
+  const [pid, setPid] = useState((s.projects.find(p => p.status === 'focus') || s.projects[0] || {}).id);
+  const [action, setAction] = useState(null);
+  const [mins, setMins] = useState(null);
+  const proj = projById(s, pid);
+  const acts = proj && ACTIONS[proj.kind] || ACTIONS.project;
+  function done() {
+    set(p => {
+      const pr = projById(p, pid);
+      const w = p.weights;
+      let amt = w.small + (pr.status === 'focus' ? w.focusBonus : 0);
+      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
+      let np = {
+        ...p,
+        projects: p.projects.map(x => x.id === pid ? {
+          ...x,
+          moveLog: [...(x.moveLog || []), {
+            date: todayISO(),
+            amt: 1
+          }]
+        } : x),
+        activity: [{
+          date: todayISO(),
+          projectId: pid,
+          action: action || '進捗',
+          minutes: mins || null
+        }, ...(p.activity || [])].slice(0, 200),
+        today: p.today.map(t => t.projectId === pid && !t.done && (t.action === action || !action) ? {
+          ...t,
+          done: true,
+          doneAt: new Date().toISOString()
+        } : t)
+      };
+      if (amt > 0) {
+        np = bumpIndex(np, amt, `${pr.name} — ${action || '進捗'}${mins ? ' ' + mins + 'min' : ''}`, pid);
+        const lg = np.index.log;
+        lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true;
+      }
+      return np;
+    });
+    onClose();
+  }
+  return React.createElement("div", {
+    className: "sheet"
+  }, React.createElement("div", {
+    className: "sheet-in"
+  }, React.createElement("div", {
+    className: "between"
+  }, React.createElement("div", {
+    className: "h2"
+  }, "Add Progress"), React.createElement("button", {
+    className: "x",
+    onClick: onClose
+  }, "\u2715")), React.createElement("div", {
+    className: "lbl"
+  }, "Project"), React.createElement("div", {
+    className: "chips"
+  }, s.projects.map(p => React.createElement("button", {
+    key: p.id,
+    className: `chip ${pid === p.id ? 'on' : ''}`,
+    onClick: () => {
+      setPid(p.id);
+      setAction(null);
+    }
+  }, p.emoji, " ", p.name))), React.createElement("div", {
+    className: "lbl"
+  }, "Action"), React.createElement("div", {
+    className: "chips"
+  }, acts.map(a => React.createElement("button", {
+    key: a,
+    className: `chip ${action === a ? 'on' : ''}`,
+    onClick: () => setAction(a)
+  }, a))), React.createElement("div", {
+    className: "lbl"
+  }, "Time\uFF08\u4EFB\u610F\uFF09"), React.createElement("div", {
+    className: "chips"
+  }, [15, 30, 60, 90].map(m => React.createElement("button", {
+    key: m,
+    className: `chip ${mins === m ? 'on' : ''}`,
+    onClick: () => setMins(mins === m ? null : m)
+  }, m, "min"))), React.createElement("button", {
+    className: "btn btn-fill btn-block",
+    style: {
+      marginTop: 16
+    },
+    onClick: done,
+    disabled: !action
+  }, "Done")));
 }
 function Home({
   s,
@@ -517,266 +699,281 @@ function Home({
   go,
   openProject
 }) {
-  const info = useMemo(() => indexInfo(s.index.log, 30), [s.index.log]);
-  const focus = s.projects.filter(p => p.status === 'focus');
-  const today = todayISO();
-  const tt = s.tasks.filter(t => t.date === today).slice(0, TODAY_MAX);
-  const nd = nextDeadlineAcross(s);
-  const [txt, setTxt] = useState('');
-  const [pj, setPj] = useState((focus[0] || s.projects[0] || {}).id);
-  function completeTask(id) {
+  const [days, setDays] = useState(30);
+  const [pick, setPick] = useState(null);
+  const [adding, setAdding] = useState(false);
+  const info = useMemo(() => indexInfo(s.index.log, days), [s.index.log, days]);
+  const focus = s.projects.filter(p => p.status === 'focus').slice(0, FOCUS_MAX);
+  const today = s.today.slice(0, TODAY_MAX);
+  const dls = upcomingDeadlines(s, 3);
+  const RANGES = [[7, '7D'], [30, '30D'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
+  const info30 = useMemo(() => indexInfo(s.index.log, 30), [s.index.log]);
+  function toggleToday(id) {
     set(p => {
-      const t = p.tasks.find(x => x.id === id);
+      const t = p.today.find(x => x.id === id);
       if (!t || t.done) return p;
+      const pr = projById(p, t.projectId);
+      const w = p.weights;
+      let amt = w.small + (pr && pr.status === 'focus' ? w.focusBonus : 0);
+      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
       let np = {
         ...p,
-        tasks: p.tasks.map(x => x.id === id ? {
+        today: p.today.map(x => x.id === id ? {
           ...x,
           done: true,
           doneAt: new Date().toISOString()
-        } : x)
-      };
-      const pr = projById(np, t.projectId);
-      const w = np.weights;
-      let amt = t.importance === 'high' ? w.taskHigh : w.taskMed;
-      let ordinary = true;
-      if (pr && pr.status === 'focus') {
-        amt += w.focusBonus;
-        ordinary = false;
-      }
-      if (ordinary) {
-        amt = Math.max(0, Math.min(amt, w.dailyOrdinaryCap - ordinaryGainToday(np)));
-      }
-      if (pr) np = {
-        ...np,
-        projects: np.projects.map(x => x.id === pr.id ? {
+        } : x),
+        projects: p.projects.map(x => x.id === t.projectId ? {
           ...x,
           moveLog: [...(x.moveLog || []), {
-            date: today,
+            date: todayISO(),
             amt: 1
           }]
-        } : x)
+        } : x),
+        activity: [{
+          date: todayISO(),
+          projectId: t.projectId,
+          action: t.action,
+          minutes: null
+        }, ...(p.activity || [])].slice(0, 200)
       };
-      if (amt > 0) {
-        np = bumpIndex(np, amt, `${t.text}${pr ? '（' + pr.name + '）' : ''}`);
-        if (ordinary) {
-          const lg = np.index.log;
-          lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._ord = true;
-        }
+      if (amt > 0 && pr) {
+        np = bumpIndex(np, amt, `${pr.name} — ${t.action}`, t.projectId);
+        const lg = np.index.log;
+        lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true;
       }
       return np;
     });
   }
-  function addTask() {
-    const v = txt.trim();
-    if (!v) return;
-    set(p => ({
-      ...p,
-      tasks: [...p.tasks, {
+  function addRoutine(rt) {
+    set(p => {
+      const room = TODAY_MAX - p.today.filter(t => !t.done).length;
+      if (room <= 0) return p;
+      const add = rt.actions.slice(0, room).map(a => ({
         id: uid(),
-        text: v,
-        projectId: pj,
-        importance: 'med',
-        date: today,
+        projectId: rt.projectId,
+        action: a,
         done: false,
         doneAt: null
-      }]
-    }));
-    setTxt('');
+      }));
+      return {
+        ...p,
+        today: [...p.today, ...add]
+      };
+    });
   }
   return React.createElement("div", {
     className: "screen"
   }, React.createElement("div", {
-    className: "between"
+    className: "between topbar"
   }, React.createElement("div", {
-    className: "kicker"
-  }, fmtDate(today), "\uFF08", WD[parseISO(today).getDay()], "\uFF09"), React.createElement("button", {
-    className: "btn-bare",
+    className: "date"
+  }, fmtDate(todayISO()), "\uFF08", WD[parseISO(todayISO()).getDay()], "\uFF09"), React.createElement("button", {
+    className: "gear",
     onClick: () => go('settings')
   }, "\u2699")), React.createElement("div", {
-    className: "idx-hero",
-    onClick: () => go('index')
+    className: "card"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "CAREER INDEX"), React.createElement("div", {
-    className: "row",
-    style: {
-      alignItems: 'baseline',
-      gap: 12,
-      marginTop: 2
-    }
-  }, React.createElement("div", {
     className: "idx-now"
-  }, info.now.toFixed(1)), React.createElement("div", {
-    className: "idx-chg",
+  }, info30.now.toFixed(1)), React.createElement("div", {
+    className: "idx-sub",
     style: {
-      color: info.chg >= 0 ? 'var(--up)' : 'var(--down)'
+      color: info30.chg >= 0 ? 'var(--up)' : 'var(--down)'
     }
-  }, info.arrow, " ", info.chg >= 0 ? '+' : '', info.pct.toFixed(1), "%")), React.createElement("div", {
-    className: "xs"
-  }, "\u76F4\u8FD130\u65E5\u3000", info.arrow === '↑' ? '上昇中' : info.arrow === '↓' ? '下降中' : '横ばい'), React.createElement("div", {
+  }, info30.arrow, " ", info30.chg >= 0 ? '+' : '', info30.chg, " this month"), React.createElement("div", {
     style: {
-      marginTop: 8
+      marginTop: 14
     }
   }, React.createElement(IndexChart, {
     log: s.index.log,
-    days: 30,
-    h: 96
-  }))), !s.tipsSeen && React.createElement("div", {
-    className: "sec-line"
+    days: days,
+    showMarkers: true,
+    onPick: setPick,
+    h: 116
+  })), React.createElement("div", {
+    className: "range"
+  }, RANGES.map(([d, l]) => React.createElement("button", {
+    key: d,
+    className: days === d ? 'on' : '',
+    onClick: () => {
+      setDays(d);
+      setPick(null);
+    }
+  }, l))), pick && React.createElement("div", {
+    className: "pick"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, fmtFull(pick.date)), React.createElement("div", {
+    className: "pick-v"
+  }, r1(pick.value - pick.delta), " \u2192 ", pick.value), pick.events.map((e, i) => React.createElement("div", {
+    key: i,
+    className: "pick-e"
+  }, React.createElement("span", null, e.reason), e.projectId && projById(s, e.projectId) && React.createElement("span", {
+    className: "pick-p"
+  }, projById(s, e.projectId).name))))), !s.tipsSeen && React.createElement("div", {
+    className: "card soft"
   }, React.createElement("div", {
     className: "sub"
-  }, "\u6307\u6570\u306F\u300C\u682A\u4FA1\u300D\u3067\u306F\u306A\u304F ", React.createElement("b", null, "\u884C\u52D5\u306E\u6307\u6A19"), "\u30022030\u5E74\u306B\u52B9\u304F\u884C\u52D5\u3067\u4E0A\u304C\u308A\u3001\u91CD\u8981\u306A\u6D3B\u52D5\u304C\u6570\u65E5\u6B62\u307E\u308B\u3068\u7DE9\u304F\u4E0B\u304C\u308B\u3002 \u6570\u3092\u3053\u306A\u3057\u3066\u3082\u4E0A\u304C\u3089\u306A\u3044\u3002"), React.createElement("button", {
+  }, "\u6307\u6570\u306F\u682A\u4FA1\u3067\u306F\u306A\u304F\u300C2030\u5E74\u306B\u5411\u3051\u3066\u6700\u8FD1\u3069\u308C\u3060\u3051\u524D\u9032\u3067\u304D\u3066\u3044\u308B\u304B\u300D\u3002\u6570\u3092\u3053\u306A\u3057\u3066\u3082\u4E0A\u304C\u3089\u306A\u3044\u3002\u91CD\u8981\u306A\u6D3B\u52D5\u304C\u6570\u65E5\u6B62\u307E\u308B\u3068\u7DE9\u304F\u4E0B\u304C\u308B\uFF081\u65E5\u306E\u4F11\u307F\u3067\u306F\u4E0B\u3052\u306A\u3044\uFF09\u3002"), React.createElement("button", {
     className: "btn btn-sm",
     style: {
-      marginTop: 8
+      marginTop: 10
     },
     onClick: () => set(p => ({
       ...p,
       tipsSeen: true
     }))
   }, "OK")), React.createElement("div", {
-    className: "sec"
+    className: "card"
   }, React.createElement("div", {
     className: "between"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "CURRENT FOCUS"), React.createElement("button", {
-    className: "btn-bare",
+    className: "link",
     onClick: () => go('projects')
   }, "\u5909\u66F4")), focus.length === 0 && React.createElement("div", {
     className: "sub",
     style: {
       marginTop: 6
     }
-  }, "\u672A\u8A2D\u5B9A\u3002PROJECTS\u3067\u6700\u59273\u3064\u9078\u3076\u3002"), focus.map((p, i) => React.createElement("div", {
+  }, "PROJECTS\u3067\u6700\u59273\u3064\u9078\u3076\u3002"), focus.map(p => React.createElement("div", {
     key: p.id,
-    className: "focus-row",
+    className: "focus",
     onClick: () => openProject(p.id)
   }, React.createElement("span", {
-    className: "num"
-  }, i + 1), React.createElement("span", {
-    style: {
-      flex: 1,
-      fontWeight: 700
-    }
-  }, p.name), React.createElement(Mom, {
-    p: p
-  })))), React.createElement("div", {
-    className: "sec"
+    className: "emo"
+  }, p.emoji), React.createElement("span", {
+    className: "fname"
+  }, p.name), React.createElement("span", {
+    className: "fpct"
+  }, progressOf(p), "%")))), React.createElement("div", {
+    className: "card"
   }, React.createElement("div", {
-    className: "kicker"
-  }, "TODAY"), React.createElement("div", {
+    className: "lbl"
+  }, "TODAY"), today.length === 0 && React.createElement("div", {
+    className: "sub",
     style: {
       marginTop: 6
     }
-  }, tt.length === 0 && React.createElement("div", {
-    className: "sub"
-  }, "\u4ECA\u65E5\u306E\u30BF\u30B9\u30AF\u306F\u672A\u8A2D\u5B9A\u3002"), tt.map(t => {
+  }, "\u30EB\u30FC\u30C6\u30A3\u30F3\u304B\u3089\u8FFD\u52A0\u3001\u307E\u305F\u306F Add Progress \u3067\u8A18\u9332\u3002"), today.map(t => {
     const pr = projById(s, t.projectId);
     return React.createElement("div", {
       key: t.id,
-      className: "chk"
-    }, React.createElement("div", {
-      className: `tick ${t.done ? 'on' : ''}`,
-      onClick: () => completeTask(t.id)
+      className: "todo"
+    }, React.createElement("button", {
+      className: `ck ${t.done ? 'on' : ''}`,
+      onClick: () => toggleToday(t.id)
     }, t.done ? '✓' : ''), React.createElement("div", {
       style: {
         flex: 1
       }
     }, React.createElement("div", {
-      className: "chk-t",
+      className: "tt",
       style: {
         textDecoration: t.done ? 'line-through' : 'none',
         color: t.done ? 'var(--sub)' : 'var(--ink)'
       }
-    }, t.text), React.createElement("div", {
-      className: "xs"
-    }, pr ? pr.name : '—', "\u3000\u30FB\u3000\u91CD\u8981\u5EA6 ", t.importance === 'high' ? 'HIGH' : 'MED', "\u3000\u30FB\u3000\u6307\u6570 ", IMPACT[t.importance])), React.createElement("button", {
-      className: "btn-bare",
+    }, t.action), React.createElement("div", {
+      className: "ts"
+    }, pr ? `${pr.emoji} ${pr.name}` : '—')), React.createElement("button", {
+      className: "x sm",
       onClick: () => set(p => ({
         ...p,
-        tasks: p.tasks.filter(x => x.id !== t.id)
+        today: p.today.filter(x => x.id !== t.id)
       }))
-    }, "\xD7"));
-  })), React.createElement("div", {
-    className: "row",
-    style: {
-      gap: 6,
-      marginTop: 10
-    }
-  }, React.createElement("input", {
-    className: "input",
-    placeholder: "\u4ECA\u65E5\u3084\u308B\u3053\u3068",
-    value: txt,
-    onChange: e => setTxt(e.target.value)
-  }), React.createElement("select", {
-    className: "input",
-    style: {
-      width: 110
-    },
-    value: pj,
-    onChange: e => setPj(e.target.value)
-  }, s.projects.map(p => React.createElement("option", {
-    key: p.id,
-    value: p.id
-  }, p.name))), React.createElement("button", {
-    className: "btn btn-sm",
-    onClick: addTask,
-    disabled: !txt.trim()
-  }, "\uFF0B"))), React.createElement("div", {
-    className: "sec"
+    }, "\u2715"));
+  }), React.createElement("div", {
+    className: "rts"
+  }, s.routines.map(rt => React.createElement("button", {
+    key: rt.id,
+    className: "chip sm",
+    onClick: () => addRoutine(rt)
+  }, "\uFF0B ", rt.name)))), React.createElement("button", {
+    className: "btn btn-fill btn-block big",
+    onClick: () => setAdding(true)
+  }, "\uFF0B Add Progress"), React.createElement("div", {
+    className: "card"
   }, React.createElement("div", {
-    className: "kicker"
-  }, "NEXT DEADLINE"), nd ? React.createElement("div", {
-    className: "row",
-    style: {
-      marginTop: 6,
-      alignItems: 'baseline',
-      gap: 10
-    }
-  }, React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, React.createElement("div", {
-    style: {
-      fontWeight: 700,
-      fontSize: 14
-    }
-  }, nd.label), React.createElement("div", {
-    className: "xs"
-  }, nd.project)), React.createElement("div", {
-    className: "num",
-    style: {
-      color: daysUntil(nd.date) <= 14 ? 'var(--down)' : 'var(--ink)'
-    }
-  }, daysUntil(nd.date) < 0 ? `${-daysUntil(nd.date)}日超` : `あと${daysUntil(nd.date)}日`)) : React.createElement("div", {
+    className: "lbl"
+  }, "NEXT DEADLINE"), dls.length === 0 && React.createElement("div", {
     className: "sub",
     style: {
       marginTop: 6
     }
-  }, "\u8A2D\u5B9A\u306A\u3057")), React.createElement("div", {
-    className: "sec"
+  }, "\u8A2D\u5B9A\u306A\u3057"), dls.map((d, i) => {
+    const du = daysUntil(d.date);
+    return React.createElement("div", {
+      key: i,
+      className: "dl"
+    }, React.createElement("div", {
+      className: "dl-m"
+    }, MON3[parseISO(d.date).getMonth()], " ", parseISO(d.date).getDate()), React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, React.createElement("div", {
+      className: "dl-t"
+    }, d.label), React.createElement("div", {
+      className: "ts"
+    }, d.emoji, " ", d.project)), React.createElement("div", {
+      className: "dl-d",
+      style: {
+        color: du <= 14 ? 'var(--down)' : 'var(--sub)'
+      }
+    }, du < 0 ? 'now' : `${du}d`));
+  })), adding && React.createElement(AddProgress, {
+    s: s,
+    set: set,
+    onClose: () => setAdding(false)
+  }));
+}
+function Roadmap({
+  s
+}) {
+  const curYear = new Date().getFullYear();
+  const [open, setOpen] = useState(curYear);
+  return React.createElement("div", {
+    className: "screen"
   }, React.createElement("div", {
-    className: "kicker"
-  }, "PROJECT STATUS"), React.createElement("div", {
+    className: "lbl"
+  }, "ROADMAP"), React.createElement("div", {
+    className: "now-line"
+  }, "\u25CF NOW\u3000", nowLabel()), React.createElement("div", {
+    className: "rm-strip"
+  }, ROADMAP.map(r => React.createElement("button", {
+    key: r.year,
+    className: `rm-yr ${r.year === open ? 'open' : ''} ${r.year < curYear ? 'past' : ''} ${r.year === curYear || r.year === curYear + 1 ? 'near' : ''}`,
+    onClick: () => setOpen(r.year)
+  }, React.createElement("div", {
+    className: "rm-y"
+  }, r.year), React.createElement("div", {
+    className: "rm-s"
+  }, r.summary), r.year === curYear && React.createElement("div", {
+    className: "rm-now"
+  }, "\u25B2")))), ROADMAP.filter(r => r.year === open).map(r => React.createElement("div", {
+    key: r.year,
+    className: `card ${r.year < curYear ? 'faint' : ''}`
+  }, React.createElement("div", {
+    className: "between"
+  }, React.createElement("div", {
+    className: "h2"
+  }, r.year), React.createElement("div", {
+    className: "sub"
+  }, r.summary)), React.createElement("div", {
     style: {
-      marginTop: 6
+      marginTop: 8
     }
-  }, s.projects.map(p => React.createElement("div", {
-    key: p.id,
-    className: "status-row",
-    onClick: () => openProject(p.id)
-  }, React.createElement("span", {
-    style: {
-      flex: 1
-    }
-  }, p.name, p.status === 'focus' && React.createElement("span", {
-    className: "star"
-  }, " \u2605")), React.createElement(Mom, {
-    p: p
-  }))))));
+  }, r.events.map((e, i) => React.createElement("div", {
+    key: i,
+    className: "rm-e"
+  }, r.year < curYear ? '◦' : '•', " ", e))))), React.createElement("div", {
+    className: "card soft"
+  }, React.createElement("div", {
+    className: "sub"
+  }, "\u65E5\u3005\u306E\u30BF\u30B9\u30AF\u306F\u8F09\u305B\u307E\u305B\u3093\u3002\u5927\u304D\u306A\u30A4\u30D9\u30F3\u30C8\u3060\u3051\u3002\u5E74\u3092\u30BF\u30C3\u30D7\u3067\u5207\u308A\u66FF\u3048\u3002")));
 }
 function Projects({
   s,
@@ -787,15 +984,13 @@ function Projects({
 }) {
   const [adding, setAdding] = useState(false);
   const [promo, setPromo] = useState(null);
-  const active = s.projects;
-  const focusCount = active.filter(p => p.status === 'focus').length;
-  const today = todayISO();
   const detail = sel && projById(s, sel);
+  const focusCount = s.projects.filter(p => p.status === 'focus').length;
   function toggleFocus(id) {
     set(p => {
       const pr = p.projects.find(x => x.id === id);
       if (pr.status !== 'focus' && p.projects.filter(x => x.status === 'focus').length >= FOCUS_MAX) {
-        alert(`CURRENT FOCUS は最大 ${FOCUS_MAX} つ。先にどれかを外す。`);
+        alert(`Current Focus は最大 ${FOCUS_MAX} つ。`);
         return p;
       }
       return {
@@ -807,63 +1002,31 @@ function Projects({
       };
     });
   }
-  function bumpProgress(id, d) {
-    set(p => {
-      let np = {
-        ...p,
-        projects: p.projects.map(x => x.id === id ? {
-          ...x,
-          progress: clamp((x.progress || 0) + d, 0, 100),
-          moveLog: [...(x.moveLog || []), {
-            date: today,
-            amt: 2
-          }]
-        } : x)
-      };
-      return bumpIndex(np, 1, `${projById(np, id).name} を前進`);
-    });
-  }
-  function doneAction(id) {
-    set(p => {
-      const pr = p.projects.find(x => x.id === id);
-      let np = {
-        ...p,
-        projects: p.projects.map(x => x.id === id ? {
-          ...x,
-          progress: clamp((x.progress || 0) + 5, 0, 100),
-          moveLog: [...(x.moveLog || []), {
-            date: today,
-            amt: 2
-          }]
-        } : x)
-      };
-      np = bumpIndex(np, pr.status === 'focus' ? 2 : 1, `NEXT ACTION：${pr.nextAction || pr.name}`);
-      return np;
-    });
-  }
-  function achieveMs(pid, mid) {
+  function toggleMs(pid, mid) {
     set(p => {
       const pr = p.projects.find(x => x.id === pid);
       const ms = pr.milestones.find(m => m.id === mid);
-      if (ms.done) return p;
-      const amt = ms.big ? p.weights.milestoneBig : p.weights.milestone;
+      const turningOn = !ms.done;
       let np = {
         ...p,
         projects: p.projects.map(x => x.id === pid ? {
           ...x,
-          progress: clamp((x.progress || 0) + 12, 0, 100),
-          moveLog: [...(x.moveLog || []), {
-            date: today,
+          moveLog: turningOn ? [...(x.moveLog || []), {
+            date: todayISO(),
             amt: 6
-          }],
+          }] : x.moveLog,
           milestones: x.milestones.map(m => m.id === mid ? {
             ...m,
-            done: true,
-            doneAt: new Date().toISOString()
+            done: turningOn,
+            doneAt: turningOn ? new Date().toISOString() : null
           } : m)
         } : x)
       };
-      return bumpIndex(np, amt, `マイルストーン達成：${ms.label}（${pr.name}）`);
+      if (turningOn) {
+        const amt = ms.big ? p.weights.milestoneBig : p.weights.milestone;
+        np = bumpIndex(np, amt, `マイルストーン達成：${ms.label}（${pr.name}）`, pid);
+      }
+      return np;
     });
   }
   function setField(id, k, v) {
@@ -875,13 +1038,13 @@ function Projects({
       } : x)
     }));
   }
-  function setDeadline(id, k, v) {
+  function setDl(id, k, v) {
     set(p => ({
       ...p,
       projects: p.projects.map(x => x.id === id ? {
         ...x,
-        nextDeadline: {
-          ...(x.nextDeadline || {
+        deadline: {
+          ...(x.deadline || {
             label: '',
             date: ''
           }),
@@ -890,18 +1053,18 @@ function Projects({
       } : x)
     }));
   }
-  function promoteIdea(idea, choice, sacrificeId) {
+  function promote(idea, choice, sac) {
     set(p => {
       let np = {
         ...p
       };
-      if (choice === 'end' && sacrificeId) np = {
+      if (choice === 'end' && sac) np = {
         ...np,
-        projects: np.projects.filter(x => x.id !== sacrificeId)
+        projects: np.projects.filter(x => x.id !== sac)
       };
-      if (choice === 'reduce' && sacrificeId) np = {
+      if (choice === 'reduce' && sac) np = {
         ...np,
-        projects: np.projects.map(x => x.id === sacrificeId ? {
+        projects: np.projects.map(x => x.id === sac ? {
           ...x,
           status: 'active'
         } : x)
@@ -910,15 +1073,16 @@ function Projects({
         ...np,
         projects: [...np.projects, {
           id: uid(),
-          name: idea.text.slice(0, 20),
+          name: idea.text.slice(0, 18),
+          emoji: '•',
+          kind: 'project',
           outcome: 'career',
           goal: idea.text,
-          nextAction: '最初の一歩を決める',
-          nextDeadline: null,
-          progress: 0,
           status: 'active',
+          deadline: null,
           milestones: [],
-          moveLog: []
+          moveLog: [],
+          nextActionText: '最初の一歩を決める'
         }],
         ideas: np.ideas.filter(x => x.id !== idea.id)
       };
@@ -929,197 +1093,154 @@ function Projects({
   if (detail) {
     const p = detail;
     const m = momentum(p);
+    const pct = progressOf(p);
     return React.createElement("div", {
       className: "screen"
     }, React.createElement("button", {
-      className: "btn-bare",
+      className: "link",
       onClick: () => setSel(null)
-    }, "\u2039 PROJECTS"), React.createElement("div", {
-      className: "display d-lg",
-      style: {
-        marginTop: 8
-      }
-    }, p.name), React.createElement("div", {
-      className: "row",
-      style: {
-        gap: 8,
-        marginTop: 6
-      }
-    }, React.createElement("span", {
-      className: "tag"
-    }, OUT_MAP[p.outcome] ? OUT_MAP[p.outcome].name : p.outcome), React.createElement("button", {
-      className: `tag ${p.status === 'focus' ? 'tag-on' : ''}`,
-      onClick: () => toggleFocus(p.id)
-    }, p.status === 'focus' ? '★ FOCUS' : 'FOCUS にする')), React.createElement("div", {
-      className: "sec"
-    }, React.createElement("div", {
-      className: "kicker"
-    }, "GOAL"), React.createElement("textarea", {
-      className: "textarea",
-      style: {
-        marginTop: 6
-      },
-      value: p.goal || '',
-      onChange: e => setField(p.id, 'goal', e.target.value)
-    })), React.createElement("div", {
-      className: "sec"
-    }, React.createElement("div", {
-      className: "kicker"
-    }, "NEXT DEADLINE"), React.createElement("input", {
-      className: "input",
-      style: {
-        marginTop: 6
-      },
-      placeholder: "\u5185\u5BB9",
-      value: (p.nextDeadline || {}).label || '',
-      onChange: e => setDeadline(p.id, 'label', e.target.value)
-    }), React.createElement("input", {
-      className: "input",
-      style: {
-        marginTop: 6
-      },
-      placeholder: "YYYY-MM-DD",
-      value: (p.nextDeadline || {}).date || '',
-      onChange: e => setDeadline(p.id, 'date', e.target.value)
-    }), (p.nextDeadline || {}).date && React.createElement("div", {
-      className: "xs",
-      style: {
-        marginTop: 4
-      }
-    }, "\u3042\u3068 ", daysUntil(p.nextDeadline.date), "\u65E5")), React.createElement("div", {
-      className: "sec"
+    }, "\u2039 Projects"), React.createElement("div", {
+      className: "card"
     }, React.createElement("div", {
       className: "between"
     }, React.createElement("div", {
-      className: "kicker"
-    }, "PROGRESS"), React.createElement("div", {
-      className: "num"
-    }, p.progress || 0, "%\u3000", m.a, " ", m.l)), React.createElement("div", {
-      style: {
-        marginTop: 8
-      }
-    }, React.createElement(Meter, {
-      v: p.progress || 0
-    })), React.createElement("div", {
-      className: "xs",
-      style: {
-        marginTop: 4
-      }
-    }, m.note), React.createElement("div", {
+      className: "h1"
+    }, p.emoji, " ", p.name), React.createElement("button", {
+      className: `chip ${p.status === 'focus' ? 'on' : ''}`,
+      onClick: () => toggleFocus(p.id)
+    }, p.status === 'focus' ? '★ Focus' : 'Focusにする')), React.createElement("div", {
       className: "row",
       style: {
-        gap: 6,
+        gap: 12,
+        marginTop: 12,
+        alignItems: 'center'
+      }
+    }, React.createElement(Ring, {
+      v: pct
+    }), React.createElement("div", null, React.createElement("div", {
+      className: "big-n"
+    }, pct, "%"), React.createElement(Trend, {
+      p: p
+    })))), React.createElement("div", {
+      className: "card"
+    }, React.createElement("div", {
+      className: "lbl"
+    }, "GOAL"), React.createElement("textarea", {
+      className: "ta",
+      value: p.goal || '',
+      onChange: e => setField(p.id, 'goal', e.target.value)
+    })), React.createElement("div", {
+      className: "card"
+    }, React.createElement("div", {
+      className: "lbl"
+    }, "NEXT DEADLINE"), React.createElement("input", {
+      className: "in",
+      placeholder: "\u5185\u5BB9",
+      value: (p.deadline || {}).label || '',
+      onChange: e => setDl(p.id, 'label', e.target.value)
+    }), React.createElement("input", {
+      className: "in",
+      style: {
         marginTop: 8
-      }
-    }, React.createElement("button", {
-      className: "btn btn-sm",
-      onClick: () => bumpProgress(p.id, 5)
-    }, "\uFF0B5%"), React.createElement("button", {
-      className: "btn btn-sm",
-      onClick: () => bumpProgress(p.id, 10)
-    }, "\uFF0B10%"))), React.createElement("div", {
-      className: "sec"
-    }, React.createElement("div", {
-      className: "kicker"
-    }, "NEXT ACTION"), React.createElement("input", {
-      className: "input",
-      style: {
-        marginTop: 6
       },
-      value: p.nextAction || '',
-      onChange: e => setField(p.id, 'nextAction', e.target.value)
-    }), React.createElement("button", {
-      className: "btn btn-sm btn-fill",
-      style: {
-        marginTop: 8
-      },
-      onClick: () => doneAction(p.id)
-    }, "\u3084\u3063\u305F\uFF08\u6307\u6570\u306B\u53CD\u6620\uFF09")), React.createElement("div", {
-      className: "sec"
-    }, React.createElement("div", {
-      className: "kicker"
-    }, "MILESTONES"), (p.milestones || []).map(ms => React.createElement("div", {
-      key: ms.id,
-      className: "chk"
-    }, React.createElement("div", {
-      className: `tick ${ms.done ? 'on' : ''}`,
-      onClick: () => achieveMs(p.id, ms.id)
-    }, ms.done ? '✓' : ''), React.createElement("div", {
-      className: "chk-t",
-      style: {
-        textDecoration: ms.done ? 'line-through' : 'none',
-        color: ms.done ? 'var(--sub)' : 'var(--ink)'
-      }
-    }, ms.label, " ", ms.big && React.createElement("span", {
-      className: "xs"
-    }, "\uFF08\u5927\uFF09")))), React.createElement("div", {
-      className: "xs",
-      style: {
-        marginTop: 4
-      }
-    }, "\u9054\u6210\u3059\u308B\u3068\u6307\u6570\u304C\u5927\u304D\u304F\u4E0A\u304C\u308B\uFF08\u5927\uFF1D", s.weights.milestoneBig, " / \u901A\u5E38\uFF1D", s.weights.milestone, "\uFF09")), React.createElement("div", {
-      className: "sec"
-    }, React.createElement("div", {
-      className: "kicker"
-    }, "\u3053\u306EProject\u306E\u30BF\u30B9\u30AF"), s.tasks.filter(t => t.projectId === p.id && !t.done).map(t => React.createElement("div", {
-      key: t.id,
-      className: "rowline xs"
-    }, "\u25A1 ", t.text)), s.tasks.filter(t => t.projectId === p.id && !t.done).length === 0 && React.createElement("div", {
+      placeholder: "YYYY-MM-DD",
+      value: (p.deadline || {}).date || '',
+      onChange: e => setDl(p.id, 'date', e.target.value)
+    }), (p.deadline || {}).date && React.createElement("div", {
       className: "sub",
       style: {
         marginTop: 6
       }
-    }, "\u306A\u3057")));
+    }, "\u3042\u3068 ", daysUntil(p.deadline.date), "\u65E5")), React.createElement("div", {
+      className: "card"
+    }, React.createElement("div", {
+      className: "lbl"
+    }, "MILESTONES\uFF08\u9054\u6210\u3067\u9032\u6357\u304C\u81EA\u52D5\u8A08\u7B97\uFF09"), (p.milestones || []).map(ms => React.createElement("div", {
+      key: ms.id,
+      className: "todo"
+    }, React.createElement("button", {
+      className: `ck ${ms.done ? 'on' : ''}`,
+      onClick: () => toggleMs(p.id, ms.id)
+    }, ms.done ? '✓' : ''), React.createElement("div", {
+      className: "tt",
+      style: {
+        flex: 1,
+        textDecoration: ms.done ? 'line-through' : 'none',
+        color: ms.done ? 'var(--sub)' : 'var(--ink)'
+      }
+    }, ms.label, ms.big && React.createElement("span", {
+      className: "sub"
+    }, " \u30FB\u5927"))))), React.createElement("div", {
+      className: "card"
+    }, React.createElement("div", {
+      className: "lbl"
+    }, "\u6700\u8FD1\u306E\u8A18\u9332"), (s.activity || []).filter(a => a.projectId === p.id).slice(0, 8).map((a, i) => React.createElement("div", {
+      key: i,
+      className: "ts",
+      style: {
+        padding: '4px 0'
+      }
+    }, fmtDate(a.date), "\u3000", a.action, a.minutes ? ` ・${a.minutes}min` : '')), (s.activity || []).filter(a => a.projectId === p.id).length === 0 && React.createElement("div", {
+      className: "sub",
+      style: {
+        marginTop: 6
+      }
+    }, "\u307E\u3060\u306A\u3057")));
   }
   return React.createElement("div", {
     className: "screen"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "PROJECTS"), React.createElement("div", {
     className: "sub",
     style: {
       marginTop: 4
     }
-  }, "CURRENT FOCUS ", focusCount, "/", FOCUS_MAX, "\u3000\u30FB\u3000\u9032\u884C\u4E2D ", active.length, "/", PROJECT_MAX), React.createElement("div", {
-    className: "sec"
-  }, active.map(p => React.createElement("div", {
+  }, "Current Focus ", focusCount, "/", FOCUS_MAX), s.projects.map(p => React.createElement("div", {
     key: p.id,
-    className: "proj-row"
-  }, React.createElement("button", {
-    className: "star-btn",
-    onClick: () => toggleFocus(p.id)
-  }, p.status === 'focus' ? '★' : '☆'), React.createElement("div", {
-    style: {
-      flex: 1
-    },
+    className: "pcard",
     onClick: () => openProject(p.id)
   }, React.createElement("div", {
     className: "between"
   }, React.createElement("div", {
-    style: {
-      fontWeight: 700
+    className: "pname"
+  }, p.emoji, " ", p.name), React.createElement("button", {
+    className: "star",
+    onClick: e => {
+      e.stopPropagation();
+      toggleFocus(p.id);
     }
-  }, p.name), React.createElement(Mom, {
+  }, p.status === 'focus' ? '★' : '☆')), React.createElement("div", {
+    className: "row",
+    style: {
+      gap: 10,
+      marginTop: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement(Bar, {
+    v: progressOf(p)
+  })), React.createElement("div", {
+    className: "big-n sm"
+  }, progressOf(p), "%")), React.createElement("div", {
+    className: "between",
+    style: {
+      marginTop: 8
+    }
+  }, React.createElement(Trend, {
     p: p
-  })), React.createElement("div", {
-    style: {
-      marginTop: 6
-    }
-  }, React.createElement(Meter, {
-    v: p.progress || 0
-  })), React.createElement("div", {
-    className: "xs",
-    style: {
-      marginTop: 3
-    }
-  }, p.progress || 0, "%\u3000", (p.nextDeadline || {}).date ? `／ 次の期限 あと${daysUntil(p.nextDeadline.date)}日` : ''))))), React.createElement("div", {
-    className: "sec"
+  }), React.createElement("div", {
+    className: "ts"
+  }, "Next\uFF1A", nextActionOf(p))))), React.createElement("div", {
+    className: "card"
   }, React.createElement("div", {
     className: "between"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "IDEA\uFF08\u3059\u3050Project\u306B\u3057\u306A\u3044\uFF09"), React.createElement("button", {
-    className: "btn-bare",
+    className: "link",
     onClick: () => setAdding(a => !a)
   }, adding ? '閉じる' : '＋')), adding && React.createElement(IdeaAdd, {
     onAdd: t => {
@@ -1135,20 +1256,23 @@ function Projects({
     }
   }), s.ideas.map(idea => React.createElement("div", {
     key: idea.id,
-    className: "task"
-  }, React.createElement("div", {
-    className: "t-title"
-  }, idea.text), React.createElement("div", {
-    className: "row wrap",
+    className: "todo",
     style: {
-      gap: 6,
+      display: 'block'
+    }
+  }, React.createElement("div", {
+    className: "tt"
+  }, idea.text), React.createElement("div", {
+    className: "row",
+    style: {
+      gap: 8,
       marginTop: 8
     }
   }, React.createElement("button", {
     className: "btn btn-sm",
     onClick: () => setPromo(idea)
   }, "Project\u306B\u6607\u683C"), React.createElement("button", {
-    className: "btn-bare",
+    className: "link",
     onClick: () => set(p => ({
       ...p,
       ideas: p.ideas.filter(x => x.id !== idea.id)
@@ -1156,7 +1280,7 @@ function Projects({
   }, "\u6368\u3066\u308B")), promo && promo.id === idea.id && React.createElement(PromoteQ, {
     s: s,
     idea: idea,
-    onDo: promoteIdea,
+    onDo: promote,
     onCancel: () => setPromo(null)
   })))));
 }
@@ -1169,7 +1293,7 @@ function IdeaAdd({
       marginTop: 8
     }
   }, React.createElement("textarea", {
-    className: "textarea",
+    className: "ta",
     value: v,
     onChange: e => setV(e.target.value),
     placeholder: "\u601D\u3044\u3064\u3044\u305F\u3053\u3068"
@@ -1178,8 +1302,8 @@ function IdeaAdd({
     style: {
       marginTop: 6
     },
-    onClick: () => v.trim() && onAdd(v.trim()),
-    disabled: !v.trim()
+    disabled: !v.trim(),
+    onClick: () => onAdd(v.trim())
   }, "IDEA\u306B\u4FDD\u5B58"));
 }
 function PromoteQ({
@@ -1188,31 +1312,27 @@ function PromoteQ({
   onDo,
   onCancel
 }) {
-  const [choice, setChoice] = useState(null);
+  const [c, setC] = useState(null);
   const [sac, setSac] = useState('');
   return React.createElement("div", {
-    className: "quit"
+    className: "pick",
+    style: {
+      marginTop: 10
+    }
   }, React.createElement("div", {
     style: {
-      fontWeight: 700,
-      fontSize: 14
+      fontWeight: 700
     }
-  }, "\u3053\u308C\u3092\u59CB\u3081\u308B\u306A\u3089\u3001\u4F55\u306E\u6642\u9593\u3092\u4F7F\u3046\uFF1F"), React.createElement("div", {
-    style: {
-      marginTop: 8
-    }
-  }, [['reduce', '現在のProjectの時間を減らす'], ['free', '自由時間を使う'], ['end', '既存Projectを終了する']].map(([k, l]) => React.createElement("label", {
+  }, "\u3053\u308C\u3092\u59CB\u3081\u308B\u306A\u3089\u3001\u4F55\u306E\u6642\u9593\u3092\u4F7F\u3046\uFF1F"), [['reduce', '現在のProjectの時間を減らす'], ['free', '自由時間を使う'], ['end', '既存Projectを終了する']].map(([k, l]) => React.createElement("label", {
     key: k,
-    className: "chk"
+    className: "opt"
   }, React.createElement("input", {
     type: "radio",
     name: "pq",
-    checked: choice === k,
-    onChange: () => setChoice(k)
-  }), React.createElement("span", {
-    className: "chk-t"
-  }, l))), (choice === 'reduce' || choice === 'end') && React.createElement("select", {
-    className: "input",
+    checked: c === k,
+    onChange: () => setC(k)
+  }), React.createElement("span", null, l))), (c === 'reduce' || c === 'end') && React.createElement("select", {
+    className: "in",
     style: {
       marginTop: 8
     },
@@ -1223,26 +1343,27 @@ function PromoteQ({
   }, "\u2014 \u5BFE\u8C61\u306EProject \u2014"), s.projects.map(p => React.createElement("option", {
     key: p.id,
     value: p.id
-  }, p.name)))), React.createElement("div", {
+  }, p.name))), React.createElement("div", {
     className: "row",
     style: {
-      gap: 6,
+      gap: 8,
       marginTop: 10
     }
   }, React.createElement("button", {
     className: "btn btn-sm btn-fill",
-    disabled: !choice || (choice === 'reduce' || choice === 'end') && !sac,
-    onClick: () => onDo(idea, choice, sac)
-  }, "\u6607\u683C\u3059\u308B"), React.createElement("button", {
-    className: "btn-bare",
+    disabled: !c || (c === 'reduce' || c === 'end') && !sac,
+    onClick: () => onDo(idea, c, sac)
+  }, "\u6607\u683C"), React.createElement("button", {
+    className: "link",
     onClick: onCancel
   }, "\u3084\u3081\u308B")));
 }
-function CareerMap({
+function Career({
   s,
   set,
   openProject
 }) {
+  const [open, setOpen] = useState(null);
   const setOut = (k, v) => set(p => ({
     ...p,
     ideal: {
@@ -1256,15 +1377,11 @@ function CareerMap({
   return React.createElement("div", {
     className: "screen"
   }, React.createElement("div", {
-    className: "kicker"
-  }, "CAREER MAP"), React.createElement("div", {
-    className: "sec"
-  }, React.createElement("div", {
-    className: "kicker"
-  }, "2030\u5E74\u306E\u7406\u60F3"), React.createElement("textarea", {
-    className: "textarea",
+    className: "lbl"
+  }, "CAREER \u2014 2030\u5E743\u6708\u306E\u7406\u60F3"), React.createElement("textarea", {
+    className: "ta",
     style: {
-      marginTop: 6,
+      marginTop: 8,
       fontSize: 15
     },
     value: s.ideal.headline,
@@ -1275,141 +1392,43 @@ function CareerMap({
         headline: e.target.value
       }
     }))
-  })), React.createElement("div", {
-    className: "sec"
-  }, React.createElement("div", {
-    className: "kicker"
-  }, "\u9054\u6210\u3057\u305F\u30444\u3064\u306E\u6210\u679C"), OUTCOMES.map(o => React.createElement("div", {
+  }), OUTCOMES.map(o => React.createElement("div", {
     key: o.id,
+    className: "card"
+  }, React.createElement("div", {
+    className: "between",
+    onClick: () => setOpen(open === o.id ? null : o.id),
     style: {
-      marginTop: 12
+      cursor: 'pointer'
     }
   }, React.createElement("div", {
+    className: "h2"
+  }, o.name), React.createElement("div", {
+    className: "link"
+  }, open === o.id ? '−' : '関連Project')), React.createElement("textarea", {
+    className: "ta",
     style: {
-      fontWeight: 800,
-      fontSize: 13
-    }
-  }, o.name), React.createElement("textarea", {
-    className: "textarea",
-    style: {
-      marginTop: 4
+      marginTop: 8
     },
     value: s.ideal.outcomes[o.id] || '',
     onChange: e => setOut(o.id, e.target.value)
-  }), React.createElement("div", {
+  }), open === o.id && React.createElement("div", {
     style: {
-      marginTop: 6
+      marginTop: 8
     }
   }, s.projects.filter(p => p.outcome === o.id).map(p => React.createElement("div", {
     key: p.id,
-    className: "map-proj",
+    className: "focus",
     onClick: () => openProject(p.id)
   }, React.createElement("span", {
-    style: {
-      flex: 1
-    }
+    className: "emo"
+  }, p.emoji), React.createElement("span", {
+    className: "fname"
   }, p.name), React.createElement("span", {
-    className: "num xs"
-  }, p.progress || 0, "%"), React.createElement(Mom, {
-    p: p
-  }))))))), React.createElement("div", {
-    className: "sec-line"
-  }, React.createElement("div", {
-    className: "xs"
-  }, "Project\u306E\u6210\u679C\u30AB\u30C6\u30B4\u30EA\u306FPROJECTS\u8A73\u7D30\u3067\u306F\u5909\u3048\u3089\u308C\u307E\u305B\u3093\uFF08\u3053\u306EMAP\u4E0A\u306E\u4E26\u3073\u3067\u7BA1\u7406\uFF09\u3002")));
-}
-function IndexScreen({
-  s
-}) {
-  const [days, setDays] = useState(30);
-  const [pick, setPick] = useState(null);
-  const info = useMemo(() => indexInfo(s.index.log, days), [s.index.log, days]);
-  const events = (s.index.log || []).filter(e => (e.events || []).length).slice().reverse();
-  const RANGES = [[7, '7D'], [30, '30D'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
-  return React.createElement("div", {
-    className: "screen"
-  }, React.createElement("div", {
-    className: "kicker"
-  }, "CAREER INDEX"), React.createElement("div", {
-    className: "row",
-    style: {
-      alignItems: 'baseline',
-      gap: 14,
-      marginTop: 4
-    }
-  }, React.createElement("div", {
-    className: "idx-now"
-  }, info.now.toFixed(1)), React.createElement("div", {
-    className: "idx-chg",
-    style: {
-      color: info.chg >= 0 ? 'var(--up)' : 'var(--down)'
-    }
-  }, info.arrow, " ", info.chg >= 0 ? '+' : '', info.pct.toFixed(1), "%")), React.createElement("div", {
-    className: "xs"
-  }, RANGES.find(r => r[0] === days)[1], " \u306E\u5909\u5316"), React.createElement("div", {
-    style: {
-      marginTop: 12
-    }
-  }, React.createElement(IndexChart, {
-    log: s.index.log,
-    days: days,
-    showDots: true,
-    onPick: setPick,
-    h: 150
-  })), React.createElement("div", {
-    className: "seg",
-    style: {
-      marginTop: 10
-    }
-  }, RANGES.map(([d, l]) => React.createElement("button", {
-    key: d,
-    className: days === d ? 'on' : '',
-    onClick: () => setDays(d)
-  }, l))), pick && React.createElement("div", {
-    className: "quit"
-  }, React.createElement("div", {
-    className: "kicker"
-  }, fmtFull(pick.date)), React.createElement("div", {
-    className: "num",
-    style: {
-      marginTop: 4
-    }
-  }, r1(pick.value - pick.delta), " \u2192 ", pick.value, "\uFF08", pick.delta >= 0 ? '+' : '', pick.delta, "\uFF09"), React.createElement("div", {
-    style: {
-      marginTop: 6
-    }
-  }, pick.events.map((e, i) => React.createElement("div", {
-    key: i,
-    className: "xs"
-  }, "\u30FB", e.reason, "\uFF08", e.amt >= 0 ? '+' : '', e.amt, "\uFF09")))), React.createElement("div", {
-    className: "sec"
-  }, React.createElement("div", {
-    className: "kicker"
-  }, "\u306A\u305C\u52D5\u3044\u305F\u304B"), events.length === 0 && React.createElement("div", {
-    className: "sub",
-    style: {
-      marginTop: 6
-    }
-  }, "\u307E\u3060\u8A18\u9332\u304C\u3042\u308A\u307E\u305B\u3093\u3002"), events.map((e, i) => React.createElement("div", {
-    key: i,
-    className: "rowline"
-  }, React.createElement("div", {
-    className: "between"
-  }, React.createElement("span", {
-    className: "xs num"
-  }, fmtFull(e.date)), React.createElement("span", {
-    className: "num xs",
-    style: {
-      color: e.delta >= 0 ? 'var(--up)' : 'var(--down)'
-    }
-  }, e.delta >= 0 ? '+' : '', e.delta, " \u2192 ", e.value)), e.events.map((x, j) => React.createElement("div", {
-    key: j,
-    className: "xs"
-  }, "\u30FB", x.reason))))), React.createElement("div", {
-    className: "sec-line"
-  }, React.createElement("div", {
-    className: "xs"
-  }, "\u3053\u306E\u6570\u5024\u30FB\uFF05\u306F\u5E74\u53CE\u3084\u5C31\u8077\u53EF\u80FD\u6027\u3067\u306F\u306A\u304F\u3001\u300C\u8A2D\u5B9A\u3057\u305F\u30AD\u30E3\u30EA\u30A2\u76EE\u6A19\u306B\u5BFE\u3059\u308B\u81EA\u5206\u306E\u884C\u52D5\u91CF\u30FB\u9032\u6357\u306E\u5909\u5316\u300D\u3067\u3059\u3002")));
+    className: "fpct"
+  }, progressOf(p), "%"))), s.projects.filter(p => p.outcome === o.id).length === 0 && React.createElement("div", {
+    className: "sub"
+  }, "\u95A2\u9023Project\u306A\u3057")))));
 }
 function Settings({
   s,
@@ -1425,11 +1444,11 @@ function Settings({
       [k]: Number(v) || 0
     }
   }));
-  function exportJSON() {
+  function ex() {
     const t = JSON.stringify(s);
     if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => alert('コピーしました'), () => prompt('コピー', t));else prompt('コピー', t);
   }
-  function importJSON() {
+  function im() {
     try {
       const o = JSON.parse(imp);
       set(() => ({
@@ -1450,38 +1469,38 @@ function Settings({
   }, React.createElement("div", {
     className: "between"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "\u8A2D\u5B9A"), React.createElement("button", {
-    className: "btn-bare",
+    className: "link",
     onClick: () => go('home')
   }, "\u9589\u3058\u308B")), React.createElement("div", {
-    className: "sec"
+    className: "card"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "\u6307\u6570\u306E\u5909\u52D5\u5E45\uFF08\u8ABF\u6574\u53EF\uFF09"), React.createElement("div", {
     className: "grid2",
     style: {
       marginTop: 10
     }
-  }, [['taskHigh', '重要タスク完了'], ['taskMed', '通常タスク完了'], ['focusBonus', 'FOCUS加算'], ['milestone', 'マイルストーン'], ['milestoneBig', 'マイルストーン(大)'], ['stall', '数日 進捗なし'], ['deadlineNoProgress', '締切近いのに進捗なし'], ['stallDays', '何日で下降開始'], ['deadlineWindow', '締切の警戒日数'], ['dailyOrdinaryCap', '通常タスクの日次上限']].map(([k, l]) => React.createElement("div", {
-    className: "field",
+  }, [['small', '行動'], ['focusBonus', 'Focus加算'], ['milestone', 'マイルストーン'], ['milestoneBig', 'マイルストーン(大)'], ['stall', '数日 停滞'], ['deadlineNoProgress', '締切近いのに停滞'], ['stallDays', '停滞とみなす日数'], ['deadlineWindow', '締切の警戒日数'], ['dailyCap', '行動の日次上限']].map(([k, l]) => React.createElement("div", {
+    className: "fld",
     key: k
   }, React.createElement("label", null, l), React.createElement("input", {
-    className: "input num",
+    className: "in",
     value: w[k],
     onChange: e => setW(k, e.target.value)
   }))))), React.createElement("div", {
-    className: "sec"
+    className: "card"
   }, React.createElement("div", {
-    className: "kicker"
+    className: "lbl"
   }, "\u30C7\u30FC\u30BF"), React.createElement("button", {
     className: "btn btn-block",
     style: {
       marginTop: 10
     },
-    onClick: exportJSON
+    onClick: ex
   }, "JSON\u30D0\u30C3\u30AF\u30A2\u30C3\u30D7\u3092\u30B3\u30D4\u30FC"), React.createElement("textarea", {
-    className: "textarea",
+    className: "ta",
     style: {
       marginTop: 10
     },
@@ -1493,52 +1512,48 @@ function Settings({
     style: {
       marginTop: 10
     },
-    onClick: importJSON,
-    disabled: !imp.trim()
+    disabled: !imp.trim(),
+    onClick: im
   }, "\u30A4\u30F3\u30DD\u30FC\u30C8"), React.createElement("button", {
-    className: "btn btn-block",
+    className: "btn btn-block danger",
     style: {
-      marginTop: 10,
-      borderColor: 'var(--down)',
-      color: 'var(--down)'
+      marginTop: 10
     },
     onClick: wipe
   }, "\u3059\u3079\u3066\u6D88\u3057\u3066\u521D\u671F\u5316")), React.createElement("div", {
-    className: "sec-line"
-  }, React.createElement("div", {
-    className: "xs"
-  }, "\u30C7\u30FC\u30BF\u306F\u7AEF\u672B\u5185\u306E\u307F\u3002Safari\u3067\u300C\u30DB\u30FC\u30E0\u753B\u9762\u306B\u8FFD\u52A0\u300D\u3067\u30A2\u30D7\u30EA\u306B\u306A\u308A\u307E\u3059\u3002")));
+    className: "sub"
+  }, "\u30C7\u30FC\u30BF\u306F\u7AEF\u672B\u5185\u306E\u307F\u3002Safari\u3067\u300C\u30DB\u30FC\u30E0\u753B\u9762\u306B\u8FFD\u52A0\u300D\u3067\u30A2\u30D7\u30EA\u306B\u306A\u308A\u307E\u3059\u3002"));
 }
 function Nav({
   tab,
   go
 }) {
-  const items = [['home', 'ホーム'], ['projects', 'PROJECTS'], ['map', 'MAP'], ['index', '指数']];
+  const items = [['home', 'Home'], ['roadmap', 'Roadmap'], ['projects', 'Projects'], ['career', 'Career']];
   return React.createElement("div", {
     className: "nav"
   }, items.map(([id, label]) => React.createElement("button", {
     key: id,
-    className: `nav-item ${tab === id || id === 'projects' && tab === 'projects' ? 'active' : ''}`,
+    className: `nav-item ${tab === id ? 'active' : ''}`,
     onClick: () => go(id)
   }, React.createElement("span", null, label))));
 }
 function App() {
   const [s, setS] = useState(() => ensureIndex(loadState()));
   const [tab, setTab] = useState('home');
-  const [selProject, setSelProject] = useState(null);
+  const [sel, setSel] = useState(null);
   useEffect(() => {
     saveState(s);
   }, [s]);
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [tab, selProject]);
+  }, [tab, sel]);
   const set = fn => setS(prev => typeof fn === 'function' ? fn(prev) : fn);
   const go = t => {
     setTab(t);
-    if (t !== 'projects') setSelProject(null);
+    if (t !== 'projects') setSel(null);
   };
   const openProject = id => {
-    setSelProject(id);
+    setSel(id);
     setTab('projects');
   };
   return React.createElement("div", null, tab === 'home' && React.createElement(Home, {
@@ -1546,18 +1561,18 @@ function App() {
     set: set,
     go: go,
     openProject: openProject
+  }), tab === 'roadmap' && React.createElement(Roadmap, {
+    s: s
   }), tab === 'projects' && React.createElement(Projects, {
     s: s,
     set: set,
-    sel: selProject,
-    setSel: setSelProject,
+    sel: sel,
+    setSel: setSel,
     openProject: openProject
-  }), tab === 'map' && React.createElement(CareerMap, {
+  }), tab === 'career' && React.createElement(Career, {
     s: s,
     set: set,
     openProject: openProject
-  }), tab === 'index' && React.createElement(IndexScreen, {
-    s: s
   }), tab === 'settings' && React.createElement(Settings, {
     s: s,
     set: set,
