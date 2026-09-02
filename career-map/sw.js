@@ -1,6 +1,9 @@
 /* なづなのキャリアMAP — Service Worker（このフォルダscopeのみ・キャッシュ名は careermap- プレフィックス） */
-const CACHE = 'careermap-v2';
-const ASSETS = ['./', './index.html', './manifest.json'];
+const CACHE = 'careermap-v3';
+const ASSETS = [
+  './', './index.html', './manifest.json', './app.js',
+  './vendor/react.production.min.js', './vendor/react-dom.production.min.js',
+];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
