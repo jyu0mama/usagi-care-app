@@ -6,17 +6,17 @@ const { useState, useEffect, useMemo } = React;
 const KEY = 'careermap_v2';
 const STALE_DAYS = 14;
 const REVIEW_DUE_DAYS = 7;
-const PASSIVE_DECAY = -0.5;      // 何もしない日の傾向の目減り
-const ADV_CAP = 4;              // 1日の「前進」加点の上限
+const PASSIVE_DECAY = -0.5;
+const ADV_CAP = 4;
 const TREND_START = 100;
 
 const TYPE_LABEL = { must: 'MUST', unlock: 'UNLOCK', bet: 'BET' };
+const TYPE_MARK = { must: '●', unlock: '◆', bet: '▲' };
 const TYPE_NOTE = {
   must: '達成しないと次の選択肢が閉じる',
   unlock: '達成すると次の選択肢が開く',
   bet: '必須ではないが、当たればリターンが大きい',
 };
-
 const PILLARS = [
   { id: 'career', name: 'CAREER' }, { id: 'global', name: 'GLOBAL' },
   { id: 'research', name: 'RESEARCH' }, { id: 'project', name: 'PROJECT' },
@@ -28,12 +28,18 @@ const PILLAR_MAP = Object.fromEntries(PILLARS.map(p => [p.id, p]));
    ============================================================ */
 function seedPhases() {
   return [
-    { id: 'p1', label: '① 1年 秋〜春休み', period: '2026/9–2027/2', start: '2026-09-01', end: '2027-02-28', theme: '成績維持＋語学試験の初回受験' },
-    { id: 'p2', label: '② 2年 春学期', period: '2027/3–5', start: '2027-03-01', end: '2027-05-31', theme: '英語スコアを完全クリア、志望校を絞る' },
-    { id: 'p3', label: '③ 2年 夏休み', period: '2027/6–8', start: '2027-06-01', end: '2027-08-31', theme: 'サマーインターン×出願エッセイ（最過密期）' },
-    { id: 'p4', label: '④ 2年 秋学期', period: '2027/9–11', start: '2027-09-01', end: '2027-11-30', theme: '学内選考の出願と秋冬インターン' },
-    { id: 'p5', label: '⑤ 2年冬〜3年夏', period: '2027/12–2028/7', start: '2027-12-01', end: '2028-07-31', theme: '本出願・ビザ・渡航前最後の就活' },
-    { id: 'p6', label: '⑥ 3年 秋〜', period: '2028/8–2029/6', start: '2028-08-01', end: '2029-06-30', theme: '留学先へ出発（10ヶ月）' },
+    { id: 'p1', label: '① 1年 秋〜春休み', period: '2026/9–2027/2', start: '2026-09-01', end: '2027-02-28', theme: '成績維持＋語学試験の初回受験',
+      items: ['英語の過去問で現状把握（9/7）', '英語の本試を受ける（2026年中・テストセンター型のみ）', 'GPA 2.00以上を維持', '申し込む奨学金をリストアップ', '親と資金相談（学費は全額納入・生活費150〜300万）'] },
+    { id: 'p2', label: '② 2年 春学期', period: '2027/3–5', start: '2027-03-01', end: '2027-05-31', theme: '英語スコアを確定、志望校を絞る',
+      items: ['公式スコアレポートを用意（〜2027/6）', '協定校別の必要GPA・語学レベルを確認', '学事窓口で単位認定・4年卒業の条件を確認'] },
+    { id: 'p3', label: '③ 2年 夏休み', period: '2027/6–8', start: '2027-06-01', end: '2027-08-31', theme: 'サマーインターン×出願エッセイ',
+      items: ['慶應留学フェアに参加（6月）', '出願エッセイ下書き（日本語800字・現地語500w）', '証明書類をスキャンしてPDF化', 'サマーインターンに参加（電通・博報堂）'] },
+    { id: 'p4', label: '④ 2年 秋学期', period: '2027/9–11', start: '2027-09-01', end: '2027-11-30', theme: '学内選考の出願と秋冬インターン',
+      items: ['学内選考に出願（9月・KEIO IC-NET）', '結果発表（11月下旬）', '奨学金に応募（成績優秀枠）', '秋冬インターン・早期選考に挑戦'] },
+    { id: 'p5', label: '⑤ 2年冬〜3年夏', period: '2027/12–2028/7', start: '2027-12-01', end: '2028-07-31', theme: '本出願・ビザ・渡航前最後の就活',
+      items: ['候補生オリエン・異文化講座（12月・必須）', '留学先へ本出願・受入許可', 'ビザ申請・宿舎確保', '残高証明・海外保険の支払', '早期選考で内々定を狙う'] },
+    { id: 'p6', label: '⑥ 3年 秋〜', period: '2028/8–2029/6', start: '2028-08-01', end: '2029-06-30', theme: '留学先へ出発（10ヶ月）',
+      items: ['授業期間中の一時帰国は不可・現地バイト禁止', '毎月5万円の貯金を継続'] },
   ];
 }
 function seedBands() {
@@ -48,7 +54,7 @@ function seedBands() {
     { id: 's4', track: 'study', label: '本出願・ビザ・渡航準備', start: '2027-12', end: '2028-07' },
     { id: 's5', track: 'study', label: '交換留学', start: '2028-09', end: '2029-06' },
     { id: 'j1', track: 'job', label: '自己分析・業界研究', start: '2026-09', end: '2027-02' },
-    { id: 'j2', track: 'job', label: '博報堂IS〆', start: '2026-10', end: '2026-10', ms: true },
+    { id: 'j2', track: 'job', label: '博報堂インターン〆', start: '2026-10', end: '2026-10', ms: true },
     { id: 'j3', track: 'job', label: 'サマーIS選考', start: '2027-03', end: '2027-05' },
     { id: 'j4', track: 'job', label: 'サマーインターン', start: '2027-06', end: '2027-08' },
     { id: 'j5', track: 'job', label: '早期選考', start: '2027-09', end: '2028-03' },
@@ -58,10 +64,10 @@ function seedBands() {
 }
 function seedDeadlines() {
   return [
-    { id: 'd1', text: '英語の過去問を解いて現状把握', date: '2026-09-07', done: false },
-    { id: 'd2', text: '博報堂インターン 申込〆切（適性テストあり）', date: '2026-10-02', done: false },
-    { id: 'd3', text: '英語試験の本試（2026年中／テストセンター型）', date: '2026-12-31', done: false },
-    { id: 'd4', text: '公式スコアレポートを用意（出願3ヶ月前）', date: '2027-06-30', done: false },
+    { id: 'd1', text: '英語の過去問で現状把握', date: '2026-09-07', done: false },
+    { id: 'd2', text: '博報堂インターン 申込〆切', date: '2026-10-02', done: false },
+    { id: 'd3', text: '英語 本試（2026年中・テストセンター型）', date: '2026-12-31', done: false },
+    { id: 'd4', text: '公式スコアレポートを用意', date: '2027-06-30', done: false },
     { id: 'd5', text: '学内選考 出願（KEIO IC-NET）', date: '2027-09-15', done: false },
     { id: 'd6', text: '学内選考 結果発表', date: '2027-11-25', done: false },
     { id: 'd7', text: '留学先大学へ出発', date: '2028-09-01', done: false },
@@ -73,14 +79,15 @@ function defaultState() {
     createdAt: now, lastMovedAt: now, doneAt: null, droppedAt: null, note: '', gate: '', ret: 2, stalePen: false, ...o });
   return {
     version: 2,
-    introDone: false,
+    introSeen: false,
     ideal: {
-      headline: '2030年3月・電通／博報堂へ。30代前半で年収1000万、東京で20代を働き切る。',
-      career: '電通・博報堂を第一に、コンサル・商社なども視野。職業選択で一番は年収。初任給30万以上で選べる状態に。',
-      life: '欲しいタイミングで本を買える豊かさ。趣味にお金を使える。Jeepに乗る。',
-      keep: '20代はしっかり働く（東京）。海外キャリアも選択肢に持てる。',
+      headline: '2030年3月・電通／博報堂へ。30代前半で年収1000万。',
+      career: '電通・博報堂を第一に、コンサル・商社も視野。職業選択で一番は年収。',
+      life: '欲しいときに本を買える。趣味にお金を使う。Jeepに乗る。',
+      keep: '20代は東京でしっかり働く。海外キャリアも選択肢に。',
       targetStart: 3600000, target30s: 10000000, gradYM: '2030-03',
     },
+    english: { current: '', target: 'TOEFL iBT 新4.0（旧72）／ IELTS 5.5', testDate: '', ready: false },
     timeline: { startYM: '2026-04', endYM: '2030-03', bands: seedBands() },
     phases: seedPhases(),
     phaseDone: {},
@@ -91,7 +98,8 @@ function defaultState() {
     tasks: [
       T({ title: '英語スコアで学内選考の出願資格を満たす', type: 'must', pillarId: 'global', phaseId: 'p1', weight: 3, progress: 10, gate: '未達だと交換留学の道が閉じる' }),
       T({ title: '累積GPA 2.00以上を維持する', type: 'must', pillarId: 'career', phaseId: 'p1', weight: 2, progress: 40, gate: '未達だと出願そのものが不可' }),
-      T({ title: '里山再生プロジェクトを慶應公認団体化する', type: 'bet', pillarId: 'project', phaseId: 'p1', weight: 2, progress: 20, ret: 3, status: 'parked', gate: '人と被らない継続実績＝ESの主砲になりうる' }),
+      T({ title: '自然環境音の研究を進める', type: 'bet', pillarId: 'research', phaseId: 'p1', weight: 2, progress: 15, ret: 2, gate: '論文・学会発表＝人と被らない実績' }),
+      T({ title: '里山再生プロジェクトを慶應公認団体化', type: 'bet', pillarId: 'project', phaseId: 'p1', weight: 2, progress: 20, ret: 3, status: 'parked', gate: '継続実績＝ESの主砲' }),
     ],
     dayTasks: [
       { id: uid(), taskId: null, text: '英語の過去問 Section1 を時間を計って解いて採点', date: todayISO(), done: false },
@@ -103,7 +111,7 @@ function defaultState() {
       { id: uid(), text: '博報堂インターンに参加する', type: 'unlock', pillarId: 'career', phaseId: 'p1', weight: 2, gate: '通ると早期選考ルートが開く', ret: 2, createdAt: now },
     ],
     savings: { startYM: '2026-09', monthly: 50000, goalTotal: 1200000, entries: [] },
-    trend: { log: [], lastReview: null, incomeLog: [] },
+    trend: { log: [], priceLog: [], lastReview: null },
   };
 }
 
@@ -117,7 +125,7 @@ const yen = (n) => '¥' + Math.round(n).toLocaleString();
 const man = (n) => (Math.round(n / 1000) / 10).toLocaleString() + '万';
 
 function pad2(n) { return String(n).padStart(2, '0'); }
-function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; } // ローカル日付。toISOString()はTZずれで日付演算が壊れるので使わない
+function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; } // ローカル日付。toISOString()はTZずれで壊れるので不使用
 function todayISO() { return isoOf(new Date()); }
 function parseISO(s) { const [y,m,d] = s.split('-').map(Number); return new Date(y, (m||1)-1, d || 1); }
 function addDaysISO(iso, n) { const d = parseISO(iso); d.setDate(d.getDate() + n); return isoOf(d); }
@@ -126,8 +134,8 @@ function fmtShort(iso) { const d = parseISO(iso); return `${d.getMonth()+1}/${d.
 function daysUntil(iso) { return Math.round((parseISO(iso) - parseISO(todayISO())) / 86400000); }
 function daysSince(isoDT) { if (!isoDT) return 999; return Math.floor((Date.now() - new Date(isoDT).getTime()) / 86400000); }
 function mondayOf(iso) { const d = parseISO(iso); const g = (d.getDay() + 6) % 7; d.setDate(d.getDate() - g); return isoOf(d); }
-function ymNow() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
-function ymAdd(ym, n) { let [y,m] = ym.split('-').map(Number); m += n; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return `${y}-${String(m).padStart(2,'0')}`; }
+function ymNow() { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+function ymAdd(ym, n) { let [y,m] = ym.split('-').map(Number); m += n; while (m > 12) { m -= 12; y++; } while (m < 1) { m += 12; y--; } return `${y}-${pad2(m)}`; }
 function monthsBetweenYM(a, b) { const [ay,am] = a.split('-').map(Number); const [by,bm] = b.split('-').map(Number); return (by-ay)*12 + (bm-am); }
 function isStale(t) { return t.status === 'active' && daysSince(t.lastMovedAt) >= STALE_DAYS; }
 function currentPhase(phases) {
@@ -141,7 +149,6 @@ function slope(ys) {
   ys.forEach((y,i) => { sx+=i; sy+=y; sxy+=i*y; sxx+=i*i; });
   const d = n*sxx - sx*sx; return d ? (n*sxy - sx*sy) / d : 0;
 }
-
 function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
@@ -149,6 +156,7 @@ function loadState() {
     const s = JSON.parse(raw); const d = defaultState();
     return { ...d, ...s,
       ideal: { ...d.ideal, ...(s.ideal || {}) },
+      english: { ...d.english, ...(s.english || {}) },
       timeline: { ...d.timeline, ...(s.timeline || {}) },
       budget: { ...d.budget, ...(s.budget || {}) },
       weights: { ...d.weights, ...(s.weights || {}) },
@@ -160,10 +168,9 @@ function loadState() {
 function saveState(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
 
 /* ============================================================
-   傾向エンジン（為替のような指数）
+   内部エンジン（ユーザーには非表示）
    ============================================================ */
 function ensureTrend(s) {
-  // trend.log を today まで埋める（何もしない日は PASSIVE_DECAY）＋新たに stale 化したタスクの罰則
   const log = [...(s.trend.log || [])];
   const start = log.length ? log[log.length - 1].date : addDaysISO(todayISO(), -1);
   let cursor = start;
@@ -172,14 +179,13 @@ function ensureTrend(s) {
   let guard = 0;
   while (cursor < todayISO() && guard++ < 800) {
     const next = addDaysISO(cursor, 1);
-    if (next <= cursor) break; // 日付が進まない異常時は無限ループを避ける
+    if (next <= cursor) break;
     cursor = next;
     score = Math.max(0, score + PASSIVE_DECAY);
     newLog.push({ date: cursor, delta: PASSIVE_DECAY, score, adv: 0 });
   }
   if (!newLog.length) newLog.push({ date: todayISO(), delta: 0, score: TREND_START, adv: 0 });
 
-  // stale 罰則（まだ課していない active タスク）
   let extra = 0;
   const tasks = s.tasks.map(t => {
     if (t.status === 'active' && daysSince(t.lastMovedAt) >= STALE_DAYS && !t.stalePen) {
@@ -194,7 +200,30 @@ function ensureTrend(s) {
     last.delta += extra;
     last.score = Math.max(0, prev + last.delta);
   }
-  return { ...s, tasks, trend: { ...s.trend, log: newLog.slice(-140) } };
+  let ns = { ...s, tasks, trend: { ...s.trend, log: newLog.slice(-140) } };
+
+  // 予測年収の日次スナップショット（株価チャート用）。過去欠測日は直近値で横ばい埋め。
+  const pl = [...(ns.trend.priceLog || [])];
+  const price = computeIncome(ns).projectedStart;
+  let pcur = pl.length ? pl[pl.length - 1].date : addDaysISO(todayISO(), -1);
+  let pv = pl.length ? pl[pl.length - 1].v : price;
+  let g2 = 0;
+  while (pcur < todayISO() && g2++ < 800) {
+    const nx = addDaysISO(pcur, 1); if (nx <= pcur) break;
+    pcur = nx; pl.push({ date: pcur, v: pv });
+  }
+  if (pl.length && pl[pl.length - 1].date === todayISO()) pl[pl.length - 1] = { date: todayISO(), v: price };
+  else pl.push({ date: todayISO(), v: price });
+  ns = { ...ns, trend: { ...ns.trend, priceLog: pl.slice(-600) } };
+  return ns;
+}
+function snapPrice(s) {
+  const v = computeIncome(s).projectedStart;
+  const pl = [...(s.trend.priceLog || [])];
+  const t = todayISO();
+  if (pl.length && pl[pl.length - 1].date === t) pl[pl.length - 1] = { date: t, v };
+  else pl.push({ date: t, v });
+  return { ...s, trend: { ...s.trend, priceLog: pl.slice(-600) } };
 }
 function bumpTrend(s, amount, isAdvance) {
   const log = [...(s.trend.log || [])];
@@ -212,25 +241,19 @@ function bumpTrend(s, amount, isAdvance) {
   const prevScore = log.length > 1 ? log[log.length - 2].score : TREND_START;
   last.score = Math.max(0, prevScore + last.delta);
   log[log.length - 1] = last;
-  return { ...s, trend: { ...s.trend, log } };
+  return snapPrice({ ...s, trend: { ...s.trend, log } });
 }
-function trendInfo(s) {
-  const log = s.trend.log || [];
-  const scores = log.map(e => e.score);
-  const now = scores.length ? scores[scores.length - 1] : TREND_START;
-  const window = scores.slice(-21);
-  const sl = slope(window);
-  const base = Math.max(1, now);
-  const pct = sl / base * 100; // %/日
-  let label = '横ばい', arrow = '→';
-  if (pct > 0.15) { label = '上昇傾向'; arrow = '↗'; }
-  else if (pct < -0.15) { label = '下降傾向'; arrow = '↘'; }
-  const avg28 = (() => { const w = scores.slice(-28); return w.length ? w.reduce((a,b)=>a+b,0)/w.length : now; })();
-  return { now, slopePctPerDay: pct, label, arrow, avg28 };
+function momentumFactor(s) {
+  const scores = (s.trend.log || []).map(e => e.score);
+  if (scores.length < 2) return 0;
+  const now = scores[scores.length - 1];
+  const w = scores.slice(-28);
+  const avg = w.reduce((a,b) => a+b, 0) / w.length;
+  return clamp((now / Math.max(1, avg) - 1) * 0.5, -0.08, 0.08);
 }
 
 /* ============================================================
-   資産価値 / 予算 / 収入モデル
+   資産価値 / 予算 / 収入
    ============================================================ */
 function assetValue(t, s) {
   const cp = currentPhase(s.phases).id;
@@ -238,15 +261,13 @@ function assetValue(t, s) {
   let v = 0;
   const base = t.type === 'must' ? 40 : t.type === 'unlock' ? 30 : 15;
   bd.push([`種別 ${TYPE_LABEL[t.type]}`, base]); v += base;
-  const prog = Math.round(t.progress / 100 * 25);
+  const prog = Math.round((t.progress || 0) / 100 * 25);
   bd.push(['これまでの進捗', prog]); v += prog;
   if (t.type === 'bet') { const r = (t.ret || 2) * 8; bd.push(['期待リターン', r]); v += r; }
   else if (t.gate && t.gate.trim()) { bd.push(['開閉する選択肢', 10]); v += 10; }
   const phasePts = t.phaseId === cp ? 15 : (t.phaseId < cp ? -10 : 0);
   bd.push(['いまのフェーズとの一致', phasePts]); v += phasePts;
-  const dls = s.deadlines.filter(d => !d.done);
-  const near = dls.map(d => daysUntil(d.date)).filter(x => x >= 0);
-  // ざっくり: フェーズが今 かつ 30日以内の締切がある → 近接ボーナス
+  const near = s.deadlines.filter(d => !d.done).map(d => daysUntil(d.date)).filter(x => x >= 0);
   if (t.phaseId === cp && near.some(x => x <= 30)) { bd.push(['直近の締切が近い', 12]); v += 12; }
   v = clamp(Math.round(v), 0, 100);
   return { value: v, breakdown: bd };
@@ -261,7 +282,6 @@ function reductionPlan(s, addWeight) {
     .sort((a,b) => a.v - b.v || b.w - a.w);
   return { ok: false, over, freeNow: Math.max(0, s.budget.weekly - load), candidates: cand };
 }
-
 function computeIncome(s) {
   const tgt = s.ideal.targetStart || 3600000;
   const musts = s.tasks.filter(t => t.type === 'must' && t.status !== 'dropped');
@@ -273,14 +293,8 @@ function computeIncome(s) {
     arr.forEach(t => { acc += t.status === 'done' ? 1 : (t.progress || 0) / 100 * 0.6; });
     return clamp(acc / arr.length, 0, 1);
   };
-  // フェーズ・チェック項目の消化（must系タスクが無い初期でも動くように）
-  const phTotalKeys = Object.keys(s.phaseDone || {});
-  const phaseRate = (() => {
-    const cp = currentPhase(s.phases);
-    // p1..現在フェーズ の期日到来ぶんに対する消化率（雑だが十分）
-    const doneCnt = phTotalKeys.filter(k => s.phaseDone[k]).length;
-    return clamp(doneCnt / 12, 0, 1);
-  })();
+  const doneCnt = Object.keys(s.phaseDone || {}).filter(k => s.phaseDone[k]).length;
+  const phaseRate = clamp(doneCnt / 12, 0, 1);
   const mustRate = rate(musts) != null ? rate(musts) : phaseRate;
   const unlockRate = rate(unlocks) != null ? rate(unlocks) : phaseRate * 0.7;
 
@@ -290,173 +304,219 @@ function computeIncome(s) {
   projected += Math.min(betsDone.length * 0.5 + betsDone.reduce((a,t)=>a+(t.ret||2),0) * 0.06, 1) * tgt * 0.05;
   projected += phaseRate * tgt * 0.06;
 
-  // 勢い補正（傾向指数が28日平均より上か下か）
-  const ti = trendInfo(s);
-  const mo = clamp((ti.now / Math.max(1, ti.avg28) - 1) * 0.5, -0.08, 0.08);
+  const mo = momentumFactor(s);
   const withMomentum = projected * (1 + mo);
-
   const start = clamp(withMomentum, tgt * 0.4, tgt * 1.15);
   const ratio = start / tgt;
-  const thirties = (s.ideal.target30s || 10000000) * ratio;
   return {
-    target: tgt, projectedStart: start, projected30s: thirties,
-    gap: start - tgt, mustRate, unlockRate, phaseRate, momentum: mo,
-    unlockLift: tgt * 0.12 / Math.max(1, unlocks.length || 1), // unlock 1件完了のおおよその押上げ
+    target: tgt, projectedStart: start, projected30s: (s.ideal.target30s || 10000000) * ratio,
+    gap: start - tgt, mustRate, unlockRate, phaseRate,
+    unlockLift: tgt * 0.12 / Math.max(1, unlocks.length || 1),
     mustLift: tgt * 0.25 / Math.max(1, musts.length || 1),
   };
 }
 
 /* ============================================================
-   小物
+   図：タイムライン（図式）
    ============================================================ */
-function Meter({ v, max, neg }) {
-  return <div className={`meter ${neg ? 'neg' : ''}`}><span style={{ width: clamp(v / max * 100, 0, 100) + '%' }} /></div>;
-}
-function PillChips({ t, phases }) {
-  const ph = phases.find(p => p.id === t.phaseId);
-  return (
-    <span className="row wrap" style={{ gap: 6, display: 'inline-flex' }}>
-      <span className="tag">{TYPE_LABEL[t.type]}</span>
-      <span className="tag tag-o">{PILLAR_MAP[t.pillarId] ? PILLAR_MAP[t.pillarId].name : t.pillarId}</span>
-      {ph && <span className="tag tag-o">{ph.label.split(' ')[0]}</span>}
-      <span className="tag tag-o">{'•'.repeat(t.weight || 1)} {t.weight}pt/週</span>
-    </span>
-  );
-}
-function Line({ data, h = 44, target }) {
-  // data: number[]  monochrome line, no fill
-  if (!data || data.length < 2) return <div className="xs">データ蓄積中…</div>;
-  const w = 280;
-  const min = Math.min(...data, target != null ? target : Infinity);
-  const max = Math.max(...data, target != null ? target : -Infinity);
-  const rng = max - min || 1;
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - min) / rng) * h}`).join(' ');
-  const ty = target != null ? h - ((target - min) / rng) * h : null;
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} preserveAspectRatio="none">
-      {ty != null && <line x1="0" y1={ty} x2={w} y2={ty} stroke="#B23B3B" strokeWidth="1" strokeDasharray="3 3" />}
-      <polyline points={pts} fill="none" stroke="#111" strokeWidth="1.5" />
-    </svg>
-  );
-}
-function Timeline({ s }) {
+function Timeline({ s, compact }) {
+  const [sel, setSel] = useState(null);
   const { startYM, endYM, bands } = s.timeline;
   const total = monthsBetweenYM(startYM, endYM) + 1;
-  const MW = 15;
-  const rows = { school: 0, study: 1, job: 2 };
-  const rowY = { school: 4, study: 26, job: 48 };
-  const height = 74;
+  const MW = compact ? 12 : 15;
+  const laneY = { school: 8, study: 34, job: 62 };
+  const BH = 18;
+  const H = 92;
   const todayM = monthsBetweenYM(startYM, ymNow()) + (new Date().getDate() / 30);
   const yrs = [];
-  for (let i = 0; i < total; i++) { const ym = ymAdd(startYM, i); if (ym.endsWith('-01') || i === 0) yrs.push({ i, y: ym.slice(0, 4) }); }
+  for (let i = 0; i < total; i++) { const ym = ymAdd(startYM, i); if (ym.endsWith('-04') || i === 0) yrs.push({ i, y: '20' + ym.slice(2, 4) }); }
+  const selBand = sel && bands.find(b => b.id === sel);
   return (
-    <div className="tl-wrap">
-      <div className="tl-inner" style={{ width: total * MW, height }}>
-        {yrs.map(o => <div key={o.i} className="tl-yr" style={{ left: o.i * MW, top: 62 }}>{o.y}</div>)}
-        {bands.map(b => {
-          const left = monthsBetweenYM(startYM, b.start) * MW;
-          const wdt = (monthsBetweenYM(b.start, b.end) + 1) * MW;
-          return (
-            <div key={b.id} className={`tl-band ${b.ms ? 'ms' : ''}`} style={{ left, width: wdt, top: rowY[b.track] }}
-              title={b.label}>{b.ms ? '' : b.label}</div>
-          );
-        })}
-        <div className="tl-today" style={{ left: todayM * MW }} />
+    <div>
+      <div className="tl2">
+        <div className="tl2-labels" style={{ height: H }}>
+          <div style={{ top: laneY.school + 3 }}>学年</div>
+          <div style={{ top: laneY.study + 3 }}>留学</div>
+          <div style={{ top: laneY.job + 3 }}>就活</div>
+        </div>
+        <div className="tl2-wrap">
+          <div className="tl2-inner" style={{ width: total * MW, height: H }}>
+            {yrs.map(o => <div key={o.i} className="tl2-grid" style={{ left: o.i * MW, height: H }}><span>{o.y}</span></div>)}
+            {bands.map(b => {
+              const left = monthsBetweenYM(startYM, b.start) * MW;
+              const wdt = Math.max(MW, (monthsBetweenYM(b.start, b.end) + 1) * MW);
+              const y = laneY[b.track];
+              const here = todayISO() >= b.start + '-01' && todayISO() <= b.end + '-28';
+              if (b.ms) return (
+                <div key={b.id} className={`tl2-ms ${here ? 'on' : ''}`} style={{ left: left - 5, top: y + BH / 2 - 5 }}
+                  onClick={() => setSel(sel === b.id ? null : b.id)} />
+              );
+              return (
+                <div key={b.id} className={`tl2-band tl2-${b.track} ${here ? 'here' : ''} ${sel === b.id ? 'sel' : ''}`}
+                  style={{ left, width: wdt, top: y, height: BH }}
+                  onClick={() => setSel(sel === b.id ? null : b.id)} />
+              );
+            })}
+            <div className="tl2-today" style={{ left: todayM * MW, height: H }} />
+          </div>
+        </div>
+      </div>
+      <div className="tl2-cap">
+        {selBand
+          ? <span><b>{selBand.label}</b>　{selBand.start.replace('-','/')}{selBand.ms ? '' : `–${selBand.end.replace('-','/')}`}</span>
+          : <span className="tl2-legend"><i className="k-study" />留学　<i className="k-job" />就活　<i className="k-ms">◆</i>節目　<i className="k-now" />今日　<span className="muted">（帯をタップで名称）</span></span>}
       </div>
     </div>
   );
 }
 
 /* ============================================================
-   ホーム（アプリを開いた画面）
+   図：株価チャート（予測年収）
+   ============================================================ */
+function StockChart({ series, target }) {
+  const [range, setRange] = useState(90);
+  const full = series && series.length ? series : [{ date: todayISO(), v: target * 0.7 }];
+  const data = full.slice(-range);
+  const pts = data.length >= 2 ? data : [{ date: addDaysISO(data[0].date, -1), v: data[0].v * 0.98 }, ...data];
+  const vals = pts.map(p => p.v);
+  const first = vals[0], last = vals[vals.length - 1];
+  const up = last >= first;
+  const col = up ? 'var(--up)' : 'var(--down)';
+  const lo = Math.min(...vals, target) * 0.985;
+  const hi = Math.max(...vals, target) * 1.015;
+  const rng = hi - lo || 1;
+  const W = 320, HT = 150;
+  const x = (i) => (i / (pts.length - 1)) * W;
+  const y = (v) => HT - ((v - lo) / rng) * HT;
+  const line = pts.map((p, i) => `${x(i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const area = `0,${HT} ${line} ${W},${HT}`;
+  const ty = y(target);
+  const delta = last - first;
+  const pctChg = first ? (delta / first * 100) : 0;
+  // 価格軸目盛り
+  const ticks = [hi, (hi + lo) / 2, lo];
+  // 月ラベル
+  const monLabels = [];
+  let lastMon = '';
+  pts.forEach((p, i) => { const m = p.date.slice(0, 7); if (m !== lastMon && i > 0) { monLabels.push({ i, t: p.date.slice(5, 7) + '月' }); lastMon = m; } });
+
+  return (
+    <div>
+      <div className="stk-head">
+        <div>
+          <div className="stk-price num">{man(last)}</div>
+          <div className="stk-delta num" style={{ color: col }}>
+            {up ? '▲' : '▼'} {man(Math.abs(delta))}（{delta >= 0 ? '+' : '−'}{Math.abs(pctChg).toFixed(1)}%）
+          </div>
+        </div>
+        <div className="stk-meta num">
+          <div>目標 {man(target)}</div>
+          <div style={{ color: last - target >= 0 ? 'var(--up)' : 'var(--down)' }}>
+            差 {last - target >= 0 ? '+' : '−'}{man(Math.abs(last - target))}
+          </div>
+        </div>
+      </div>
+      <div className="stk-chart">
+        <svg viewBox={`0 0 ${W} ${HT + 16}`} width="100%" preserveAspectRatio="none">
+          {ticks.map((t, i) => (
+            <g key={i}>
+              <line x1="0" x2={W} y1={y(t)} y2={y(t)} stroke="var(--line)" strokeWidth="1" />
+            </g>
+          ))}
+          <polygon points={area} fill={col} opacity="0.08" />
+          <line x1="0" x2={W} y1={ty} y2={ty} stroke="var(--ink)" strokeWidth="1" strokeDasharray="2 3" />
+          <polyline points={line} fill="none" stroke={col} strokeWidth="1.6" />
+          <circle cx={x(pts.length - 1)} cy={y(last)} r="2.6" fill={col} />
+          {monLabels.map((m, i) => (
+            <text key={i} x={x(m.i)} y={HT + 12} fontSize="8" fill="var(--sub)" textAnchor="middle">{m.t}</text>
+          ))}
+        </svg>
+        <div className="stk-yaxis num">
+          {ticks.map((t, i) => <div key={i}>{man(t)}</div>)}
+        </div>
+      </div>
+      <div className="seg stk-range">
+        {[[30,'1M'],[90,'3M'],[365,'1Y'],[9999,'全']].map(([r, l]) => (
+          <button key={r} className={range === r ? 'on' : ''} onClick={() => setRange(r)}>{l}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
+function Meter({ v, max, neg }) {
+  return <div className={`meter ${neg ? 'neg' : ''}`}><span style={{ width: clamp(v / max * 100, 0, 100) + '%' }} /></div>;
+}
+
+/* ============================================================
+   ホーム
    ============================================================ */
 function Home({ s, set, go }) {
   const phase = currentPhase(s.phases);
   const inc = useMemo(() => computeIncome(s), [s]);
-  const ti = useMemo(() => trendInfo(s), [s]);
-  const incHist = (s.trend.incomeLog || []).map(e => e.v);
+  const priceLog = s.trend.priceLog || [];
+  const wkStart = priceLog.length ? priceLog[Math.max(0, priceLog.length - 8)].v : inc.projectedStart;
+  const dW = inc.projectedStart - wkStart;
   const today = todayISO();
   const dts = s.dayTasks.filter(d => d.date === today);
   const wk = mondayOf(today);
   const wts = s.weekTasks.filter(w => w.weekOf === wk);
   const wkDone = wts.filter(w => w.done).length;
   const reviewDue = !s.trend.lastReview || daysSince(s.trend.lastReview + 'T00:00:00') >= REVIEW_DUE_DAYS;
-  const [dtText, setDtText] = useState('');
+  const [dt, setDt] = useState('');
 
   function toggleDay(id) {
     set(p => {
-      const dt = p.dayTasks.find(x => x.id === id);
+      const d0 = p.dayTasks.find(x => x.id === id);
       let np = { ...p, dayTasks: p.dayTasks.map(x => x.id === id ? { ...x, done: !x.done } : x) };
-      if (dt && !dt.done) {
+      if (d0 && !d0.done) {
         np = bumpTrend(np, np.weights.advance, true);
-        if (dt.taskId) np = { ...np, tasks: np.tasks.map(t => t.id === dt.taskId ? { ...t, lastMovedAt: new Date().toISOString(), stalePen: false } : t) };
+        if (d0.taskId) np = { ...np, tasks: np.tasks.map(t => t.id === d0.taskId ? { ...t, lastMovedAt: new Date().toISOString(), stalePen: false } : t) };
       }
       return np;
     });
   }
-  function addDay() {
-    const v = dtText.trim(); if (!v) return;
-    set(p => ({ ...p, dayTasks: [...p.dayTasks, { id: uid(), taskId: null, text: v, date: today, done: false }] }));
-    setDtText('');
-  }
+  function addDay() { const v = dt.trim(); if (!v) return; set(p => ({ ...p, dayTasks: [...p.dayTasks, { id: uid(), taskId: null, text: v, date: today, done: false }] })); setDt(''); }
 
   return (
     <div className="screen">
       <div className="between">
-        <div className="kicker">2026 → 2030</div>
-        <div className="kicker">{fmtDate(today)}</div>
+        <div className="kicker">{fmtShort(today)}（{WD[parseISO(today).getDay()]}）</div>
+        <button className="kicker" style={{ border: 'none', background: 'none', cursor: 'pointer' }} onClick={() => set(p => ({ ...p, introSeen: !p.introSeen }))}>？</button>
       </div>
-      <div className="display d-lg mt6">{phase.label}<span className="sub">／{phase.theme}</span></div>
+      <div className="hero display d-lg">いま ▸ {phase.label}</div>
+      <div className="sub" style={{ marginTop: 2 }}>{phase.theme}</div>
 
-      {!s.introDone && (
+      {!s.introSeen && (
         <div className="sec-line">
-          <div className="kicker mb6">読んでおく</div>
           <div className="sub">
-            タスク＝資産。<b>MUST</b>（できないと道が閉じる）／<b>UNLOCK</b>（できると道が開く）／<b>BET</b>（必須でないが大きい）。
-            1週間に使える労力は <b>{s.budget.weekly}pt</b>。新しく始めるには、何かを手放して枠を空ける。
-            開くたびに「4年の位置」「今日やること」「年収換算の差」を見て、ズレを感じる。
+            タスク＝資産。<b>{TYPE_MARK.must} MUST</b> 閉じる／<b>{TYPE_MARK.unlock} UNLOCK</b> 開く／<b>{TYPE_MARK.bet} BET</b> 大きい。
+            週の労力は <b>{s.budget.weekly}pt</b>。始めるには何かを手放す。
           </div>
-          <button className="btn btn-sm mt10" onClick={() => set(p => ({ ...p, introDone: true }))}>閉じる</button>
         </div>
       )}
 
       <div className="sec">
-        <div className="kicker">4年間のタイムライン</div>
-        <div className="mt10"><Timeline s={s} /></div>
-        <div className="xs mt6">上：学年／中：留学募集／下：就活　｜　縦線＝今日</div>
+        <Timeline s={s} compact />
       </div>
 
       <div className="sec">
-        <div className="between">
-          <div className="kicker">現在地 → 目標（年収換算）</div>
-          <button className="btn-bare" onClick={() => go('eval')}>評価へ</button>
-        </div>
-        <div className="row mt10" style={{ alignItems: 'flex-end', gap: 16 }}>
-          <div>
-            <div className="xs">予測初任給（年収）</div>
-            <div className="display d-xl num">{man(inc.projectedStart)}</div>
-          </div>
-          <div style={{ paddingBottom: 6 }}>
-            <div className="xs">目標</div>
-            <div className="num" style={{ fontSize: 15 }}>{man(inc.target)}</div>
+        <div className="kicker">予測年収（初任給）</div>
+        <div className="row" style={{ alignItems: 'baseline', gap: 12, marginTop: 4 }}>
+          <div className="display d-xl num">{man(inc.projectedStart)}</div>
+          <div className="num" style={{ color: dW >= 0 ? 'var(--up)' : 'var(--down)', fontSize: 13 }}>
+            {dW >= 0 ? '▲' : '▼'} {man(Math.abs(dW))}／週
           </div>
         </div>
-        <div className={`display d-md num mt6`} style={{ color: inc.gap < 0 ? 'var(--accent)' : 'var(--ink)' }}>
-          {inc.gap < 0 ? '不足 ' : '超過 '}{man(Math.abs(inc.gap))} / 年
+        <div className="num" style={{ fontSize: 13, color: inc.gap < 0 ? 'var(--down)' : 'var(--up)', marginTop: 2 }}>
+          目標 {man(inc.target)}　{inc.gap < 0 ? '不足' : '超過'} {man(Math.abs(inc.gap))}／年
         </div>
-        <div className="mt10"><Line data={incHist.length >= 2 ? incHist : [inc.target * 0.7, inc.projectedStart]} target={inc.target} /></div>
-        <div className="xs mt6">
-          傾向 <b>{ti.label}</b> {ti.arrow}　｜　30代前半の予測 {man(inc.projected30s)}（目標 {man(s.ideal.target30s)}）
-        </div>
+        <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => go('eval')}>チャートを見る →</button>
       </div>
 
       {reviewDue && (
         <div className="sec-line">
           <div className="between">
-            <div>
-              <div className="kicker">週次レビュー</div>
-              <div className="sub">{s.trend.lastReview ? `前回から ${daysSince(s.trend.lastReview + 'T00:00:00')}日` : 'まだ一度もやっていません'}</div>
-            </div>
+            <div className="sub">週次レビュー：{s.trend.lastReview ? `${daysSince(s.trend.lastReview + 'T00:00:00')}日 経過` : '未実施'}</div>
             <button className="btn btn-fill btn-sm" onClick={() => go('review')}>始める</button>
           </div>
         </div>
@@ -464,55 +524,64 @@ function Home({ s, set, go }) {
 
       <div className="sec">
         <div className="between">
-          <div className="kicker">今日やること（1DAY）</div>
-          <div className="xs">今週 {wkDone}/{wts.length}</div>
+          <div className="kicker">今日のタスク</div>
+          <div className="num xs">今週 {wkDone}/{wts.length}</div>
         </div>
-        <div className="mt10">
-          {dts.length === 0 && <div className="sub">今日のタスクは未設定。1つだけ決める。</div>}
+        <div style={{ marginTop: 8 }}>
+          {dts.length === 0 && <div className="sub">未設定。1つだけ決める。</div>}
           {dts.map(d => (
-            <div key={d.id} className="row" style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+            <div key={d.id} className="row chk">
               <div className={`tick ${d.done ? 'on' : ''}`} onClick={() => toggleDay(d.id)}>{d.done ? '✓' : ''}</div>
-              <div style={{ flex: 1, fontSize: 13.5, textDecoration: d.done ? 'line-through' : 'none', color: d.done ? 'var(--sub)' : 'var(--ink)' }}>{d.text}</div>
-              <button className="btn-bare" onClick={() => set(p => ({ ...p, dayTasks: p.dayTasks.filter(x => x.id !== d.id) }))}>削除</button>
+              <div className="chk-t" style={{ textDecoration: d.done ? 'line-through' : 'none', color: d.done ? 'var(--sub)' : 'var(--ink)' }}>{d.text}</div>
+              <button className="btn-bare" onClick={() => set(p => ({ ...p, dayTasks: p.dayTasks.filter(x => x.id !== d.id) }))}>×</button>
             </div>
           ))}
         </div>
-        <div className="row mt10" style={{ gap: 8 }}>
-          <input className="input" placeholder="今日の一歩を書く" value={dtText} onChange={e => setDtText(e.target.value)} />
-          <button className="btn btn-sm" onClick={addDay} disabled={!dtText.trim()}>追加</button>
+        <div className="row" style={{ gap: 8, marginTop: 10 }}>
+          <input className="input" placeholder="今日の一歩" value={dt} onChange={e => setDt(e.target.value)} />
+          <button className="btn btn-sm" onClick={addDay} disabled={!dt.trim()}>＋</button>
         </div>
       </div>
 
-      <div className="sec-line">
-        <button className="btn btn-block" onClick={() => go('tasks')}>タスク（資産）を見る</button>
-      </div>
+      {wts.length > 0 && (
+        <div className="sec">
+          <div className="kicker">今週のタスク</div>
+          <div style={{ marginTop: 8 }}>
+            {wts.map(w => (
+              <div key={w.id} className="row chk">
+                <div className={`tick ${w.done ? 'on' : ''}`} onClick={() => set(p => {
+                  const w0 = p.weekTasks.find(x => x.id === w.id);
+                  let np = { ...p, weekTasks: p.weekTasks.map(x => x.id === w.id ? { ...x, done: !x.done } : x) };
+                  if (w0 && !w0.done) np = bumpTrend(np, np.weights.advance, true);
+                  return np;
+                })}>{w.done ? '✓' : ''}</div>
+                <div className="chk-t" style={{ textDecoration: w.done ? 'line-through' : 'none', color: w.done ? 'var(--sub)' : 'var(--ink)' }}>{w.text}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ============================================================
-   タスク（資産ポートフォリオ）
+   取り組み（進行中の事項のみ）
    ============================================================ */
-function Tasks({ s, set, go }) {
+function Efforts({ s, set, go }) {
   const load = weeklyLoad(s);
   const active = s.tasks.filter(t => t.status === 'active');
   const parked = s.tasks.filter(t => t.status === 'parked');
   const done = s.tasks.filter(t => t.status === 'done');
   const dropped = s.tasks.filter(t => t.status === 'dropped');
   const [adding, setAdding] = useState(false);
-  const [quit, setQuit] = useState(null);     // task id
-  const [starting, setStarting] = useState(null); // inbox id
+  const [quit, setQuit] = useState(null);
   const wk = mondayOf(todayISO());
-  const wts = s.weekTasks.filter(w => w.weekOf === wk);
-  const [wtText, setWtText] = useState('');
-
+  const [wt, setWt] = useState('');
   const now = () => new Date().toISOString();
-  function advance(id) {
-    set(p => bumpTrend({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, progress: clamp((t.progress || 0) + 10, 0, 100), lastMovedAt: now(), stalePen: false } : t) }, p.weights.advance, true));
-  }
-  function touch(id) {
-    set(p => bumpTrend({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, lastMovedAt: now(), stalePen: false } : t) }, p.weights.advance, true));
-  }
+
+  function advance(id) { set(p => bumpTrend({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, progress: clamp((t.progress || 0) + 10, 0, 100), lastMovedAt: now(), stalePen: false } : t) }, p.weights.advance, true)); }
+  function touch(id) { set(p => bumpTrend({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, lastMovedAt: now(), stalePen: false } : t) }, p.weights.advance, true)); }
   function complete(id) {
     set(p => {
       const t = p.tasks.find(x => x.id === id); if (!t) return p;
@@ -520,14 +589,12 @@ function Tasks({ s, set, go }) {
       return bumpTrend({ ...p, tasks: p.tasks.map(x => x.id === id ? { ...x, status: 'done', progress: 100, doneAt: now(), lastMovedAt: now() } : x) }, amt, false);
     });
   }
-  function park(id) { set(p => ({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, status: 'parked', lastMovedAt: now() } : t) })); }
   function resume(id) {
-    const plan = reductionPlan(s, s.tasks.find(t => t.id === id).weight || 1);
-    if (!plan.ok) { alert(`いま戻すと予算オーバー（${plan.over}pt）。先にどれかを手放すか保留に。`); return; }
+    const plan = reductionPlan(s, (s.tasks.find(t => t.id === id) || {}).weight || 1);
+    if (!plan.ok) { alert(`いま戻すと予算オーバー（${plan.over}pt）。先に何かを手放すか保留に。`); return; }
     set(p => ({ ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, status: 'active', lastMovedAt: now(), stalePen: false } : t) }));
   }
   function doQuit(id, mode) {
-    // mode: 'drop' | 'park'
     set(p => {
       const t = p.tasks.find(x => x.id === id); if (!t) return p;
       if (mode === 'park') return { ...p, tasks: p.tasks.map(x => x.id === id ? { ...x, status: 'parked', lastMovedAt: now() } : x) };
@@ -545,53 +612,35 @@ function Tasks({ s, set, go }) {
           weight: item.weight, status: 'active', progress: 0, createdAt: item.createdAt, lastMovedAt: now(), doneAt: null, droppedAt: null,
           note: '', gate: item.gate || '', ret: item.ret || 2, stalePen: false }],
         inbox: np.inbox.filter(x => x.id !== item.id) };
-      return np;
-    });
-    setStarting(null);
-  }
-  function addWeekTask() {
-    const v = wtText.trim(); if (!v) return;
-    set(p => ({ ...p, weekTasks: [...p.weekTasks, { id: uid(), taskId: null, text: v, weekOf: wk, done: false }] }));
-    setWtText('');
-  }
-  function toggleWeek(id) {
-    set(p => {
-      const w = p.weekTasks.find(x => x.id === id);
-      let np = { ...p, weekTasks: p.weekTasks.map(x => x.id === id ? { ...x, done: !x.done } : x) };
-      if (w && !w.done) np = bumpTrend(np, np.weights.advance, true);
-      return np;
+      return snapPrice(np);
     });
   }
 
-  const Section = ({ type }) => {
+  const Group = ({ type }) => {
     const list = active.filter(t => t.type === type);
+    if (!list.length) return null;
     return (
       <div className="sec">
-        <div className="between">
-          <div className="kicker">{TYPE_LABEL[type]}</div>
-          <div className="xs">{TYPE_NOTE[type]}</div>
-        </div>
-        {list.length === 0 && <div className="sub mt10">なし</div>}
+        <div className="kicker">{TYPE_MARK[type]} {TYPE_LABEL[type]}</div>
         {list.map(t => {
           const av = assetValue(t, s);
+          const idle = daysSince(t.lastMovedAt);
           return (
             <div key={t.id} className={`task ${isStale(t) ? 'stale' : ''}`}>
               <div className="between">
-                <div className="t-title" style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.55, flex: 1 }}>{t.title}</div>
-                <div className="num xs" style={{ whiteSpace: 'nowrap' }}>資産 {av.value}</div>
+                <div className="t-title">{t.title}</div>
+                <div className="num xs nowrap">{idle}日</div>
               </div>
-              <div className="mt6"><PillChips t={t} phases={s.phases} /></div>
-              {t.gate && <div className="xs mt6">{t.type === 'bet' ? 'リターン: ' : '開閉: '}{t.gate}</div>}
-              <div className="row mt6" style={{ gap: 8 }}>
+              <div className="row" style={{ gap: 8, marginTop: 8 }}>
                 <div style={{ flex: 1 }}><Meter v={t.progress || 0} max={100} /></div>
                 <div className="num xs">{t.progress || 0}%</div>
+                <div className="num xs">{'•'.repeat(t.weight || 1)}</div>
               </div>
-              <div className="xs mt6">{daysSince(t.lastMovedAt) === 0 ? '今日動かした' : `${daysSince(t.lastMovedAt)}日 動いていない`}</div>
-              <div className="row wrap mt10" style={{ gap: 6 }}>
-                <button className="btn btn-sm" onClick={() => advance(t.id)}>+10% 進める</button>
+              <div className="row wrap" style={{ gap: 6, marginTop: 10 }}>
+                <button className="btn btn-sm" onClick={() => advance(t.id)}>＋10%</button>
                 <button className="btn btn-sm" onClick={() => touch(t.id)}>動かした</button>
                 <button className="btn btn-sm btn-fill" onClick={() => complete(t.id)}>完了</button>
-                <button className="btn btn-sm" onClick={() => setQuit(quit === t.id ? null : t.id)}>手放す…</button>
+                <button className="btn btn-sm" onClick={() => setQuit(quit === t.id ? null : t.id)}>手放す</button>
               </div>
               {quit === t.id && <QuitPanel s={s} t={t} av={av} onDo={doQuit} onCancel={() => setQuit(null)} />}
             </div>
@@ -603,45 +652,45 @@ function Tasks({ s, set, go }) {
 
   return (
     <div className="screen">
-      <div className="kicker">タスク＝資産ポートフォリオ</div>
-      <div className="display d-lg mt6">週の労力 <span className="num">{load}</span> / {s.budget.weekly} pt</div>
-      <div className="mt10"><Meter v={load} max={s.budget.weekly} neg={load > s.budget.weekly} /></div>
-      {load > s.budget.weekly
-        ? <div className="xs mt6" style={{ color: 'var(--accent)' }}>予算オーバー {load - s.budget.weekly}pt。どれかを手放す／保留にする。</div>
-        : <div className="xs mt6">空き {s.budget.weekly - load}pt（MUST確保 {s.budget.reserveMust} / UNLOCK確保 {s.budget.reserveUnlock}）</div>}
+      <div className="kicker">進行中の取り組み</div>
+      <div className="row" style={{ alignItems: 'baseline', gap: 10, marginTop: 4 }}>
+        <div className="display d-lg num">{load} / {s.budget.weekly}</div>
+        <div className="xs">pt／週</div>
+      </div>
+      <div style={{ marginTop: 8 }}><Meter v={load} max={s.budget.weekly} neg={load > s.budget.weekly} /></div>
+      {load > s.budget.weekly && <div className="xs" style={{ color: 'var(--down)', marginTop: 6 }}>予算オーバー {load - s.budget.weekly}pt</div>}
 
-      <Section type="must" />
-      <Section type="unlock" />
-      <Section type="bet" />
+      <Group type="must" />
+      <Group type="unlock" />
+      <Group type="bet" />
 
       <div className="sec">
         <div className="between">
-          <div className="kicker">候補（すぐには始めない）</div>
+          <div className="kicker">候補（すぐ始めない）</div>
           <button className="btn-bare" onClick={() => setAdding(a => !a)}>{adding ? '閉じる' : '＋ 追加'}</button>
         </div>
         {adding && <AddPanel s={s} onAdd={(item) => { set(p => ({ ...p, inbox: [item, ...p.inbox] })); setAdding(false); }} />}
-        {s.inbox.length === 0 && !adding && <div className="sub mt10">なし</div>}
         {s.inbox.map(item => {
           const plan = reductionPlan(s, item.weight);
           return (
             <div key={item.id} className="task">
-              <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.55 }}>{item.text}</div>
-              <div className="xs mt6"><span className="tag">{TYPE_LABEL[item.type]}</span> <span className="tag tag-o">{item.weight}pt/週</span> {item.gate ? '｜ ' + item.gate : ''}</div>
+              <div className="t-title">{TYPE_MARK[item.type]} {item.text}</div>
+              <div className="xs" style={{ marginTop: 4 }}>{item.weight}pt／週{item.gate ? '｜' + item.gate : ''}</div>
               {plan.ok
-                ? <div className="row wrap mt10" style={{ gap: 6 }}>
-                    <span className="xs">いま開始できます（空き {plan.freeNow}pt）</span>
-                    <button className="btn btn-sm btn-fill" onClick={() => activateInbox(item, null)}>開始する</button>
+                ? <div className="row wrap" style={{ gap: 6, marginTop: 10 }}>
+                    <span className="xs">空き {plan.freeNow}pt</span>
+                    <button className="btn btn-sm btn-fill" onClick={() => activateInbox(item, null)}>開始</button>
                     <button className="btn-bare" onClick={() => set(p => ({ ...p, inbox: p.inbox.filter(x => x.id !== item.id) }))}>破棄</button>
                   </div>
-                : <div className="mt10">
-                    <div className="xs" style={{ color: 'var(--accent)' }}>開始には {plan.over}pt 不足。次のどれかを手放す／保留にすると始められます：</div>
+                : <div style={{ marginTop: 10 }}>
+                    <div className="xs" style={{ color: 'var(--down)' }}>開始に {plan.over}pt 不足。1つ外すと始められる：</div>
                     {plan.candidates.map(c => (
-                      <div key={c.t.id} className="between" style={{ padding: '7px 0', borderTop: '1px solid var(--line)' }}>
-                        <div className="xs">{c.t.title}<br />資産 {c.v}／{c.w}pt</div>
-                        <button className="btn btn-sm" disabled={c.w < plan.over} onClick={() => activateInbox(item, c.t.id)}>これを外して開始</button>
+                      <div key={c.t.id} className="between rowline">
+                        <div className="xs">{c.t.title}<br /><span className="num">資産{c.v}・{c.w}pt</span></div>
+                        <button className="btn btn-sm" disabled={c.w < plan.over} onClick={() => activateInbox(item, c.t.id)}>外して開始</button>
                       </div>
                     ))}
-                    <button className="btn-bare mt6" onClick={() => set(p => ({ ...p, inbox: p.inbox.filter(x => x.id !== item.id) }))}>候補を破棄</button>
+                    <button className="btn-bare" style={{ marginTop: 6 }} onClick={() => set(p => ({ ...p, inbox: p.inbox.filter(x => x.id !== item.id) }))}>候補を破棄</button>
                   </div>}
             </div>
           );
@@ -649,125 +698,87 @@ function Tasks({ s, set, go }) {
       </div>
 
       <div className="sec">
-        <div className="kicker">今週のタスク（WEEKLY）</div>
-        <div className="mt10">
-          {wts.length === 0 && <div className="sub">未設定</div>}
-          {wts.map(w => (
-            <div key={w.id} className="row" style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
-              <div className={`tick ${w.done ? 'on' : ''}`} onClick={() => toggleWeek(w.id)}>{w.done ? '✓' : ''}</div>
-              <div style={{ flex: 1, fontSize: 13, textDecoration: w.done ? 'line-through' : 'none', color: w.done ? 'var(--sub)' : 'var(--ink)' }}>{w.text}</div>
-              <button className="btn-bare" onClick={() => set(p => ({ ...p, weekTasks: p.weekTasks.filter(x => x.id !== w.id) }))}>削除</button>
-            </div>
-          ))}
+        <div className="kicker">今週のタスクを足す</div>
+        <div className="row" style={{ gap: 8, marginTop: 8 }}>
+          <input className="input" placeholder="今週やること" value={wt} onChange={e => setWt(e.target.value)} />
+          <button className="btn btn-sm" onClick={() => { const v = wt.trim(); if (!v) return; set(p => ({ ...p, weekTasks: [...p.weekTasks, { id: uid(), taskId: null, text: v, weekOf: wk, done: false }] })); setWt(''); }} disabled={!wt.trim()}>＋</button>
         </div>
-        <div className="row mt10" style={{ gap: 8 }}>
-          <input className="input" placeholder="今週やること" value={wtText} onChange={e => setWtText(e.target.value)} />
-          <button className="btn btn-sm" onClick={addWeekTask} disabled={!wtText.trim()}>追加</button>
-        </div>
+        <div className="xs" style={{ marginTop: 6 }}>チェックはホームで。</div>
       </div>
 
-      {(parked.length > 0 || done.length > 0 || dropped.length > 0) && (
+      {(parked.length + done.length + dropped.length) > 0 && (
         <div className="sec">
           <div className="kicker">保留 / 完了 / 手放した</div>
           {parked.map(t => (
-            <div key={t.id} className="between" style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+            <div key={t.id} className="between rowline">
               <div className="xs">保留・{t.title}</div>
               <button className="btn btn-sm" onClick={() => resume(t.id)}>戻す</button>
             </div>
           ))}
-          {done.map(t => <div key={t.id} className="xs" style={{ padding: '6px 0', borderTop: '1px solid var(--line)' }}>完了・{t.title}</div>)}
-          {dropped.map(t => <div key={t.id} className="xs" style={{ padding: '6px 0', borderTop: '1px solid var(--line)', color: 'var(--faint)' }}>手放した・{t.title}</div>)}
+          {done.map(t => <div key={t.id} className="xs rowline">✓ {t.title}</div>)}
+          {dropped.map(t => <div key={t.id} className="xs rowline muted">手放した・{t.title}</div>)}
         </div>
       )}
     </div>
   );
 }
-
 function QuitPanel({ s, t, av, onDo, onCancel }) {
   const inc = computeIncome(s);
-  const blocked = s.inbox.filter(it => !reductionPlan(s, it.weight).ok && it.weight <= (t.weight || 1));
   return (
-    <div className="mt10" style={{ borderTop: '1px solid var(--ink)', paddingTop: 10 }}>
-      <div className="kicker">この資産を手放す</div>
-      <div className="mt6">
+    <div className="quit">
+      <div className="kicker">資産価値 {av.value}/100</div>
+      <div style={{ marginTop: 6 }}>
         {av.breakdown.map(([k, v], i) => (
-          <div key={i} className="between" style={{ padding: '3px 0' }}>
+          <div key={i} className="between" style={{ padding: '2px 0' }}>
             <span className="xs">{k}</span><span className="num xs">{v > 0 ? '+' : ''}{v}</span>
           </div>
         ))}
-        <div className="between" style={{ padding: '4px 0', borderTop: '1px solid var(--line)' }}>
-          <span className="xs" style={{ fontWeight: 700 }}>資産価値</span><span className="num xs" style={{ fontWeight: 700 }}>{av.value} / 100</span>
-        </div>
       </div>
-      <div className="grid2 mt10">
+      <div className="grid2" style={{ marginTop: 10 }}>
         <div>
-          <div className="kicker">手放すメリット</div>
-          <div className="xs mt6">
-            ・週の労力が <b>+{t.weight}pt</b> 空く<br />
-            ・中途半端が1つ減る{isStale(t) ? '（停滞コストが消える）' : ''}<br />
-            {blocked.length > 0 && <>・候補「{blocked[0].text}」を開始できる<br /></>}
+          <div className="kicker">手放すと</div>
+          <div className="xs" style={{ marginTop: 4 }}>
+            ・労力 <b>+{t.weight}pt</b> 空く<br />
+            ・中途半端が1つ減る
           </div>
         </div>
         <div>
-          <div className="kicker">手放すデメリット</div>
-          <div className="xs mt6">
-            ・進捗 <b>{t.progress || 0}%</b> が消える<br />
-            {t.type === 'must' && <>・<span style={{ color: 'var(--accent)' }}>「{t.gate || '次の選択肢'}」が閉じる</span>（傾向へ {s.weights.mustDropped}）<br /></>}
-            {t.type === 'unlock' && <>・「{t.gate || '開くはずの道'}」が開かない<br /></>}
-            {t.type === 'bet' && <>・期待リターン（×{t.ret || 2}）を捨てる（傾向へ {s.weights.betDropped}）<br /></>}
-            {t.type === 'must' && <>・予測初任給の押上げ分 約 {man(inc.mustLift)} を失う<br /></>}
-            {t.type === 'unlock' && <>・予測初任給の押上げ分 約 {man(inc.unlockLift)} を失う<br /></>}
+          <div className="kicker">失うもの</div>
+          <div className="xs" style={{ marginTop: 4 }}>
+            ・進捗 <b>{t.progress || 0}%</b><br />
+            {t.type === 'must' && <span style={{ color: 'var(--down)' }}>・「{t.gate || '次の選択肢'}」が閉じる<br />・予測年収 約 −{man(inc.mustLift)}<br /></span>}
+            {t.type === 'unlock' && <span>・「{t.gate || '開くはずの道'}」が開かない<br />・予測年収 約 −{man(inc.unlockLift)}<br /></span>}
+            {t.type === 'bet' && <span>・期待リターン ×{t.ret || 2}<br /></span>}
           </div>
         </div>
       </div>
-      <div className="row wrap mt10" style={{ gap: 6 }}>
-        <button className="btn btn-sm" onClick={() => onDo(t.id, 'park')}>保留にする（進捗は残す）</button>
-        <button className="btn btn-sm tag-neg" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => onDo(t.id, 'drop')}>手放す</button>
+      <div className="row wrap" style={{ gap: 6, marginTop: 10 }}>
+        <button className="btn btn-sm" onClick={() => onDo(t.id, 'park')}>保留（進捗は残す）</button>
+        <button className="btn btn-sm" style={{ borderColor: 'var(--down)', color: 'var(--down)' }} onClick={() => onDo(t.id, 'drop')}>手放す</button>
         <button className="btn-bare" onClick={onCancel}>やめる</button>
       </div>
     </div>
   );
 }
-
 function AddPanel({ s, onAdd }) {
   const [f, setF] = useState({ text: '', type: 'unlock', pillarId: 'career', phaseId: currentPhase(s.phases).id, weight: 2, gate: '', ret: 2 });
   const plan = reductionPlan(s, f.weight);
   return (
-    <div className="mt10" style={{ borderTop: '1px solid var(--line)', paddingTop: 10 }}>
-      <div className="field">
-        <label>やること</label>
-        <textarea className="textarea" value={f.text} onChange={e => setF({ ...f, text: e.target.value })} placeholder="例：交換留学の出願エッセイを完成させる" />
-      </div>
+    <div className="quit">
+      <div className="field"><label>やること</label><textarea className="textarea" value={f.text} onChange={e => setF({ ...f, text: e.target.value })} placeholder="例：出願エッセイを完成させる" /></div>
       <div className="field">
         <label>タイプ</label>
         <div className="seg">
-          {['must','unlock','bet'].map(tp => (
-            <button key={tp} className={f.type === tp ? 'on' : ''} onClick={() => setF({ ...f, type: tp })}>{TYPE_LABEL[tp]}</button>
-          ))}
+          {['must','unlock','bet'].map(tp => <button key={tp} className={f.type === tp ? 'on' : ''} onClick={() => setF({ ...f, type: tp })}>{TYPE_LABEL[tp]}</button>)}
         </div>
-        <div className="xs mt6">{TYPE_NOTE[f.type]}</div>
+        <div className="xs" style={{ marginTop: 4 }}>{TYPE_NOTE[f.type]}</div>
       </div>
       <div className="grid2">
-        <div className="field">
-          <label>柱</label>
-          <select className="input" value={f.pillarId} onChange={e => setF({ ...f, pillarId: e.target.value })}>
-            {PILLARS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label>フェーズ</label>
-          <select className="input" value={f.phaseId} onChange={e => setF({ ...f, phaseId: e.target.value })}>
-            {s.phases.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
-          </select>
-        </div>
+        <div className="field"><label>柱</label><select className="input" value={f.pillarId} onChange={e => setF({ ...f, pillarId: e.target.value })}>{PILLARS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div className="field"><label>フェーズ</label><select className="input" value={f.phaseId} onChange={e => setF({ ...f, phaseId: e.target.value })}>{s.phases.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></div>
       </div>
       <div className="grid2">
-        <div className="field">
-          <label>週の労力</label>
-          <div className="seg">
-            {[1,2,3].map(w => <button key={w} className={f.weight === w ? 'on' : ''} onClick={() => setF({ ...f, weight: w })}>{w}pt</button>)}
-          </div>
-        </div>
+        <div className="field"><label>週の労力</label><div className="seg">{[1,2,3].map(w => <button key={w} className={f.weight === w ? 'on' : ''} onClick={() => setF({ ...f, weight: w })}>{w}pt</button>)}</div></div>
         <div className="field">
           <label>{f.type === 'bet' ? '期待リターン' : '開閉する選択肢'}</label>
           {f.type === 'bet'
@@ -775,95 +786,117 @@ function AddPanel({ s, onAdd }) {
             : <input className="input" value={f.gate} onChange={e => setF({ ...f, gate: e.target.value })} placeholder="例：留学の道が閉じる" />}
         </div>
       </div>
-      <div className="xs mb10">
-        {plan.ok
-          ? `いまなら空き ${plan.freeNow}pt。候補に入れて、すぐ開始できます。`
-          : `いま追加しても即開始は不可（${plan.over}pt 不足）。候補に入れて、タスク画面で何かを手放してから開始します。`}
-      </div>
+      <div className="xs" style={{ marginBottom: 10 }}>{plan.ok ? `空き ${plan.freeNow}pt。候補に入れてすぐ開始できます。` : `即開始は不可（${plan.over}pt 不足）。候補に入れて、何かを手放してから開始。`}</div>
       <button className="btn btn-block btn-fill" disabled={!f.text.trim()}
-        onClick={() => onAdd({ id: uid(), text: f.text.trim(), type: f.type, pillarId: f.pillarId, phaseId: f.phaseId, weight: f.weight, gate: f.gate.trim(), ret: f.ret, createdAt: new Date().toISOString() })}>
-        候補に入れる
-      </button>
+        onClick={() => onAdd({ id: uid(), text: f.text.trim(), type: f.type, pillarId: f.pillarId, phaseId: f.phaseId, weight: f.weight, gate: f.gate.trim(), ret: f.ret, createdAt: new Date().toISOString() })}>候補に入れる</button>
     </div>
   );
 }
 
 /* ============================================================
-   評価（為替のような傾向 ＋ キャリアとの差）
+   留学（留学＋英語）
    ============================================================ */
-function Evaluation({ s, set, go }) {
-  const ti = useMemo(() => trendInfo(s), [s]);
-  const inc = useMemo(() => computeIncome(s), [s]);
-  const log = s.trend.log || [];
-  const scores = log.map(e => e.score).slice(-84);
-  const wkDays = log.slice(-7);
-  const w28 = log.slice(-28);
-  const tally = (arr) => {
-    let pos = 0, neg = 0;
-    arr.forEach(e => { if (e.delta > 0) pos += e.delta; else neg += e.delta; });
-    return { pos: Math.round(pos), neg: Math.round(neg) };
-  };
-  const t7 = tally(wkDays), t28 = tally(w28);
-  const streak = (() => { let c = 0; for (let i = log.length - 1; i >= 0; i--) { if ((log[i].adv || 0) > 0) c++; else break; } return c; })();
-
-  // この傾向が3ヶ月続いたら
-  const proj90 = Math.max(0, ti.now + ti.slopePctPerDay / 100 * ti.now * 90);
-  const momentum90 = clamp((proj90 / Math.max(1, ti.avg28) - 1) * 0.5, -0.08, 0.08);
-  const incIfHold = inc.projectedStart / (1 + inc.momentum) * (1 + momentum90);
-  const gapIfHold = incIfHold - inc.target;
+function Study({ s, set }) {
+  const here = currentPhase(s.phases);
+  const [open, setOpen] = useState(here.id);
+  const eng = s.english;
+  const setEng = (k, v) => set(p => ({ ...p, english: { ...p.english, [k]: v } }));
+  const dls = s.deadlines.slice().sort((a, b) => a.date.localeCompare(b.date));
 
   return (
     <div className="screen">
-      <div className="kicker">評価 — 取り組みの傾向</div>
-      <div className="row mt6" style={{ alignItems: 'flex-end', gap: 12 }}>
-        <div className="display d-xl">{ti.label}</div>
-        <div className="display d-lg">{ti.arrow}</div>
-      </div>
-      <div className="num xs mt6">指数 {ti.now.toFixed(1)}（28日平均 {ti.avg28.toFixed(1)}）／ 傾き {(ti.slopePctPerDay).toFixed(2)}%/日</div>
-      <div className="mt10"><Line data={scores.length >= 2 ? scores : [TREND_START, ti.now]} h={54} /></div>
-      <div className="xs mt6">為替と同じ。前進で上がり、放置で下がる。直近12週。</div>
+      <div className="kicker">留学 ＋ 英語</div>
+      <div className="hero display d-lg">いま ▸ {here.label}</div>
 
       <div className="sec">
-        <div className="kicker">この傾向が続くと（3ヶ月後）</div>
-        <div className="sub mt6">
-          いまの傾向（<b>{ti.label}</b>）が続くと、卒業時の予測初任給は <b className="num">{man(incIfHold)}</b>。
-          目標 {man(inc.target)} に対して
-          <b className="num" style={{ color: gapIfHold < 0 ? 'var(--accent)' : 'var(--ink)' }}> {gapIfHold < 0 ? '不足 ' : '超過 '}{man(Math.abs(gapIfHold))}／年</b>。
+        <div className="kicker">英語スコア</div>
+        <div className="sub" style={{ marginTop: 6 }}>最低ライン：{eng.target}</div>
+        <div className="grid2" style={{ marginTop: 8 }}>
+          <div className="field"><label>現在のスコア</label><input className="input" value={eng.current} onChange={e => setEng('current', e.target.value)} placeholder="例：iBT 65 / IELTS 5.0" /></div>
+          <div className="field"><label>本試の予定日</label><input className="input" value={eng.testDate} onChange={e => setEng('testDate', e.target.value)} placeholder="YYYY-MM-DD" /></div>
         </div>
-        <div className="sub mt6">
-          いま <b>UNLOCK</b> を1つ完了すると、予測初任給は約 <b className="num">＋{man(inc.unlockLift)}</b>。
-          <b>MUST</b> を1つ手放すと、傾向に <b className="num" style={{ color: 'var(--accent)' }}>{s.weights.mustDropped}</b>、予測初任給 約 <b className="num" style={{ color: 'var(--accent)' }}>−{man(inc.mustLift)}</b>。
-        </div>
+        <label className="row xs" style={{ gap: 6 }}><input type="checkbox" checked={!!eng.ready} onChange={e => setEng('ready', e.target.checked)} />公式スコアレポートを用意済み</label>
       </div>
 
       <div className="sec">
-        <div className="kicker">要因の内訳</div>
-        <div className="grid2 mt10">
-          <div>
-            <div className="xs">直近7日</div>
-            <div className="num d-md display">＋{t7.pos} / {t7.neg}</div>
-          </div>
-          <div>
-            <div className="xs">直近28日</div>
-            <div className="num d-md display">＋{t28.pos} / {t28.neg}</div>
-          </div>
-        </div>
-        <div className="xs mt10">
-          前進 +{s.weights.advance}（1日最大+{ADV_CAP}）／ 2週間放置 {s.weights.stale} ／ 週次レビュー +{s.weights.review} ／
-          UNLOCK完了 +{s.weights.unlockDone} ／ MUST完了 +{s.weights.mustDone} ／ BET回収 +{s.weights.betDone} ／
-          MUST手放し {s.weights.mustDropped} ／ 何もしない日 {PASSIVE_DECAY}
-        </div>
+        <div className="kicker">締切</div>
+        {dls.map(d => {
+          const du = daysUntil(d.date);
+          return (
+            <div key={d.id} className="row chk">
+              <div className={`tick ${d.done ? 'on' : ''}`} onClick={() => set(p => ({ ...p, deadlines: p.deadlines.map(x => x.id === d.id ? { ...x, done: !x.done } : x) }))}>{d.done ? '✓' : ''}</div>
+              <div className="chk-t" style={{ textDecoration: d.done ? 'line-through' : 'none', color: d.done ? 'var(--sub)' : 'var(--ink)' }}>{d.text}</div>
+              {!d.done && <div className="num xs nowrap" style={{ color: du <= 14 ? 'var(--down)' : 'var(--sub)' }}>{du < 0 ? `${-du}日超` : `${du}日`}</div>}
+            </div>
+          );
+        })}
       </div>
 
       <div className="sec">
-        <div className="between">
-          <div>
-            <div className="kicker">継続力</div>
-            <div className="display d-lg num mt6">{streak}日連続</div>
-          </div>
-          <button className="btn btn-fill" onClick={() => go('review')}>週次レビューを行う</button>
+        <div className="kicker">準備フェーズ ①〜⑥</div>
+        {s.phases.map(p => {
+          const total = (p.items || []).length;
+          const dc = (p.items || []).filter((_, i) => s.phaseDone[`${p.id}|${i}`]).length;
+          const isHere = p.id === here.id;
+          return (
+            <div key={p.id} className="phase">
+              <div className="phase-h" onClick={() => setOpen(open === p.id ? null : p.id)}>
+                <span className={`pdot ${isHere ? 'here' : (todayISO() > p.end ? 'past' : '')}`} />
+                <div style={{ flex: 1 }}>
+                  <div className="phase-t">{p.label}{isHere && <span className="now-tag">現在地</span>}</div>
+                  <div className="xs">{p.period}・{p.theme}</div>
+                </div>
+                <div className="num xs">{dc}/{total}</div>
+                <div className="xs">{open === p.id ? '−' : '＋'}</div>
+              </div>
+              {open === p.id && (
+                <div style={{ marginTop: 6 }}>
+                  {(p.items || []).map((it, i) => {
+                    const k = `${p.id}|${i}`;
+                    const on = !!s.phaseDone[k];
+                    return (
+                      <div key={i} className="row chk">
+                        <div className={`tick ${on ? 'on' : ''}`} onClick={() => set(pr => snapPrice({ ...pr, phaseDone: { ...pr.phaseDone, [k]: !on } }))}>{on ? '✓' : ''}</div>
+                        <div className="chk-t" style={{ textDecoration: on ? 'line-through' : 'none', color: on ? 'var(--sub)' : 'var(--ink)' }}>{it}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="sec">
+        <div className="kicker">全体像</div>
+        <div style={{ marginTop: 10 }}><Timeline s={s} /></div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   評価（株価チャート）
+   ============================================================ */
+function Evaluation({ s }) {
+  const inc = useMemo(() => computeIncome(s), [s]);
+  return (
+    <div className="screen">
+      <div className="kicker">評価 — 予測年収の推移</div>
+      <div style={{ marginTop: 12 }}>
+        <StockChart series={s.trend.priceLog || []} target={inc.target} />
+      </div>
+      <div className="sec">
+        <div className="kicker">読み方</div>
+        <div className="sub" style={{ marginTop: 6 }}>
+          線＝いまのペースが続いたときの<b>初任給（年収）</b>の予測。点線＝目標。
+          タスクを完了すると上がり、放置・手放しで下がる。
         </div>
-        <div className="xs mt6">毎日「1つでも前進」した日が続いた数。ESで最初に問われる力。</div>
+        <div className="grid2" style={{ marginTop: 10 }}>
+          <div><div className="kicker">30代前半の予測</div><div className="display d-md num">{man(inc.projected30s)}</div></div>
+          <div><div className="kicker">その目標</div><div className="display d-md num">{man(s.ideal.target30s)}</div></div>
+        </div>
       </div>
     </div>
   );
@@ -874,7 +907,7 @@ function Evaluation({ s, set, go }) {
    ============================================================ */
 function Review({ s, set, go }) {
   const since = s.trend.lastReview;
-  const doneRecent = s.tasks.filter(t => t.status === 'done' && (!since || (t.doneAt || '').slice(0,10) > since));
+  const doneRecent = s.tasks.filter(t => t.status === 'done' && (!since || (t.doneAt || '').slice(0, 10) > since));
   const stale = s.tasks.filter(isStale);
   const load = weeklyLoad(s);
   const thisYM = ymNow();
@@ -892,13 +925,8 @@ function Review({ s, set, go }) {
   }
   function addSaving() { set(p => ({ ...p, savings: { ...p.savings, entries: [...p.savings.entries.filter(e => e.ym !== thisYM), { ym: thisYM, amount: p.savings.monthly }] } })); }
   function complete() {
-    set(p => {
-      let np = bumpTrend(p, p.weights.review, false);
-      const v = computeIncome(np).projectedStart;
-      const incomeLog = [...(np.trend.incomeLog || []).filter(e => e.ym !== thisYM), { ym: thisYM, v }].sort((a,b) => a.ym.localeCompare(b.ym));
-      return { ...np, trend: { ...np.trend, lastReview: todayISO(), incomeLog } };
-    });
-    alert('週次レビュー完了。傾向に加点しました。');
+    set(p => snapPrice({ ...bumpTrend(p, p.weights.review, false), trend: { ...bumpTrend(p, p.weights.review, false).trend, lastReview: todayISO() } }));
+    alert('週次レビュー完了。');
     go('home');
   }
 
@@ -908,59 +936,56 @@ function Review({ s, set, go }) {
         <div className="kicker">週次レビュー</div>
         <button className="btn-bare" onClick={() => go('home')}>閉じる</button>
       </div>
-      <div className="display d-lg mt6">{since ? `前回 ${fmtDate(since)}` : 'はじめてのレビュー'}</div>
+      <div className="display d-lg" style={{ marginTop: 4 }}>{since ? `前回 ${fmtDate(since)}` : 'はじめて'}</div>
 
       <div className="sec">
-        <div className="kicker">1. 完了したこと（{doneRecent.length}）</div>
-        {doneRecent.length === 0 && <div className="sub mt10">前回からの完了はまだなし。小さく1つでも終える。</div>}
-        {doneRecent.map(t => <div key={t.id} className="sub" style={{ padding: '4px 0' }}>✓ {t.title}</div>)}
+        <div className="kicker">1. 完了（{doneRecent.length}）</div>
+        {doneRecent.length === 0 && <div className="sub" style={{ marginTop: 8 }}>前回からの完了なし。1つでも終える。</div>}
+        {doneRecent.map(t => <div key={t.id} className="xs rowline">✓ {t.title}</div>)}
       </div>
 
       <div className="sec">
-        <div className="kicker">2. 止まっているもの（{stale.length}）</div>
-        {stale.length === 0 && <div className="sub mt10">{STALE_DAYS}日以上動いていない進行中はなし。</div>}
+        <div className="kicker">2. 止まっている（{stale.length}）</div>
+        {stale.length === 0 && <div className="sub" style={{ marginTop: 8 }}>なし。</div>}
         {stale.map(t => (
           <div key={t.id} className="task stale">
-            <div className="t-title" style={{ fontSize: 13, fontWeight: 700 }}>{t.title}</div>
-            <div className="xs mt6">{daysSince(t.lastMovedAt)}日 動いていない・資産 {assetValue(t, s).value}</div>
-            <div className="row wrap mt10" style={{ gap: 6 }}>
-              <button className="btn btn-sm" onClick={() => touch(t.id)}>続ける（動かす宣言）</button>
+            <div className="t-title">{t.title}</div>
+            <div className="xs" style={{ marginTop: 4 }}>{daysSince(t.lastMovedAt)}日 動いていない</div>
+            <div className="row wrap" style={{ gap: 6, marginTop: 8 }}>
+              <button className="btn btn-sm" onClick={() => touch(t.id)}>続ける</button>
               <button className="btn btn-sm" onClick={() => park(t.id)}>保留</button>
-              <button className="btn btn-sm" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={() => drop(t.id)}>手放す</button>
+              <button className="btn btn-sm" style={{ borderColor: 'var(--down)', color: 'var(--down)' }} onClick={() => drop(t.id)}>手放す</button>
             </div>
           </div>
         ))}
       </div>
 
       <div className="sec">
-        <div className="kicker">3. 候補の仕分け（{s.inbox.length}）</div>
-        <div className="sub mt6">「2030年の理想」と「①〜⑥」に紐づき、空きがあるものだけ開始へ。</div>
+        <div className="kicker">3. 候補（{s.inbox.length}）</div>
         {s.inbox.map(item => (
-          <div key={item.id} className="between" style={{ padding: '8px 0', borderTop: '1px solid var(--line)' }}>
+          <div key={item.id} className="between rowline">
             <span className="xs" style={{ flex: 1 }}>{item.text}</span>
             <button className="btn-bare" onClick={() => set(p => ({ ...p, inbox: p.inbox.filter(x => x.id !== item.id) }))}>捨てる</button>
           </div>
         ))}
-        {s.inbox.length > 0 && <button className="btn btn-sm mt10" onClick={() => go('tasks')}>タスク画面で開始する</button>}
+        {s.inbox.length > 0 && <button className="btn btn-sm" style={{ marginTop: 8 }} onClick={() => go('efforts')}>取り組みで開始</button>}
       </div>
 
       <div className="sec">
         <div className="kicker">4. 来週の労力</div>
-        <div className="display d-lg num mt6">{load} / {s.budget.weekly} pt</div>
-        {load > s.budget.weekly
-          ? <div className="xs mt6" style={{ color: 'var(--accent)' }}>予算オーバー。タスク画面で保留にして {s.budget.weekly}pt 以内へ。</div>
-          : <div className="xs mt6">空き {s.budget.weekly - load}pt。埋めなくてよい。</div>}
+        <div className="display d-lg num" style={{ marginTop: 4 }}>{load} / {s.budget.weekly}</div>
+        {load > s.budget.weekly && <div className="xs" style={{ color: 'var(--down)', marginTop: 4 }}>予算オーバー。保留にして {s.budget.weekly}pt 以内へ。</div>}
       </div>
 
       <div className="sec">
         <div className="kicker">5. 今月の貯金</div>
         {savedThisMonth
-          ? <div className="sub mt10">{thisYM.replace('-','/')} は記録済み（{yen(s.savings.monthly)}）。</div>
-          : <button className="btn btn-sm mt10" onClick={addSaving}>{thisYM.replace('-','/')} に {yen(s.savings.monthly)} を記録</button>}
+          ? <div className="sub" style={{ marginTop: 8 }}>{thisYM.replace('-', '/')} 記録済み（{yen(s.savings.monthly)}）</div>
+          : <button className="btn btn-sm" style={{ marginTop: 8 }} onClick={addSaving}>{thisYM.replace('-', '/')} に {yen(s.savings.monthly)} を記録</button>}
       </div>
 
       <div className="sec-line">
-        <button className="btn btn-block btn-fill" onClick={complete}>レビュー完了（傾向に +{s.weights.review}）</button>
+        <button className="btn btn-block btn-fill" onClick={complete}>レビュー完了</button>
       </div>
     </div>
   );
@@ -975,18 +1000,16 @@ function Settings({ s, set }) {
   const total = sv.entries.reduce((a, e) => a + e.amount, 0);
   const elapsed = Math.max(0, monthsBetweenYM(sv.startYM, ymNow()) + 1);
   const expected = Math.min(sv.goalTotal, elapsed * sv.monthly);
-
   const setIdeal = (k, v) => set(p => ({ ...p, ideal: { ...p.ideal, [k]: v } }));
   const setBudget = (k, v) => set(p => ({ ...p, budget: { ...p.budget, [k]: Number(v) || 0 } }));
-  const setWeight = (k, v) => set(p => ({ ...p, weights: { ...p.weights, [k]: Number(v) || 0 } }));
   function setBand(id, k, v) { set(p => ({ ...p, timeline: { ...p.timeline, bands: p.timeline.bands.map(b => b.id === id ? { ...b, [k]: v } : b) } })); }
   function delBand(id) { set(p => ({ ...p, timeline: { ...p.timeline, bands: p.timeline.bands.filter(b => b.id !== id) } })); }
   function addBand() { set(p => ({ ...p, timeline: { ...p.timeline, bands: [...p.timeline.bands, { id: uid(), track: 'job', label: '新規', start: ymNow(), end: ymNow() }] } })); }
   function months() { const arr = []; let ym = sv.startYM; const end = ymNow(); for (let i = 0; i < 40; i++) { arr.push(ym); if (ym >= end) break; ym = ymAdd(ym, 1); } return arr; }
   function setMonth(ym, on) { set(p => ({ ...p, savings: { ...p.savings, entries: on ? [...p.savings.entries.filter(e => e.ym !== ym), { ym, amount: p.savings.monthly }] : p.savings.entries.filter(e => e.ym !== ym) } })); }
-  function exportJSON() { const txt = JSON.stringify(s); if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => alert('バックアップをコピーしました。'), () => prompt('コピー', txt)); else prompt('コピー', txt); }
-  function importJSON() { try { const o = JSON.parse(imp); set(() => ({ ...defaultState(), ...o })); setImp(''); alert('インポートしました。'); } catch (e) { alert('読み取れませんでした。'); } }
-  function wipe() { if (confirm('すべて消して初期化します。よろしいですか？')) set(() => defaultState()); }
+  function exportJSON() { const txt = JSON.stringify(s); if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => alert('コピーしました'), () => prompt('コピー', txt)); else prompt('コピー', txt); }
+  function importJSON() { try { const o = JSON.parse(imp); set(() => ({ ...defaultState(), ...o })); setImp(''); alert('インポートしました'); } catch (e) { alert('読み取れませんでした'); } }
+  function wipe() { if (confirm('すべて消して初期化します。')) set(() => defaultState()); }
 
   return (
     <div className="screen">
@@ -994,35 +1017,26 @@ function Settings({ s, set }) {
 
       <div className="sec">
         <div className="kicker">2030年 わたしの理想</div>
-        <div className="field mt10"><label>ヘッドライン</label><textarea className="textarea" value={s.ideal.headline} onChange={e => setIdeal('headline', e.target.value)} /></div>
+        <div className="field" style={{ marginTop: 10 }}><label>ヘッドライン</label><textarea className="textarea" value={s.ideal.headline} onChange={e => setIdeal('headline', e.target.value)} /></div>
         <div className="field"><label>キャリア</label><textarea className="textarea" value={s.ideal.career} onChange={e => setIdeal('career', e.target.value)} /></div>
         <div className="field"><label>暮らし</label><textarea className="textarea" value={s.ideal.life} onChange={e => setIdeal('life', e.target.value)} /></div>
         <div className="field"><label>大事にしたいこと</label><textarea className="textarea" value={s.ideal.keep} onChange={e => setIdeal('keep', e.target.value)} /></div>
         <div className="grid2">
           <div className="field"><label>目標 初任給（年収・円）</label><input className="input num" value={s.ideal.targetStart} onChange={e => setIdeal('targetStart', Number(e.target.value) || 0)} /></div>
-          <div className="field"><label>目標 30代前半（年収・円）</label><input className="input num" value={s.ideal.target30s} onChange={e => setIdeal('target30s', Number(e.target.value) || 0)} /></div>
+          <div className="field"><label>目標 30代前半（円）</label><input className="input num" value={s.ideal.target30s} onChange={e => setIdeal('target30s', Number(e.target.value) || 0)} /></div>
         </div>
       </div>
 
       <div className="sec">
-        <div className="kicker">労力の予算（週）</div>
-        <div className="grid2 mt10">
+        <div className="kicker">週の労力予算</div>
+        <div className="grid2" style={{ marginTop: 10 }}>
           <div className="field"><label>週の合計pt</label><input className="input num" value={s.budget.weekly} onChange={e => setBudget('weekly', e.target.value)} /></div>
           <div className="field"><label>MUST確保pt</label><input className="input num" value={s.budget.reserveMust} onChange={e => setBudget('reserveMust', e.target.value)} /></div>
         </div>
       </div>
 
       <div className="sec">
-        <div className="kicker">傾向グラフの重み</div>
-        <div className="grid2 mt10">
-          {Object.keys(s.weights).map(k => (
-            <div className="field" key={k}><label>{k}</label><input className="input num" value={s.weights[k]} onChange={e => setWeight(k, e.target.value)} /></div>
-          ))}
-        </div>
-      </div>
-
-      <div className="sec">
-        <div className="between"><div className="kicker">タイムラインの帯</div><button className="btn-bare" onClick={addBand}>＋ 追加</button></div>
+        <div className="between"><div className="kicker">タイムラインの帯</div><button className="btn-bare" onClick={addBand}>＋</button></div>
         {s.timeline.bands.map(b => (
           <div key={b.id} className="task">
             <div className="row" style={{ gap: 6 }}>
@@ -1031,10 +1045,10 @@ function Settings({ s, set }) {
                 <option value="school">学年</option><option value="study">留学</option><option value="job">就活</option>
               </select>
             </div>
-            <div className="row mt6" style={{ gap: 6 }}>
+            <div className="row" style={{ gap: 6, marginTop: 6 }}>
               <input className="input" placeholder="YYYY-MM" value={b.start} onChange={e => setBand(b.id, 'start', e.target.value)} />
               <input className="input" placeholder="YYYY-MM" value={b.end} onChange={e => setBand(b.id, 'end', e.target.value)} />
-              <label className="xs row" style={{ gap: 4 }}><input type="checkbox" checked={!!b.ms} onChange={e => setBand(b.id, 'ms', e.target.checked)} />点</label>
+              <label className="row xs" style={{ gap: 4 }}><input type="checkbox" checked={!!b.ms} onChange={e => setBand(b.id, 'ms', e.target.checked)} />節目</label>
               <button className="btn-bare" onClick={() => delBand(b.id)}>削除</button>
             </div>
           </div>
@@ -1042,18 +1056,18 @@ function Settings({ s, set }) {
       </div>
 
       <div className="sec">
-        <div className="kicker">貯金トラッカー</div>
-        <div className="between mt10">
+        <div className="kicker">貯金</div>
+        <div className="between" style={{ marginTop: 10 }}>
           <div className="display d-lg num">{yen(total)}</div>
           <div className="xs">目標 {yen(sv.goalTotal)}／予定 {yen(expected)}</div>
         </div>
-        <div className="mt6"><Meter v={total} max={sv.goalTotal} /></div>
-        <div className="mt10">
+        <div style={{ marginTop: 6 }}><Meter v={total} max={sv.goalTotal} /></div>
+        <div style={{ marginTop: 10 }}>
           {months().map(ym => {
             const e = sv.entries.find(x => x.ym === ym);
             return (
-              <div key={ym} className="between" style={{ padding: '5px 0' }}>
-                <span className="xs num">{ym.replace('-','/')}</span>
+              <div key={ym} className="between" style={{ padding: '4px 0' }}>
+                <span className="xs num">{ym.replace('-', '/')}</span>
                 <button className="btn btn-sm" onClick={() => setMonth(ym, !e)}>{e ? `${yen(e.amount)} ✓` : '記録'}</button>
               </div>
             );
@@ -1063,14 +1077,14 @@ function Settings({ s, set }) {
 
       <div className="sec">
         <div className="kicker">データ</div>
-        <button className="btn btn-block mt10" onClick={exportJSON}>JSONバックアップをコピー</button>
-        <textarea className="textarea mt10" placeholder="JSONを貼ってインポート" value={imp} onChange={e => setImp(e.target.value)} />
-        <button className="btn btn-block mt10" onClick={importJSON} disabled={!imp.trim()}>インポート</button>
-        <button className="btn btn-block mt10" style={{ borderColor: 'var(--accent)', color: 'var(--accent)' }} onClick={wipe}>すべて消して初期化</button>
+        <button className="btn btn-block" style={{ marginTop: 10 }} onClick={exportJSON}>JSONバックアップをコピー</button>
+        <textarea className="textarea" style={{ marginTop: 10 }} placeholder="JSONを貼ってインポート" value={imp} onChange={e => setImp(e.target.value)} />
+        <button className="btn btn-block" style={{ marginTop: 10 }} onClick={importJSON} disabled={!imp.trim()}>インポート</button>
+        <button className="btn btn-block" style={{ marginTop: 10, borderColor: 'var(--down)', color: 'var(--down)' }} onClick={wipe}>すべて消して初期化</button>
       </div>
 
       <div className="sec-line">
-        <div className="xs">なづなのキャリアMAP ／ データはこの端末にのみ保存。iPhoneのSafariで「ホーム画面に追加」でアプリのように使えます。</div>
+        <div className="xs">なづなのキャリアMAP ／ データは端末内のみ。Safariで「ホーム画面に追加」でアプリになります。</div>
       </div>
     </div>
   );
@@ -1080,7 +1094,7 @@ function Settings({ s, set }) {
    NAV / APP
    ============================================================ */
 function Nav({ tab, go }) {
-  const items = [['home','ホーム'],['tasks','タスク'],['eval','評価'],['settings','設定']];
+  const items = [['home','ホーム'],['efforts','取り組み'],['study','留学'],['eval','評価'],['settings','設定']];
   return (
     <div className="nav">
       {items.map(([id, label]) => (
@@ -1094,27 +1108,19 @@ function App() {
   const [tab, setTab] = useState('home');
   useEffect(() => { saveState(s); }, [s]);
   useEffect(() => { window.scrollTo(0, 0); }, [tab]);
-  useEffect(() => {
-    // 当月の予測年収スナップショット（履歴グラフ用）
-    setS(p => {
-      const ym = ymNow();
-      if ((p.trend.incomeLog || []).some(e => e.ym === ym)) return p;
-      const v = computeIncome(p).projectedStart;
-      return { ...p, trend: { ...p.trend, incomeLog: [...(p.trend.incomeLog || []), { ym, v }].slice(-48) } };
-    });
-  }, []);
   const set = (fn) => setS(prev => (typeof fn === 'function' ? fn(prev) : fn));
   const go = (t) => setTab(t);
   return (
     <div>
       {tab === 'home' && <Home s={s} set={set} go={go} />}
-      {tab === 'tasks' && <Tasks s={s} set={set} go={go} />}
-      {tab === 'eval' && <Evaluation s={s} set={set} go={go} />}
+      {tab === 'efforts' && <Efforts s={s} set={set} go={go} />}
+      {tab === 'study' && <Study s={s} set={set} />}
+      {tab === 'eval' && <Evaluation s={s} />}
       {tab === 'review' && <Review s={s} set={set} go={go} />}
       {tab === 'settings' && <Settings s={s} set={set} />}
       {tab !== 'review' && <Nav tab={tab} go={go} />}
     </div>
   );
 }
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
 if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
