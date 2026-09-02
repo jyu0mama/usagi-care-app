@@ -1,0 +1,20 @@
+{
+  "name": "なづなのキャリアMAP",
+  "short_name": "キャリアMAP",
+  "description": "2030年の理想から逆算する、キャリア・ポートフォリオ管理アプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#111111",
+  "orientation": "portrait",
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23111'/%3E%3Cpath d='M96 320 L208 208 L288 272 L416 144' fill='none' stroke='white' stroke-width='24' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
