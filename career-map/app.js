@@ -4,10 +4,48 @@ const {
   useEffect,
   useMemo
 } = React;
-const KEY = 'careermap_v4';
-const INDEX_START = 100;
+const KEY = 'careermap_v5';
 const FOCUS_MAX = 3;
 const TODAY_MAX = 3;
+const ASSETS = [{
+  id: 'academic',
+  name: 'Academic',
+  jp: '学業'
+}, {
+  id: 'englishGlobal',
+  name: 'English / Global',
+  jp: '英語・国際'
+}, {
+  id: 'research',
+  name: 'Research',
+  jp: '研究'
+}, {
+  id: 'leadership',
+  name: 'Leadership',
+  jp: 'リーダーシップ'
+}, {
+  id: 'business',
+  name: 'Business',
+  jp: 'ビジネス経験'
+}, {
+  id: 'coreSkills',
+  name: 'Core Skills',
+  jp: 'コアスキル'
+}];
+const ASSET_MAP = Object.fromEntries(ASSETS.map(a => [a.id, a]));
+const PATHS = [{
+  id: 'advertising',
+  name: '広告（電通・博報堂）'
+}, {
+  id: 'consulting',
+  name: 'コンサル'
+}, {
+  id: 'trading',
+  name: '商社'
+}, {
+  id: 'other',
+  name: 'その他 高年収'
+}];
 const OUTCOMES = [{
   id: 'career',
   name: 'CAREER',
@@ -25,7 +63,6 @@ const OUTCOMES = [{
   name: 'PROJECT',
   desc: '継続的に動く組織・プロジェクトを作る。'
 }];
-const OUT_MAP = Object.fromEntries(OUTCOMES.map(o => [o.id, o]));
 const ACTIONS = {
   english: ['Vocabulary', 'Reading', 'Listening', 'Writing', 'Mock Test', 'Other'],
   research: ['Reading', 'Research Design', 'Data Collection', 'Analysis', 'Writing', 'Presentation', 'Other'],
@@ -60,6 +97,8 @@ const uid = () => 'x' + Date.now().toString(36) + Math.random().toString(36).sli
 const WD = ['日', '月', '火', '水', '木', '金', '土'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const r1 = n => Math.round(n * 10) / 10;
+const man = n => Math.round(n / 10000).toLocaleString() + '万';
+const manD = n => (n >= 0 ? '+' : '−') + '¥' + Math.abs(Math.round(n / 10000)) + '万';
 function pad2(n) {
   return String(n).padStart(2, '0');
 }
@@ -101,12 +140,13 @@ function nowLabel() {
   return `${d.getFullYear()} ${MON3[d.getMonth()]}`;
 }
 function seedProjects() {
-  const M = (label, big) => ({
+  const M = (label, big, evidence) => ({
     id: uid(),
     label,
     done: false,
     doneAt: null,
-    big: !!big
+    big: !!big,
+    evidence: evidence || null
   });
   const P = o => ({
     id: uid(),
@@ -115,6 +155,7 @@ function seedProjects() {
     milestones: [],
     moveLog: [],
     nextActionText: '',
+    assetTargets: [],
     ...o
   });
   return [P({
@@ -123,6 +164,7 @@ function seedProjects() {
     kind: 'english',
     outcome: 'global',
     status: 'focus',
+    assetTargets: ['englishGlobal'],
     goal: '交換留学の資格を取得し、英語を使える状態になる。',
     deadline: {
       label: '英語試験 初回受験',
@@ -135,6 +177,7 @@ function seedProjects() {
     kind: 'university',
     outcome: 'career',
     status: 'focus',
+    assetTargets: ['academic'],
     goal: '留学と卒業に必要な学業成績を維持する。',
     milestones: [M('1年秋のGPAを2.0以上で確定', true), M('2年春までの累積GPAで協定校基準クリア', true)]
   }), P({
@@ -143,24 +186,27 @@ function seedProjects() {
     kind: 'research',
     outcome: 'research',
     status: 'focus',
+    assetTargets: ['research', 'coreSkills'],
     goal: '論文執筆・学会発表。',
-    milestones: [M('研究テーマ決定', true), M('データ収集を開始'), M('論文ドラフト完成', true), M('学会発表', true)]
+    milestones: [M('研究テーマ決定', true), M('データ収集を開始'), M('論文ドラフト完成', true, 'publication'), M('学会発表', true, 'conference')]
   }), P({
     name: '交換留学',
     emoji: '✈️',
     kind: 'study',
     outcome: 'global',
+    assetTargets: ['englishGlobal'],
     goal: '2028年秋から交換留学する。',
     deadline: {
       label: '学内選考 出願',
       date: '2027-09-15'
     },
-    milestones: [M('英語資格取得'), M('GPA条件達成'), M('志望校決定'), M('出願書類準備'), M('学内選考 出願'), M('留学決定', true), M('渡航', true)]
+    milestones: [M('英語資格取得'), M('GPA条件達成'), M('志望校決定'), M('出願書類準備'), M('学内選考 出願'), M('留学決定', true, 'studyAbroad'), M('渡航', true)]
   }), P({
     name: '馬佐良プロジェクト',
     emoji: '🌿',
     kind: 'project',
     outcome: 'project',
+    assetTargets: ['leadership', 'business', 'coreSkills'],
     goal: '慶應公認団体化・継続的な組織化。',
     milestones: [M('公認団体の要件を確認'), M('自分に依存しない運営体制'), M('慶應の公認団体になる', true)]
   }), P({
@@ -168,34 +214,94 @@ function seedProjects() {
     emoji: '💼',
     kind: 'career',
     outcome: 'career',
+    assetTargets: ['business', 'coreSkills'],
     goal: '2030年の選考に向けて経験・スキルを蓄積する。',
     deadline: {
       label: '博報堂インターン 申込〆切',
       date: '2026-10-02'
     },
-    milestones: [M('博報堂インターンに参加'), M('サマーインターンに参加'), M('早期選考で内々定', true)]
+    milestones: [M('博報堂インターンに参加', false, 'internship'), M('サマーインターンに参加', false, 'internship'), M('早期選考で内々定', true)]
   })];
 }
 function defaultState() {
   const ps = seedProjects();
   const pid = n => (ps.find(p => p.name === n) || {}).id;
+  const t = todayISO();
   return {
-    version: 4,
+    version: 5,
     tipsSeen: false,
-    ideal: {
-      headline: '2030年3月・目指す企業・業界を選べる状態で就活する。',
-      outcomes: Object.fromEntries(OUTCOMES.map(o => [o.id, o.desc]))
+    profile: {
+      university: '慶應SFC',
+      faculty: '環境情報',
+      gradYear: 2030,
+      targetPath: 'advertising',
+      english: 'Intermediate（≈ IELTS 5.5）',
+      gpa: 3.2
+    },
+    assets: {
+      academic: 55,
+      englishGlobal: 35,
+      research: 22,
+      leadership: 42,
+      business: 32,
+      coreSkills: 36
+    },
+    assetTouch: Object.fromEntries(ASSETS.map(a => [a.id, t])),
+    assetDay: {
+      date: t,
+      used: {}
     },
     weights: {
-      small: 1,
-      focusBonus: 2,
-      milestone: 12,
-      milestoneBig: 25,
-      stall: -2,
-      deadlineNoProgress: -4,
-      stallDays: 4,
-      deadlineWindow: 30,
-      dailyCap: 8
+      dailyGrow: 1.3,
+      milestoneGrow: 8,
+      milestoneBigGrow: 16,
+      focusMult: 1.6,
+      decayPerWeek: 0.4,
+      dailyCapPerAsset: 4
+    },
+    fitMatrix: {
+      academic: {
+        advertising: 0.5,
+        consulting: 0.6,
+        trading: 0.6,
+        other: 0.5
+      },
+      englishGlobal: {
+        advertising: 0.8,
+        consulting: 0.8,
+        trading: 1.0,
+        other: 0.5
+      },
+      research: {
+        advertising: 0.5,
+        consulting: 0.8,
+        trading: 0.5,
+        other: 0.4
+      },
+      leadership: {
+        advertising: 0.8,
+        consulting: 0.8,
+        trading: 0.8,
+        other: 0.6
+      },
+      business: {
+        advertising: 0.8,
+        consulting: 0.8,
+        trading: 0.8,
+        other: 0.7
+      },
+      coreSkills: {
+        advertising: 1.0,
+        consulting: 0.9,
+        trading: 0.7,
+        other: 0.7
+      }
+    },
+    pathAnchors: {
+      advertising: [4800000, 8500000],
+      consulting: [5500000, 12000000],
+      trading: [5500000, 11000000],
+      other: [3800000, 6500000]
     },
     projects: ps,
     today: [{
@@ -239,8 +345,7 @@ function defaultState() {
       text: '里山プロジェクトのInstagramを毎日更新する',
       createdAt: new Date().toISOString()
     }],
-    index: {
-      start: INDEX_START,
+    income: {
       log: []
     }
   };
@@ -254,21 +359,29 @@ function loadState() {
     return {
       ...d,
       ...s,
-      ideal: {
-        ...d.ideal,
-        ...(s.ideal || {}),
-        outcomes: {
-          ...d.ideal.outcomes,
-          ...((s.ideal || {}).outcomes || {})
-        }
+      profile: {
+        ...d.profile,
+        ...(s.profile || {})
+      },
+      assets: {
+        ...d.assets,
+        ...(s.assets || {})
       },
       weights: {
         ...d.weights,
         ...(s.weights || {})
       },
-      index: {
-        ...d.index,
-        ...(s.index || {})
+      fitMatrix: {
+        ...d.fitMatrix,
+        ...(s.fitMatrix || {})
+      },
+      pathAnchors: {
+        ...d.pathAnchors,
+        ...(s.pathAnchors || {})
+      },
+      income: {
+        ...d.income,
+        ...(s.income || {})
       }
     };
   } catch (e) {
@@ -280,157 +393,225 @@ function saveState(s) {
     localStorage.setItem(KEY, JSON.stringify(s));
   } catch (e) {}
 }
-function progressOf(p) {
-  const ms = p.milestones || [];
-  if (!ms.length) return 0;
-  return Math.round(ms.filter(m => m.done).length / ms.length * 100);
-}
-function nextActionOf(p) {
-  const m = (p.milestones || []).find(x => !x.done);
-  return p.nextActionText && p.nextActionText.trim() || (m ? m.label : '—');
-}
-function lastProgressAt(s) {
-  let t = 0;
-  (s.activity || []).forEach(a => {
-    t = Math.max(t, parseISO(a.date).getTime());
+function fitScore(assets, fitMatrix, path) {
+  let num = 0,
+    den = 0;
+  ASSETS.forEach(a => {
+    const w = fitMatrix[a.id][path];
+    num += assets[a.id] / 100 * w;
+    den += w;
   });
-  (s.projects || []).forEach(p => {
-    (p.moveLog || []).forEach(m => {
-      t = Math.max(t, parseISO(m.date).getTime());
-    });
-    (p.milestones || []).forEach(m => {
-      if (m.done && m.doneAt) t = Math.max(t, new Date(m.doneAt).getTime());
-    });
-  });
-  return t ? new Date(t).toISOString() : null;
+  return den ? clamp(num / den, 0, 1) : 0;
 }
-function ensureIndex(s) {
-  const w = s.weights;
-  const log = [...(s.index && s.index.log || [])];
+function fitLabel(f) {
+  return f >= 0.62 ? 'Strong' : f >= 0.42 ? 'Growing' : 'Developing';
+}
+function evidenceCount(s) {
+  let c = 0;
+  s.projects.forEach(p => (p.milestones || []).forEach(m => {
+    if (m.done) {
+      c += 1;
+      if (m.evidence === 'studyAbroad') c += 3;else if (m.evidence === 'publication') c += 3;else if (m.evidence === 'conference') c += 2;else if (m.evidence === 'internship') c += 1;
+    }
+  }));
+  return c;
+}
+function confidenceOf(s) {
+  const c = evidenceCount(s);
+  if (c < 4) return {
+    label: 'Developing',
+    band: 0.16
+  };
+  if (c < 9) return {
+    label: 'Growing',
+    band: 0.11
+  };
+  return {
+    label: 'Solid',
+    band: 0.07
+  };
+}
+function estimateFor(s, assets) {
+  const fits = {},
+    ests = {};
+  PATHS.forEach(p => {
+    const f = fitScore(assets, s.fitMatrix, p.id);
+    fits[p.id] = f;
+    const [lo, hi] = s.pathAnchors[p.id];
+    ests[p.id] = lo + (hi - lo) * f;
+  });
+  const tgt = s.profile.targetPath || 'advertising';
+  let wsum = 0,
+    blended = 0;
+  PATHS.forEach(p => {
+    const w = fits[p.id] * fits[p.id];
+    wsum += w;
+    blended += ests[p.id] * w;
+  });
+  blended = wsum ? blended / wsum : ests[tgt];
+  const main = 0.5 * ests[tgt] + 0.5 * blended;
+  return {
+    main,
+    fits,
+    ests
+  };
+}
+function incomeNow(s) {
+  const {
+    main,
+    fits,
+    ests
+  } = estimateFor(s, s.assets);
+  const conf = confidenceOf(s);
+  return {
+    main,
+    lo: main * (1 - conf.band),
+    hi: main * (1 + conf.band),
+    fits,
+    ests,
+    conf
+  };
+}
+function growAssets(s, ids, per, cap) {
+  const day = s.assetDay && s.assetDay.date === todayISO() ? {
+    date: s.assetDay.date,
+    used: {
+      ...s.assetDay.used
+    }
+  } : {
+    date: todayISO(),
+    used: {}
+  };
+  const na = {
+    ...s.assets
+  };
+  const touch = {
+    ...(s.assetTouch || {})
+  };
+  ids.forEach(id => {
+    let amt = per * (1 - na[id] / 125);
+    if (cap) {
+      const u = day.used[id] || 0;
+      amt = Math.max(0, Math.min(amt, cap - u));
+      day.used[id] = u + amt;
+    }
+    na[id] = clamp(r1(na[id] + amt), 0, 100);
+    touch[id] = todayISO();
+  });
+  return {
+    ...s,
+    assets: na,
+    assetDay: day,
+    assetTouch: touch
+  };
+}
+function snapshotIncome(s, why) {
+  const inc = incomeNow(s);
+  const log = [...(s.income && s.income.log || [])];
+  const t = todayISO();
+  const pt = {
+    date: t,
+    value: Math.round(inc.main),
+    range: [Math.round(inc.lo), Math.round(inc.hi)],
+    why: []
+  };
+  if (log.length && log[log.length - 1].date === t) {
+    const e = {
+      ...log[log.length - 1]
+    };
+    e.value = pt.value;
+    e.range = pt.range;
+    e.why = [...(e.why || []), ...(why || [])];
+    log[log.length - 1] = e;
+  } else {
+    pt.why = why || [];
+    log.push(pt);
+  }
+  return {
+    ...s,
+    income: {
+      ...s.income,
+      log: log.slice(-620)
+    }
+  };
+}
+function actGrow(s, ids, per, label, cap) {
+  const before = estimateFor(s, s.assets).main;
+  const ns = growAssets(s, ids, per, cap);
+  const after = estimateFor(ns, ns.assets).main;
+  const d = Math.round((after - before) / 10000) * 10000;
+  const why = [];
+  if (Math.abs(d) >= 10000 && ids.length) {
+    const a0 = ids[0];
+    why.push({
+      reason: label,
+      asset: a0,
+      from: r1(s.assets[a0]),
+      to: r1(ns.assets[a0]),
+      incomeDelta: d,
+      up: d >= 0
+    });
+  }
+  return snapshotIncome(ns, why);
+}
+function ensureIncome(s) {
+  const na = {
+    ...s.assets
+  };
+  let decayed = false;
+  ASSETS.forEach(a => {
+    const last = (s.assetTouch || {})[a.id];
+    if (last && daysSinceDate(last) >= 7) {
+      na[a.id] = clamp(r1(na[a.id] - s.weights.decayPerWeek), 12, 100);
+      decayed = true;
+    }
+  });
+  let ns = decayed ? {
+    ...s,
+    assets: na
+  } : s;
+  const log = [...(ns.income && ns.income.log || [])];
   let last = log.length ? log[log.length - 1].date : addDaysISO(todayISO(), -1);
-  let val = log.length ? log[log.length - 1].value : s.index.start || INDEX_START;
-  const nl = [...log];
+  let val = log.length ? log[log.length - 1].value : Math.round(incomeNow(ns).main);
+  let rng = log.length ? log[log.length - 1].range : [val, val];
   let g = 0;
   while (last < todayISO() && g++ < 800) {
     const nx = addDaysISO(last, 1);
     if (nx <= last) break;
     last = nx;
-    nl.push({
+    log.push({
       date: last,
       value: val,
-      delta: 0,
-      events: []
+      range: rng,
+      why: []
     });
   }
-  if (!nl.length) nl.push({
-    date: todayISO(),
-    value: s.index.start || INDEX_START,
-    delta: 0,
-    events: []
-  });
-  if (nl[nl.length - 1].date !== todayISO()) nl.push({
-    date: todayISO(),
-    value: nl[nl.length - 1].value,
-    delta: 0,
-    events: []
-  });
-  const today = {
-    ...nl[nl.length - 1]
-  };
-  if (!today.checked && nl.length > w.stallDays) {
-    let add = 0;
-    const evs = [];
-    const lp = lastProgressAt(s);
-    const dsp = lp ? daysSince(lp) : 999;
-    if (dsp >= w.stallDays && dsp < 900) {
-      add += w.stall;
-      evs.push({
-        reason: `重要な活動が ${dsp}日 進んでいません`,
-        amt: w.stall
-      });
-    }
-    (s.projects || []).forEach(p => {
-      if (p.deadline && p.deadline.date) {
-        const du = daysUntil(p.deadline.date);
-        const recent = (p.moveLog || []).some(m => daysSinceDate(m.date) < w.stallDays);
-        if (du >= 0 && du <= w.deadlineWindow && !recent) {
-          add += w.deadlineNoProgress;
-          evs.push({
-            reason: `${p.name}：締切まで${du}日、進捗なし`,
-            amt: w.deadlineNoProgress,
-            projectId: p.id
-          });
-        }
-      }
-    });
-    today.checked = true;
-    if (add !== 0) {
-      today.delta = r1(today.delta + add);
-      today.events = [...(today.events || []), ...evs];
-      const prev = nl.length > 1 ? nl[nl.length - 2].value : s.index.start || INDEX_START;
-      today.value = r1(prev + today.delta);
-    }
-  }
-  nl[nl.length - 1] = today;
-  return {
-    ...s,
-    index: {
-      ...s.index,
-      log: nl.slice(-560)
-    }
-  };
-}
-function bumpIndex(s, amt, reason, projectId) {
-  const log = [...(s.index && s.index.log || [])];
-  if (!log.length || log[log.length - 1].date !== todayISO()) {
-    const prev = log.length ? log[log.length - 1].value : s.index.start || INDEX_START;
-    log.push({
-      date: todayISO(),
-      value: prev,
-      delta: 0,
-      events: [],
-      checked: true
-    });
-  }
-  const e = {
-    ...log[log.length - 1]
-  };
-  e.delta = r1((e.delta || 0) + amt);
-  e.events = [...(e.events || []), {
-    reason,
-    amt: r1(amt),
-    projectId
-  }];
-  const prev = log.length > 1 ? log[log.length - 2].value : s.index.start || INDEX_START;
-  e.value = r1(prev + e.delta);
-  log[log.length - 1] = e;
-  return {
-    ...s,
-    index: {
-      ...s.index,
+  ns = {
+    ...ns,
+    income: {
+      ...ns.income,
       log
     }
   };
+  return snapshotIncome(ns, decayed ? [{
+    reason: '一部の資産が停滞（7日以上 未活動）',
+    asset: null,
+    incomeDelta: 0,
+    up: false
+  }] : []);
 }
-function gainToday(s) {
-  const log = s.index && s.index.log || [];
-  if (!log.length || log[log.length - 1].date !== todayISO()) return 0;
-  return (log[log.length - 1].events || []).filter(e => e._sm).reduce((a, e) => a + Math.max(0, e.amt), 0);
-}
-function indexInfo(log, days) {
+function incInfo(log, days) {
   const cut = addDaysISO(todayISO(), -days);
   const win = (log || []).filter(e => e.date >= cut);
   const series = win.length ? win : (log || []).slice(-2);
-  const now = series.length ? series[series.length - 1].value : INDEX_START;
-  const base = series.length ? series.length === 1 ? r1(series[0].value - (series[0].delta || 0)) : series[0].value : INDEX_START;
-  const chg = r1(now - base);
-  const pct = base ? chg / base * 100 : 0;
-  const arrow = chg > 0.4 ? '↗' : chg < -0.4 ? '↘' : '→';
+  const now = series.length ? series[series.length - 1].value : 0;
+  const base = series.length ? series.length === 1 ? Math.round(now - (series[0].why || []).reduce((a, w) => a + (w.incomeDelta || 0), 0)) : series[0].value : now;
+  const chg = now - base;
+  const arrow = chg > 5000 ? '↗' : chg < -5000 ? '↘' : '→';
   return {
     now,
     base,
     chg,
-    pct,
     arrow,
     series
   };
@@ -459,6 +640,14 @@ function momentum(p) {
     l: 'Stable'
   };
 }
+function progressOf(p) {
+  const ms = p.milestones || [];
+  return ms.length ? Math.round(ms.filter(m => m.done).length / ms.length * 100) : 0;
+}
+function nextActionOf(p) {
+  const m = (p.milestones || []).find(x => !x.done);
+  return p.nextActionText && p.nextActionText.trim() || (m ? m.label : '—');
+}
 function projById(s, id) {
   return (s.projects || []).find(p => p.id === id);
 }
@@ -469,33 +658,79 @@ function upcomingDeadlines(s, n) {
     emoji: p.emoji
   } : null).filter(Boolean).filter(d => daysUntil(d.date) >= -1).sort((a, b) => a.date.localeCompare(b.date)).slice(0, n || 3);
 }
-function Ring({
-  v
-}) {
-  const R = 15,
-    C = 2 * Math.PI * R;
-  return React.createElement("svg", {
-    width: "36",
-    height: "36",
-    viewBox: "0 0 36 36"
-  }, React.createElement("circle", {
-    cx: "18",
-    cy: "18",
-    r: R,
-    fill: "none",
-    stroke: "var(--line)",
-    strokeWidth: "3.5"
-  }), React.createElement("circle", {
-    cx: "18",
-    cy: "18",
-    r: R,
-    fill: "none",
-    stroke: "var(--ink)",
-    strokeWidth: "3.5",
-    strokeLinecap: "round",
-    strokeDasharray: `${C * v / 100} ${C}`,
-    transform: "rotate(-90 18 18)"
-  }));
+function withOverrides(base, ov) {
+  const a = {
+    ...base
+  };
+  const eng = {
+    '6.0': 58,
+    '6.5': 68,
+    '7.0': 80,
+    '7.5': 90
+  };
+  if (ov.english && eng[ov.english]) a.englishGlobal = Math.max(a.englishGlobal, eng[ov.english]);
+  if (ov.abroad === '6m') {
+    a.englishGlobal += 12;
+    a.business += 6;
+  }
+  if (ov.abroad === '1y') {
+    a.englishGlobal += 20;
+    a.business += 10;
+    a.leadership += 5;
+  }
+  if (ov.research === 'conf') a.research += 15;
+  if (ov.research === 'pub') a.research += 25;
+  if (ov.research === 'both') {
+    a.research += 35;
+    a.coreSkills += 10;
+  }
+  if (ov.project === '6m') {
+    a.leadership += 8;
+    a.business += 6;
+  }
+  if (ov.project === '1y') {
+    a.leadership += 15;
+    a.business += 12;
+  }
+  if (ov.project === '2y') {
+    a.leadership += 24;
+    a.business += 20;
+    a.coreSkills += 8;
+  }
+  if (ov.intern === '1') a.business += 12;
+  if (ov.intern === '2') {
+    a.business += 22;
+    a.coreSkills += 8;
+  }
+  if (ov.intern === 'long') {
+    a.business += 32;
+    a.leadership += 10;
+    a.coreSkills += 12;
+  }
+  Object.keys(a).forEach(k => a[k] = clamp(a[k], 0, 100));
+  return a;
+}
+function scenarioIncomes(s) {
+  const cur = {
+    ...s.assets
+  };
+  ASSETS.forEach(a => {
+    if ((s.assetTouch || {})[a.id] && daysSinceDate(s.assetTouch[a.id]) < 21) cur[a.id] = clamp(cur[a.id] + 6, 0, 100);
+  });
+  const minimum = {};
+  ASSETS.forEach(a => minimum[a.id] = clamp(s.assets[a.id] - 8, 0, 100));
+  const growth = withOverrides(s.assets, {
+    english: '7.0',
+    abroad: '1y',
+    research: 'both',
+    project: '2y',
+    intern: 'long'
+  });
+  return {
+    minimum: estimateFor(s, minimum).main,
+    current: estimateFor(s, cur).main,
+    growth: estimateFor(s, growth).main
+  };
 }
 function Bar({
   v
@@ -516,28 +751,28 @@ function Trend({
     className: `trend t-${m.l.toLowerCase()}`
   }, m.a, " ", m.l);
 }
-function IndexChart({
+function IncomeChart({
   log,
   days,
   showMarkers,
   onPick,
   h
 }) {
-  const info = indexInfo(log, days);
+  const info = incInfo(log, days);
   const s = info.series;
   const pts = s.length >= 2 ? s : [{
     date: addDaysISO((s[0] || {
       date: todayISO()
     }).date, -1),
     value: (s[0] || {
-      value: INDEX_START
-    }).value,
-    events: []
+      value: 0
+    }).value * 0.98,
+    why: []
   }, ...s];
   const vals = pts.map(p => p.value);
   const lo = Math.min(...vals),
     hi = Math.max(...vals);
-  const pad = (hi - lo || 4) * 0.18;
+  const pad = (hi - lo || 200000) * 0.2;
   const mn = lo - pad,
     mx = hi + pad,
     rng = mx - mn || 1;
@@ -565,11 +800,11 @@ function IndexChart({
     y2: "1"
   }, React.createElement("stop", {
     offset: "0",
-    stopColor: up ? '#34A853' : '#E5484D',
+    stopColor: up ? '#2FA35E' : '#E5484D',
     stopOpacity: "0.16"
   }), React.createElement("stop", {
     offset: "1",
-    stopColor: up ? '#34A853' : '#E5484D',
+    stopColor: up ? '#2FA35E' : '#E5484D',
     stopOpacity: "0"
   }))), React.createElement("polygon", {
     points: area,
@@ -581,7 +816,7 @@ function IndexChart({
     strokeWidth: "2",
     strokeLinejoin: "round",
     strokeLinecap: "round"
-  }), showMarkers && pts.map((p, i) => p.events && p.events.length ? React.createElement("circle", {
+  }), showMarkers && pts.map((p, i) => p.why && p.why.length ? React.createElement("circle", {
     key: i,
     cx: x(i),
     cy: y(p.value),
@@ -610,12 +845,17 @@ function AddProgress({
   const [mins, setMins] = useState(null);
   const proj = projById(s, pid);
   const acts = proj && ACTIONS[proj.kind] || ACTIONS.project;
+  const impact = useMemo(() => {
+    if (!proj || !proj.assetTargets.length) return null;
+    const per = s.weights.dailyGrow * (proj.status === 'focus' ? s.weights.focusMult : 1);
+    const proj3 = growAssets(growAssetsN(s, proj.assetTargets, per, 12), proj.assetTargets, per, 12);
+    return null;
+  }, [pid]);
   function done() {
     set(p => {
       const pr = projById(p, pid);
       const w = p.weights;
-      let amt = w.small + (pr.status === 'focus' ? w.focusBonus : 0);
-      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
+      const per = w.dailyGrow * (pr.status === 'focus' ? w.focusMult : 1);
       let np = {
         ...p,
         projects: p.projects.map(x => x.id === pid ? {
@@ -637,17 +877,16 @@ function AddProgress({
           doneAt: new Date().toISOString()
         } : t)
       };
-      if (amt > 0) {
-        np = bumpIndex(np, amt, `${pr.name} — ${action || '進捗'}${mins ? ' ' + mins + 'min' : ''}`, pid);
-        const lg = np.index.log;
-        lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true;
-      }
+      np = actGrow(np, pr.assetTargets, per, `${pr.name} — ${action || '進捗'}`, w.dailyCapPerAsset);
       return np;
     });
     onClose();
   }
   return React.createElement("div", {
-    className: "sheet"
+    className: "sheet",
+    onClick: e => {
+      if (e.target.className === 'sheet') onClose();
+    }
   }, React.createElement("div", {
     className: "sheet-in"
   }, React.createElement("div", {
@@ -684,14 +923,112 @@ function AddProgress({
     key: m,
     className: `chip ${mins === m ? 'on' : ''}`,
     onClick: () => setMins(mins === m ? null : m)
-  }, m, "min"))), React.createElement("button", {
+  }, m, "min"))), proj && proj.assetTargets.length > 0 && React.createElement("div", {
+    className: "hint"
+  }, "\u80B2\u3064\u8CC7\u7523\uFF1A", proj.assetTargets.map(a => ASSET_MAP[a].jp).join(' / ')), React.createElement("button", {
     className: "btn btn-fill btn-block",
     style: {
-      marginTop: 16
+      marginTop: 14
     },
     onClick: done,
     disabled: !action
   }, "Done")));
+}
+function growAssetsN(s, ids, per, times) {
+  let ns = s;
+  for (let i = 0; i < times; i++) ns = growAssets(ns, ids, per);
+  return ns;
+}
+function TaskImpact({
+  s,
+  projId,
+  action,
+  onClose
+}) {
+  const p = projById(s, projId);
+  const per = s.weights.dailyGrow * (p.status === 'focus' ? s.weights.focusMult : 1);
+  const a3 = growAssetsN(s, p.assetTargets, per, 12).assets;
+  const a6 = growAssetsN(s, p.assetTargets, per, 26).assets;
+  const cur = incomeNow(s).main;
+  const inc6 = estimateFor(s, a6).main;
+  const key = p.assetTargets[0];
+  return React.createElement("div", {
+    className: "sheet",
+    onClick: e => {
+      if (e.target.className === 'sheet') onClose();
+    }
+  }, React.createElement("div", {
+    className: "sheet-in"
+  }, React.createElement("div", {
+    className: "between"
+  }, React.createElement("div", {
+    className: "h2"
+  }, "Task Impact"), React.createElement("button", {
+    className: "x",
+    onClick: onClose
+  }, "\u2715")), React.createElement("div", {
+    className: "sub",
+    style: {
+      marginTop: 4
+    }
+  }, p.emoji, " ", p.name, action ? ' — ' + action : ''), key && React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 12,
+      boxShadow: 'none',
+      border: '1px solid var(--line)'
+    }
+  }, React.createElement("div", {
+    className: "lbl"
+  }, ASSET_MAP[key].name, "\uFF08", ASSET_MAP[key].jp, "\uFF09"), React.createElement("div", {
+    className: "row",
+    style: {
+      gap: 14,
+      marginTop: 8
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "now"), React.createElement("div", {
+    className: "big-n"
+  }, Math.round(s.assets[key]))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "3\u30F6\u6708"), React.createElement("div", {
+    className: "big-n"
+  }, Math.round(a3[key]))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "6\u30F6\u6708"), React.createElement("div", {
+    className: "big-n"
+  }, Math.round(a6[key]))))), React.createElement("div", {
+    className: "card",
+    style: {
+      boxShadow: 'none',
+      border: '1px solid var(--line)'
+    }
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "Potential Career Impact\uFF08Model Estimate\uFF09"), React.createElement("div", {
+    className: "row",
+    style: {
+      gap: 14,
+      marginTop: 8
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "\u73FE\u5728\u306E\u60F3\u5B9A"), React.createElement("div", {
+    className: "big-n"
+  }, man(cur))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "6\u30F6\u6708 \u7D9A\u3051\u305F\u5834\u5408"), React.createElement("div", {
+    className: "big-n",
+    style: {
+      color: 'var(--up)'
+    }
+  }, man(inc6)))), React.createElement("div", {
+    className: "ts",
+    style: {
+      marginTop: 6
+    }
+  }, "\u300C\u5FC5\u305A\u4E0A\u304C\u308B\u300D\u3067\u306F\u306A\u304F\u3001\u7D9A\u3051\u305F\u5834\u5408\u306E\u30E2\u30C7\u30EB\u63A8\u5B9A\u3067\u3059\u3002"))));
 }
 function Home({
   s,
@@ -702,20 +1039,30 @@ function Home({
   const [days, setDays] = useState(30);
   const [pick, setPick] = useState(null);
   const [adding, setAdding] = useState(false);
-  const info = useMemo(() => indexInfo(s.index.log, days), [s.index.log, days]);
+  const inc = useMemo(() => incomeNow(s), [s]);
+  const info30 = useMemo(() => incInfo(s.income.log, 30), [s.income.log]);
   const focus = s.projects.filter(p => p.status === 'focus').slice(0, FOCUS_MAX);
   const today = s.today.slice(0, TODAY_MAX);
-  const dls = upcomingDeadlines(s, 3);
-  const RANGES = [[7, '7D'], [30, '30D'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
-  const info30 = useMemo(() => indexInfo(s.index.log, 30), [s.index.log]);
+  const RANGES = [[7, '7D'], [30, '1M'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
+  const whyRecent = (() => {
+    const out = [];
+    for (let i = s.income.log.length - 1; i >= 0 && out.length < 4; i--) {
+      (s.income.log[i].why || []).slice().reverse().forEach(wv => {
+        if (out.length < 4) out.push({
+          ...wv,
+          date: s.income.log[i].date
+        });
+      });
+    }
+    return out;
+  })();
   function toggleToday(id) {
     set(p => {
       const t = p.today.find(x => x.id === id);
       if (!t || t.done) return p;
       const pr = projById(p, t.projectId);
       const w = p.weights;
-      let amt = w.small + (pr && pr.status === 'focus' ? w.focusBonus : 0);
-      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
+      const per = w.dailyGrow * (pr && pr.status === 'focus' ? w.focusMult : 1);
       let np = {
         ...p,
         today: p.today.map(x => x.id === id ? {
@@ -737,11 +1084,7 @@ function Home({
           minutes: null
         }, ...(p.activity || [])].slice(0, 200)
       };
-      if (amt > 0 && pr) {
-        np = bumpIndex(np, amt, `${pr.name} — ${t.action}`, t.projectId);
-        const lg = np.index.log;
-        lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true;
-      }
+      if (pr) np = actGrow(np, pr.assetTargets, per, `${pr.name} — ${t.action}`, w.dailyCapPerAsset);
       return np;
     });
   }
@@ -775,19 +1118,30 @@ function Home({
     className: "card"
   }, React.createElement("div", {
     className: "lbl"
-  }, "CAREER INDEX"), React.createElement("div", {
+  }, "2030 \u60F3\u5B9A\u521D\u5E74\u5EA6\u5E74\u53CE"), React.createElement("div", {
     className: "idx-now"
-  }, info30.now.toFixed(1)), React.createElement("div", {
+  }, man(inc.main), React.createElement("span", {
+    className: "yen"
+  }, "\u5186")), React.createElement("div", {
     className: "idx-sub",
     style: {
       color: info30.chg >= 0 ? 'var(--up)' : 'var(--down)'
     }
-  }, info30.arrow, " ", info30.chg >= 0 ? '+' : '', info30.chg, " this month"), React.createElement("div", {
+  }, info30.arrow, " ", manD(info30.chg), "\u3000", React.createElement("span", {
+    className: "muted2"
+  }, "this month")), React.createElement("div", {
+    className: "ts",
+    style: {
+      marginTop: 8
+    }
+  }, "\u60F3\u5B9A\u30EC\u30F3\u30B8\u3000", man(inc.lo), " \u2014 ", man(inc.hi)), React.createElement("div", {
+    className: "ts"
+  }, "\u73FE\u5728\u306E\u30AD\u30E3\u30EA\u30A2\u8CC7\u7523\u306B\u3082\u3068\u3065\u304F\u3000\u30FB\u3000Confidence: ", inc.conf.label), React.createElement("div", {
     style: {
       marginTop: 14
     }
-  }, React.createElement(IndexChart, {
-    log: s.index.log,
+  }, React.createElement(IncomeChart, {
+    log: s.income.log,
     days: days,
     showMarkers: true,
     onPick: setPick,
@@ -807,16 +1161,16 @@ function Home({
     className: "lbl"
   }, fmtFull(pick.date)), React.createElement("div", {
     className: "pick-v"
-  }, r1(pick.value - pick.delta), " \u2192 ", pick.value), pick.events.map((e, i) => React.createElement("div", {
+  }, man(pick.value), "\u5186"), (pick.why || []).map((wv, i) => React.createElement("div", {
     key: i,
     className: "pick-e"
-  }, React.createElement("span", null, e.reason), e.projectId && projById(s, e.projectId) && React.createElement("span", {
+  }, React.createElement("span", null, wv.up ? '↑' : '↓', " ", wv.reason, wv.asset ? `（${ASSET_MAP[wv.asset].jp} ${wv.from}→${wv.to}）` : ''), wv.incomeDelta ? React.createElement("span", {
     className: "pick-p"
-  }, projById(s, e.projectId).name))))), !s.tipsSeen && React.createElement("div", {
+  }, manD(wv.incomeDelta)) : null)))), !s.tipsSeen && React.createElement("div", {
     className: "card soft"
   }, React.createElement("div", {
     className: "sub"
-  }, "\u6307\u6570\u306F\u682A\u4FA1\u3067\u306F\u306A\u304F\u300C2030\u5E74\u306B\u5411\u3051\u3066\u6700\u8FD1\u3069\u308C\u3060\u3051\u524D\u9032\u3067\u304D\u3066\u3044\u308B\u304B\u300D\u3002\u6570\u3092\u3053\u306A\u3057\u3066\u3082\u4E0A\u304C\u3089\u306A\u3044\u3002\u91CD\u8981\u306A\u6D3B\u52D5\u304C\u6570\u65E5\u6B62\u307E\u308B\u3068\u7DE9\u304F\u4E0B\u304C\u308B\uFF081\u65E5\u306E\u4F11\u307F\u3067\u306F\u4E0B\u3052\u306A\u3044\uFF09\u3002"), React.createElement("button", {
+  }, "\u30BF\u30B9\u30AF\u306F\u5186\u306B\u63DB\u7B97\u3057\u3066\u3044\u307E\u305B\u3093\u3002\u884C\u52D5\u3067 ", React.createElement("b", null, "\u30AD\u30E3\u30EA\u30A2\u8CC7\u7523"), "\uFF08\u82F1\u8A9E\u30FB\u7814\u7A76\u30FB\u5B9F\u7E3E\u2026\uFF09\u304C\u80B2\u3061\u3001\u305D\u306E\u7D50\u679C\u3068\u3057\u3066\u9078\u3079\u308B\u4F01\u696D\u7FA4\u3068\u60F3\u5B9A\u5E74\u53CE\u30EC\u30F3\u30B8\u304C\u5909\u308F\u308A\u307E\u3059\u3002"), React.createElement("button", {
     className: "btn btn-sm",
     style: {
       marginTop: 10
@@ -831,15 +1185,38 @@ function Home({
     className: "between"
   }, React.createElement("div", {
     className: "lbl"
-  }, "CURRENT FOCUS"), React.createElement("button", {
+  }, "WHY IT CHANGED"), React.createElement("button", {
     className: "link",
-    onClick: () => go('projects')
-  }, "\u5909\u66F4")), focus.length === 0 && React.createElement("div", {
+    onClick: () => go('career')
+  }, "\u8CC7\u7523\u3092\u898B\u308B")), whyRecent.length === 0 && React.createElement("div", {
     className: "sub",
     style: {
       marginTop: 6
     }
-  }, "PROJECTS\u3067\u6700\u59273\u3064\u9078\u3076\u3002"), focus.map(p => React.createElement("div", {
+  }, "\u307E\u3060\u5909\u5316\u306A\u3057\u3002Add Progress \u3067\u8A18\u9332\u3059\u308B\u3068\u52D5\u304D\u307E\u3059\u3002"), whyRecent.map((wv, i) => React.createElement("div", {
+    key: i,
+    className: "why-row"
+  }, React.createElement("span", {
+    className: "why-a",
+    style: {
+      color: wv.up ? 'var(--up)' : 'var(--down)'
+    }
+  }, wv.up ? '↑' : '↓'), React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, wv.reason), wv.asset && React.createElement("span", {
+    className: "ts"
+  }, ASSET_MAP[wv.asset].jp, " ", wv.from, "\u2192", wv.to)))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "between"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "CURRENT FOCUS"), React.createElement("button", {
+    className: "link",
+    onClick: () => go('projects')
+  }, "\u5909\u66F4")), focus.map(p => React.createElement("div", {
     key: p.id,
     className: "focus",
     onClick: () => openProject(p.id)
@@ -849,7 +1226,7 @@ function Home({
     className: "fname"
   }, p.name), React.createElement("span", {
     className: "fpct"
-  }, progressOf(p), "%")))), React.createElement("div", {
+  }, (p.assetTargets || []).map(a => ASSET_MAP[a].jp).join('・'))))), React.createElement("div", {
     className: "card"
   }, React.createElement("div", {
     className: "lbl"
@@ -869,7 +1246,13 @@ function Home({
     }, t.done ? '✓' : ''), React.createElement("div", {
       style: {
         flex: 1
-      }
+      },
+      onClick: () => setPick({
+        _impact: {
+          projId: t.projectId,
+          action: t.action
+        }
+      })
     }, React.createElement("div", {
       className: "tt",
       style: {
@@ -878,7 +1261,7 @@ function Home({
       }
     }, t.action), React.createElement("div", {
       className: "ts"
-    }, pr ? `${pr.emoji} ${pr.name}` : '—')), React.createElement("button", {
+    }, pr ? `${pr.emoji} ${pr.name}` : '—', "\u3000\xB7\u3000\u5F71\u97FF\u3092\u898B\u308B")), React.createElement("button", {
       className: "x sm",
       onClick: () => set(p => ({
         ...p,
@@ -894,40 +1277,15 @@ function Home({
   }, "\uFF0B ", rt.name)))), React.createElement("button", {
     className: "btn btn-fill btn-block big",
     onClick: () => setAdding(true)
-  }, "\uFF0B Add Progress"), React.createElement("div", {
-    className: "card"
-  }, React.createElement("div", {
-    className: "lbl"
-  }, "NEXT DEADLINE"), dls.length === 0 && React.createElement("div", {
-    className: "sub",
-    style: {
-      marginTop: 6
-    }
-  }, "\u8A2D\u5B9A\u306A\u3057"), dls.map((d, i) => {
-    const du = daysUntil(d.date);
-    return React.createElement("div", {
-      key: i,
-      className: "dl"
-    }, React.createElement("div", {
-      className: "dl-m"
-    }, MON3[parseISO(d.date).getMonth()], " ", parseISO(d.date).getDate()), React.createElement("div", {
-      style: {
-        flex: 1
-      }
-    }, React.createElement("div", {
-      className: "dl-t"
-    }, d.label), React.createElement("div", {
-      className: "ts"
-    }, d.emoji, " ", d.project)), React.createElement("div", {
-      className: "dl-d",
-      style: {
-        color: du <= 14 ? 'var(--down)' : 'var(--sub)'
-      }
-    }, du < 0 ? 'now' : `${du}d`));
-  })), adding && React.createElement(AddProgress, {
+  }, "\uFF0B Add Progress"), adding && React.createElement(AddProgress, {
     s: s,
     set: set,
     onClose: () => setAdding(false)
+  }), pick && pick._impact && React.createElement(TaskImpact, {
+    s: s,
+    projId: pick._impact.projId,
+    action: pick._impact.action,
+    onClose: () => setPick(null)
   }));
 }
 function Roadmap({
@@ -935,6 +1293,7 @@ function Roadmap({
 }) {
   const curYear = new Date().getFullYear();
   const [open, setOpen] = useState(curYear);
+  const dls = upcomingDeadlines(s, 3);
   return React.createElement("div", {
     className: "screen"
   }, React.createElement("div", {
@@ -970,10 +1329,36 @@ function Roadmap({
     key: i,
     className: "rm-e"
   }, r.year < curYear ? '◦' : '•', " ", e))))), React.createElement("div", {
-    className: "card soft"
+    className: "card"
   }, React.createElement("div", {
-    className: "sub"
-  }, "\u65E5\u3005\u306E\u30BF\u30B9\u30AF\u306F\u8F09\u305B\u307E\u305B\u3093\u3002\u5927\u304D\u306A\u30A4\u30D9\u30F3\u30C8\u3060\u3051\u3002\u5E74\u3092\u30BF\u30C3\u30D7\u3067\u5207\u308A\u66FF\u3048\u3002")));
+    className: "lbl"
+  }, "NEXT DEADLINE"), dls.length === 0 && React.createElement("div", {
+    className: "sub",
+    style: {
+      marginTop: 6
+    }
+  }, "\u8A2D\u5B9A\u306A\u3057"), dls.map((d, i) => {
+    const du = daysUntil(d.date);
+    return React.createElement("div", {
+      key: i,
+      className: "dl"
+    }, React.createElement("div", {
+      className: "dl-m"
+    }, MON3[parseISO(d.date).getMonth()], " ", parseISO(d.date).getDate()), React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, React.createElement("div", {
+      className: "dl-t"
+    }, d.label), React.createElement("div", {
+      className: "ts"
+    }, d.emoji, " ", d.project)), React.createElement("div", {
+      className: "dl-d",
+      style: {
+        color: du <= 14 ? 'var(--down)' : 'var(--sub)'
+      }
+    }, du < 0 ? 'now' : `${du}d`));
+  })));
 }
 function Projects({
   s,
@@ -984,6 +1369,7 @@ function Projects({
 }) {
   const [adding, setAdding] = useState(false);
   const [promo, setPromo] = useState(null);
+  const [stopSim, setStopSim] = useState(null);
   const detail = sel && projById(s, sel);
   const focusCount = s.projects.filter(p => p.status === 'focus').length;
   function toggleFocus(id) {
@@ -1006,26 +1392,23 @@ function Projects({
     set(p => {
       const pr = p.projects.find(x => x.id === pid);
       const ms = pr.milestones.find(m => m.id === mid);
-      const turningOn = !ms.done;
+      const on = !ms.done;
       let np = {
         ...p,
         projects: p.projects.map(x => x.id === pid ? {
           ...x,
-          moveLog: turningOn ? [...(x.moveLog || []), {
+          moveLog: on ? [...(x.moveLog || []), {
             date: todayISO(),
             amt: 6
           }] : x.moveLog,
           milestones: x.milestones.map(m => m.id === mid ? {
             ...m,
-            done: turningOn,
-            doneAt: turningOn ? new Date().toISOString() : null
+            done: on,
+            doneAt: on ? new Date().toISOString() : null
           } : m)
         } : x)
       };
-      if (turningOn) {
-        const amt = ms.big ? p.weights.milestoneBig : p.weights.milestone;
-        np = bumpIndex(np, amt, `マイルストーン達成：${ms.label}（${pr.name}）`, pid);
-      }
+      if (on) np = actGrow(np, pr.assetTargets, ms.big ? p.weights.milestoneBigGrow : p.weights.milestoneGrow, `マイルストーン：${ms.label}（${pr.name}）`);else np = snapshotIncome(np, []);
       return np;
     });
   }
@@ -1082,6 +1465,7 @@ function Projects({
           deadline: null,
           milestones: [],
           moveLog: [],
+          assetTargets: ['coreSkills'],
           nextActionText: '最初の一歩を決める'
         }],
         ideas: np.ideas.filter(x => x.id !== idea.id)
@@ -1089,6 +1473,13 @@ function Projects({
       return np;
     });
     setPromo(null);
+  }
+  function doStop(rt) {
+    set(p => ({
+      ...p,
+      routines: p.routines.filter(x => x.id !== rt.id)
+    }));
+    setStopSim(null);
   }
   if (detail) {
     const p = detail;
@@ -1112,16 +1503,24 @@ function Projects({
       className: "row",
       style: {
         gap: 12,
-        marginTop: 12,
-        alignItems: 'center'
+        marginTop: 12
       }
-    }, React.createElement(Ring, {
+    }, React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, React.createElement(Bar, {
       v: pct
-    }), React.createElement("div", null, React.createElement("div", {
-      className: "big-n"
+    })), React.createElement("div", {
+      className: "big-n sm"
     }, pct, "%"), React.createElement(Trend, {
       p: p
-    })))), React.createElement("div", {
+    })), React.createElement("div", {
+      className: "ts",
+      style: {
+        marginTop: 8
+      }
+    }, "\u80B2\u3064\u8CC7\u7523\uFF1A", (p.assetTargets || []).map(a => ASSET_MAP[a].jp).join(' / ') || '—')), React.createElement("div", {
       className: "card"
     }, React.createElement("div", {
       className: "lbl"
@@ -1155,7 +1554,7 @@ function Projects({
       className: "card"
     }, React.createElement("div", {
       className: "lbl"
-    }, "MILESTONES\uFF08\u9054\u6210\u3067\u9032\u6357\u304C\u81EA\u52D5\u8A08\u7B97\uFF09"), (p.milestones || []).map(ms => React.createElement("div", {
+    }, "MILESTONES\uFF08\u9054\u6210\u3067\u9032\u6357\u3068\u8CC7\u7523\u304C\u4F38\u3073\u308B\uFF09"), (p.milestones || []).map(ms => React.createElement("div", {
       key: ms.id,
       className: "todo"
     }, React.createElement("button", {
@@ -1236,6 +1635,32 @@ function Projects({
   }, "Next\uFF1A", nextActionOf(p))))), React.createElement("div", {
     className: "card"
   }, React.createElement("div", {
+    className: "lbl"
+  }, "ROUTINES"), s.routines.map(rt => React.createElement("div", {
+    key: rt.id,
+    className: "todo",
+    style: {
+      alignItems: 'center'
+    }
+  }, React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, React.createElement("div", {
+    className: "tt"
+  }, rt.name), React.createElement("div", {
+    className: "ts"
+  }, rt.actions.join(' / '))), React.createElement("button", {
+    className: "btn btn-sm",
+    onClick: () => setStopSim(rt)
+  }, "Stop"))), stopSim && React.createElement(StopSim, {
+    s: s,
+    rt: stopSim,
+    onStop: () => doStop(stopSim),
+    onCancel: () => setStopSim(null)
+  })), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
     className: "between"
   }, React.createElement("div", {
     className: "lbl"
@@ -1283,6 +1708,70 @@ function Projects({
     onDo: promote,
     onCancel: () => setPromo(null)
   })))));
+}
+function StopSim({
+  s,
+  rt,
+  onStop,
+  onCancel
+}) {
+  const p = projById(s, rt.projectId);
+  const per = s.weights.dailyGrow * (p && p.status === 'focus' ? s.weights.focusMult : 1);
+  const targets = p && p.assetTargets || [];
+  const cont = growAssetsN(s, targets, per, 26).assets;
+  const stop = {};
+  ASSETS.forEach(a => stop[a.id] = targets.includes(a.id) ? clamp(s.assets[a.id] + 2, 0, 100) : s.assets[a.id]);
+  const key = targets[0];
+  const curInc = incomeNow(s).main;
+  const contInc = estimateFor(s, cont).main;
+  const stopInc = estimateFor(s, stop).main;
+  return React.createElement("div", {
+    className: "pick",
+    style: {
+      marginTop: 10
+    }
+  }, React.createElement("div", {
+    style: {
+      fontWeight: 700
+    }
+  }, rt.name, " \u3092\u6B62\u3081\u308B\u524D\u306B"), React.createElement("div", {
+    className: "ts",
+    style: {
+      marginTop: 4
+    }
+  }, "6\u30F6\u6708\u5F8C\u306E\u898B\u8FBC\u307F\uFF08", key ? ASSET_MAP[key].jp : '資産', " \uFF0F \u60F3\u5B9A\u5E74\u53CE\uFF09"), React.createElement("div", {
+    className: "scn",
+    style: {
+      marginTop: 8
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "Continue"), React.createElement("div", {
+    className: "big-n sm"
+  }, key ? `${Math.round(s.assets[key])}→${Math.round(cont[key])}` : '—'), React.createElement("div", {
+    className: "ts",
+    style: {
+      color: 'var(--up)'
+    }
+  }, man(contInc))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "Stop"), React.createElement("div", {
+    className: "big-n sm"
+  }, key ? `${Math.round(s.assets[key])}→${Math.round(stop[key])}` : '—'), React.createElement("div", {
+    className: "ts"
+  }, man(stopInc)))), React.createElement("div", {
+    className: "row",
+    style: {
+      gap: 8,
+      marginTop: 10
+    }
+  }, React.createElement("button", {
+    className: "btn btn-sm btn-fill",
+    onClick: onCancel
+  }, "Continue"), React.createElement("button", {
+    className: "btn btn-sm danger",
+    onClick: onStop
+  }, "Stop anyway")));
 }
 function IdeaAdd({
   onAdd
@@ -1363,72 +1852,293 @@ function Career({
   set,
   openProject
 }) {
-  const [open, setOpen] = useState(null);
+  const [wf, setWf] = useState(false);
+  const inc = useMemo(() => incomeNow(s), [s]);
+  const setP = (k, v) => set(p => ({
+    ...p,
+    profile: {
+      ...p.profile,
+      [k]: v
+    }
+  }));
   const setOut = (k, v) => set(p => ({
     ...p,
     ideal: {
-      ...p.ideal,
+      ...(p.ideal || {}),
       outcomes: {
-        ...p.ideal.outcomes,
+        ...((p.ideal || {}).outcomes || {}),
         [k]: v
       }
     }
   }));
+  const outcomes = s.ideal && s.ideal.outcomes || Object.fromEntries(OUTCOMES.map(o => [o.id, o.desc]));
   return React.createElement("div", {
     className: "screen"
   }, React.createElement("div", {
     className: "lbl"
-  }, "CAREER \u2014 2030\u5E743\u6708\u306E\u7406\u60F3"), React.createElement("textarea", {
-    className: "ta",
-    style: {
-      marginTop: 8,
-      fontSize: 15
-    },
-    value: s.ideal.headline,
-    onChange: e => set(p => ({
-      ...p,
-      ideal: {
-        ...p.ideal,
-        headline: e.target.value
-      }
-    }))
-  }), OUTCOMES.map(o => React.createElement("div", {
-    key: o.id,
+  }, "CAREER"), React.createElement("div", {
     className: "card"
   }, React.createElement("div", {
-    className: "between",
-    onClick: () => setOpen(open === o.id ? null : o.id),
+    className: "lbl"
+  }, "CAREER ASSETS"), ASSETS.map(a => React.createElement("div", {
+    key: a.id,
+    className: "arow"
+  }, React.createElement("div", {
+    className: "aname"
+  }, a.name, React.createElement("span", {
+    className: "ts"
+  }, " ", a.jp)), React.createElement("div", {
     style: {
-      cursor: 'pointer'
+      flex: 1
+    }
+  }, React.createElement(Bar, {
+    v: s.assets[a.id]
+  })), React.createElement("div", {
+    className: "big-n sm"
+  }, Math.round(s.assets[a.id]))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "CAREER FIT"), PATHS.map(p => {
+    const f = inc.fits[p.id];
+    return React.createElement("div", {
+      key: p.id,
+      className: "fit-row"
+    }, React.createElement("span", {
+      style: {
+        flex: 1
+      }
+    }, p.name), React.createElement("span", {
+      className: `fitb f-${fitLabel(f).toLowerCase()}`
+    }, fitLabel(f)), React.createElement("span", {
+      className: "ts num"
+    }, man(inc.ests[p.id])));
+  })), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "CAREER OPTIONS"), [['High', '700万〜'], ['Competitive', '550万〜700万'], ['Broad Range', '400万〜550万']].map(([k, v], i) => React.createElement("div", {
+    key: i,
+    className: "opt-row"
+  }, React.createElement("span", {
+    style: {
+      flex: 1,
+      fontWeight: 700
+    }
+  }, k), React.createElement("span", {
+    className: "ts"
+  }, v))), React.createElement("div", {
+    className: "ts",
+    style: {
+      marginTop: 8
+    }
+  }, "\u3044\u307E\u306E\u60F3\u5B9A ", man(inc.main), "\u5186 \u306F\u300C", inc.main >= 7000000 ? 'High' : inc.main >= 5500000 ? 'Competitive' : 'Broad Range', "\u300D\u306E\u6C34\u6E96\u306B\u8FD1\u3065\u3044\u3066\u3044\u307E\u3059\u3002\u5185\u5B9A\u78BA\u7387\u306A\u3069\u306F\u8868\u793A\u3057\u307E\u305B\u3093\u3002")), React.createElement("button", {
+    className: "btn btn-fill btn-block big",
+    onClick: () => setWf(true)
+  }, "What If? \u3092\u8A66\u3059"), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "CAREER PROFILE"), React.createElement("div", {
+    className: "grid2",
+    style: {
+      marginTop: 8
+    }
+  }, React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "\u5927\u5B66"), React.createElement("input", {
+    className: "in",
+    value: s.profile.university,
+    onChange: e => setP('university', e.target.value)
+  })), React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "\u5B66\u90E8"), React.createElement("input", {
+    className: "in",
+    value: s.profile.faculty,
+    onChange: e => setP('faculty', e.target.value)
+  })), React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "\u5352\u696D\u4E88\u5B9A\u5E74"), React.createElement("input", {
+    className: "in",
+    value: s.profile.gradYear,
+    onChange: e => setP('gradYear', Number(e.target.value) || 2030)
+  })), React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "GPA"), React.createElement("input", {
+    className: "in",
+    value: s.profile.gpa,
+    onChange: e => setP('gpa', e.target.value)
+  })), React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "\u82F1\u8A9E\u30EC\u30D9\u30EB"), React.createElement("input", {
+    className: "in",
+    value: s.profile.english,
+    onChange: e => setP('english', e.target.value)
+  })), React.createElement("div", {
+    className: "fld"
+  }, React.createElement("label", null, "\u7B2C\u4E00\u5FD7\u671B\u306E\u696D\u754C"), React.createElement("select", {
+    className: "in",
+    value: s.profile.targetPath,
+    onChange: e => setP('targetPath', e.target.value)
+  }, PATHS.map(p => React.createElement("option", {
+    key: p.id,
+    value: p.id
+  }, p.name)))))), React.createElement("div", {
+    className: "card"
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "2030\u5E74\u306E\u7406\u60F3"), OUTCOMES.map(o => React.createElement("div", {
+    key: o.id,
+    style: {
+      marginTop: 10
     }
   }, React.createElement("div", {
     className: "h2"
-  }, o.name), React.createElement("div", {
-    className: "link"
-  }, open === o.id ? '−' : '関連Project')), React.createElement("textarea", {
+  }, o.name), React.createElement("textarea", {
     className: "ta",
     style: {
-      marginTop: 8
+      marginTop: 4
     },
-    value: s.ideal.outcomes[o.id] || '',
+    value: outcomes[o.id] || '',
     onChange: e => setOut(o.id, e.target.value)
-  }), open === o.id && React.createElement("div", {
+  }), React.createElement("div", {
     style: {
-      marginTop: 8
+      marginTop: 4
     }
   }, s.projects.filter(p => p.outcome === o.id).map(p => React.createElement("div", {
     key: p.id,
-    className: "focus",
+    className: "map-proj",
     onClick: () => openProject(p.id)
   }, React.createElement("span", {
-    className: "emo"
-  }, p.emoji), React.createElement("span", {
-    className: "fname"
-  }, p.name), React.createElement("span", {
-    className: "fpct"
-  }, progressOf(p), "%"))), s.projects.filter(p => p.outcome === o.id).length === 0 && React.createElement("div", {
-    className: "sub"
-  }, "\u95A2\u9023Project\u306A\u3057")))));
+    style: {
+      flex: 1
+    }
+  }, p.emoji, " ", p.name), React.createElement("span", {
+    className: "ts num"
+  }, progressOf(p), "%"))))))), wf && React.createElement(WhatIf, {
+    s: s,
+    onClose: () => setWf(false)
+  }));
+}
+function WhatIf({
+  s,
+  onClose
+}) {
+  const [ov, setOv] = useState({
+    english: null,
+    abroad: null,
+    research: null,
+    project: null,
+    intern: null
+  });
+  const custom = estimateFor(s, withOverrides(s.assets, ov)).main;
+  const cur = incomeNow(s).main;
+  const scn = useMemo(() => scenarioIncomes(s), [s]);
+  const Seg = ({
+    k,
+    opts
+  }) => React.createElement("div", {
+    className: "chips"
+  }, opts.map(([v, l]) => React.createElement("button", {
+    key: String(v),
+    className: `chip ${ov[k] === v ? 'on' : ''}`,
+    onClick: () => setOv({
+      ...ov,
+      [k]: ov[k] === v ? null : v
+    })
+  }, l)));
+  return React.createElement("div", {
+    className: "sheet",
+    onClick: e => {
+      if (e.target.className === 'sheet') onClose();
+    }
+  }, React.createElement("div", {
+    className: "sheet-in"
+  }, React.createElement("div", {
+    className: "between"
+  }, React.createElement("div", {
+    className: "h2"
+  }, "What If?"), React.createElement("button", {
+    className: "x",
+    onClick: onClose
+  }, "\u2715")), React.createElement("div", {
+    className: "scn",
+    style: {
+      marginTop: 10
+    }
+  }, React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "Minimum"), React.createElement("div", {
+    className: "big-n sm"
+  }, man(scn.minimum))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "Current"), React.createElement("div", {
+    className: "big-n sm"
+  }, man(scn.current))), React.createElement("div", null, React.createElement("div", {
+    className: "ts"
+  }, "Growth"), React.createElement("div", {
+    className: "big-n sm",
+    style: {
+      color: 'var(--up)'
+    }
+  }, man(scn.growth)))), React.createElement("div", {
+    className: "ts",
+    style: {
+      marginTop: 6
+    }
+  }, "\u4ECA\u306E\u9078\u629E\u3067\u30012030\u5E74\u306E\u60F3\u5B9A\u304C\u3069\u308C\u3060\u3051\u5909\u308F\u308B\u304B\u3002"), React.createElement("div", {
+    className: "card",
+    style: {
+      marginTop: 14,
+      boxShadow: 'none',
+      border: '1px solid var(--line)'
+    }
+  }, React.createElement("div", {
+    className: "lbl"
+  }, "\u30AB\u30B9\u30BF\u30E0"), React.createElement("div", {
+    className: "idx-now",
+    style: {
+      fontSize: 30,
+      marginTop: 4
+    }
+  }, man(cur), " ", React.createElement("span", {
+    className: "muted2",
+    style: {
+      fontSize: 15
+    }
+  }, "\u2192"), " ", React.createElement("span", {
+    style: {
+      color: custom >= cur ? 'var(--up)' : 'var(--down)'
+    }
+  }, man(custom)))), React.createElement("div", {
+    className: "lbl",
+    style: {
+      marginTop: 12
+    }
+  }, "English\uFF08\u76EE\u6A19\u30B9\u30B3\u30A2\uFF09"), React.createElement(Seg, {
+    k: "english",
+    opts: [['6.0', '6.0'], ['6.5', '6.5'], ['7.0', '7.0'], ['7.5', '7.5']]
+  }), React.createElement("div", {
+    className: "lbl"
+  }, "Study Abroad"), React.createElement(Seg, {
+    k: "abroad",
+    opts: [['6m', '6ヶ月'], ['1y', '1年']]
+  }), React.createElement("div", {
+    className: "lbl"
+  }, "Research"), React.createElement(Seg, {
+    k: "research",
+    opts: [['conf', '学会発表'], ['pub', '論文'], ['both', '両方']]
+  }), React.createElement("div", {
+    className: "lbl"
+  }, "Project"), React.createElement(Seg, {
+    k: "project",
+    opts: [['6m', '6ヶ月'], ['1y', '1年'], ['2y', '2年以上']]
+  }), React.createElement("div", {
+    className: "lbl"
+  }, "Internship"), React.createElement(Seg, {
+    k: "intern",
+    opts: [['1', '1社'], ['2', '2社以上'], ['long', '長期']]
+  })));
 }
 function Settings({
   s,
@@ -1477,12 +2187,12 @@ function Settings({
     className: "card"
   }, React.createElement("div", {
     className: "lbl"
-  }, "\u6307\u6570\u306E\u5909\u52D5\u5E45\uFF08\u8ABF\u6574\u53EF\uFF09"), React.createElement("div", {
+  }, "\u8CC7\u7523\u306E\u6210\u9577\u30FB\u6E1B\u8870\uFF08\u8ABF\u6574\u53EF\uFF09"), React.createElement("div", {
     className: "grid2",
     style: {
       marginTop: 10
     }
-  }, [['small', '行動'], ['focusBonus', 'Focus加算'], ['milestone', 'マイルストーン'], ['milestoneBig', 'マイルストーン(大)'], ['stall', '数日 停滞'], ['deadlineNoProgress', '締切近いのに停滞'], ['stallDays', '停滞とみなす日数'], ['deadlineWindow', '締切の警戒日数'], ['dailyCap', '行動の日次上限']].map(([k, l]) => React.createElement("div", {
+  }, [['dailyGrow', '1回の行動'], ['focusMult', 'Focus倍率'], ['milestoneGrow', 'マイルストーン'], ['milestoneBigGrow', 'マイルストーン(大)'], ['decayPerWeek', '週の減衰'], ['dailyCapPerAsset', '資産の日次上限']].map(([k, l]) => React.createElement("div", {
     className: "fld",
     key: k
   }, React.createElement("label", null, l), React.createElement("input", {
@@ -1522,7 +2232,7 @@ function Settings({
     onClick: wipe
   }, "\u3059\u3079\u3066\u6D88\u3057\u3066\u521D\u671F\u5316")), React.createElement("div", {
     className: "sub"
-  }, "\u30C7\u30FC\u30BF\u306F\u7AEF\u672B\u5185\u306E\u307F\u3002Safari\u3067\u300C\u30DB\u30FC\u30E0\u753B\u9762\u306B\u8FFD\u52A0\u300D\u3067\u30A2\u30D7\u30EA\u306B\u306A\u308A\u307E\u3059\u3002"));
+  }, "\u30C7\u30FC\u30BF\u306F\u7AEF\u672B\u5185\u306E\u307F\u3002\u60F3\u5B9A\u5E74\u53CE\u306F\u5C06\u6765\u3092\u65AD\u5B9A\u3059\u308B\u3082\u306E\u3067\u306F\u306A\u304F\u3001\u73FE\u5728\u306E\u30AD\u30E3\u30EA\u30A2\u8CC7\u7523\u306B\u3082\u3068\u3065\u304F\u30E2\u30C7\u30EB\u63A8\u5B9A\u3067\u3059\u3002"));
 }
 function Nav({
   tab,
@@ -1538,7 +2248,7 @@ function Nav({
   }, React.createElement("span", null, label))));
 }
 function App() {
-  const [s, setS] = useState(() => ensureIndex(loadState()));
+  const [s, setS] = useState(() => ensureIncome(loadState()));
   const [tab, setTab] = useState('home');
   const [sel, setSel] = useState(null);
   useEffect(() => {

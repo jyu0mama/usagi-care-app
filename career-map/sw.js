@@ -1,5 +1,5 @@
 /* なづなのキャリアMAP — Service Worker（このフォルダscopeのみ・キャッシュ名は careermap- プレフィックス） */
-const CACHE = 'careermap-v6';
+const CACHE = 'careermap-v7';
 const ASSETS = [
   './', './index.html', './manifest.json', './app.js',
   './vendor/react.production.min.js', './vendor/react-dom.production.min.js',

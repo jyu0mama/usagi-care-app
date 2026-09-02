@@ -3,19 +3,32 @@ const { useState, useEffect, useMemo } = React;
 /* ============================================================
    定数
    ============================================================ */
-const KEY = 'careermap_v4';
-const INDEX_START = 100;
+const KEY = 'careermap_v5';
 const FOCUS_MAX = 3;
 const TODAY_MAX = 3;
 
+const ASSETS = [
+  { id: 'academic', name: 'Academic', jp: '学業' },
+  { id: 'englishGlobal', name: 'English / Global', jp: '英語・国際' },
+  { id: 'research', name: 'Research', jp: '研究' },
+  { id: 'leadership', name: 'Leadership', jp: 'リーダーシップ' },
+  { id: 'business', name: 'Business', jp: 'ビジネス経験' },
+  { id: 'coreSkills', name: 'Core Skills', jp: 'コアスキル' },
+];
+const ASSET_MAP = Object.fromEntries(ASSETS.map(a => [a.id, a]));
+
+const PATHS = [
+  { id: 'advertising', name: '広告（電通・博報堂）' },
+  { id: 'consulting', name: 'コンサル' },
+  { id: 'trading', name: '商社' },
+  { id: 'other', name: 'その他 高年収' },
+];
 const OUTCOMES = [
   { id: 'career', name: 'CAREER', desc: '博報堂・電通を含め、コンサル・商社など複数の業界・企業を選択肢として持つ。' },
   { id: 'global', name: 'GLOBAL', desc: '交換留学を経験し、英語を使って生活・学習できる。' },
   { id: 'research', name: 'RESEARCH', desc: '論文執筆・学会発表。' },
   { id: 'project', name: 'PROJECT', desc: '継続的に動く組織・プロジェクトを作る。' },
 ];
-const OUT_MAP = Object.fromEntries(OUTCOMES.map(o => [o.id, o]));
-
 const ACTIONS = {
   english: ['Vocabulary', 'Reading', 'Listening', 'Writing', 'Mock Test', 'Other'],
   research: ['Reading', 'Research Design', 'Data Collection', 'Analysis', 'Writing', 'Presentation', 'Other'],
@@ -24,7 +37,6 @@ const ACTIONS = {
   career: ['自己分析', '業界研究', 'ES作成', 'Webテスト', '面接準備', 'Other'],
   study: ['情報収集', '書類準備', 'エッセイ', '手続き', 'Other'],
 };
-
 const ROADMAP = [
   { year: 2026, summary: '英語・GPA・研究', events: ['英語の現状把握', '英語試験 初回受験', '博報堂インターン', 'GPA維持', '自然環境音研究 開始'] },
   { year: 2027, summary: '留学出願・インターン', events: ['英語スコア確定', 'サマーインターン', '交換留学 出願', '留学先 決定'] },
@@ -35,12 +47,14 @@ const ROADMAP = [
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 /* ============================================================
-   ユーティリティ（日付はローカル。toISOString()は使わない）
+   ユーティリティ（日付はローカル）
    ============================================================ */
 const uid = () => 'x' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const WD = ['日', '月', '火', '水', '木', '金', '土'];
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const r1 = (n) => Math.round(n * 10) / 10;
+const man = (n) => (Math.round(n / 10000)).toLocaleString() + '万';
+const manD = (n) => (n >= 0 ? '+' : '−') + '¥' + Math.abs(Math.round(n / 10000)) + '万';
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 function isoOf(d) { return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; }
@@ -58,40 +72,52 @@ function nowLabel() { const d = new Date(); return `${d.getFullYear()} ${MON3[d.
    シード
    ============================================================ */
 function seedProjects() {
-  const M = (label, big) => ({ id: uid(), label, done: false, doneAt: null, big: !!big });
-  const P = (o) => ({ id: uid(), status: 'active', deadline: null, milestones: [], moveLog: [], nextActionText: '', ...o });
+  const M = (label, big, evidence) => ({ id: uid(), label, done: false, doneAt: null, big: !!big, evidence: evidence || null });
+  const P = (o) => ({ id: uid(), status: 'active', deadline: null, milestones: [], moveLog: [], nextActionText: '', assetTargets: [], ...o });
   return [
-    P({ name: '英語', emoji: '🔤', kind: 'english', outcome: 'global', status: 'focus',
+    P({ name: '英語', emoji: '🔤', kind: 'english', outcome: 'global', status: 'focus', assetTargets: ['englishGlobal'],
       goal: '交換留学の資格を取得し、英語を使える状態になる。',
       deadline: { label: '英語試験 初回受験', date: '2026-12-31' },
       milestones: [M('現状把握（過去問）'), M('英語試験を受験'), M('目標スコア達成', true), M('公式スコアレポート入手')] }),
-    P({ name: '大学 / GPA', emoji: '🎓', kind: 'university', outcome: 'career', status: 'focus',
+    P({ name: '大学 / GPA', emoji: '🎓', kind: 'university', outcome: 'career', status: 'focus', assetTargets: ['academic'],
       goal: '留学と卒業に必要な学業成績を維持する。',
       milestones: [M('1年秋のGPAを2.0以上で確定', true), M('2年春までの累積GPAで協定校基準クリア', true)] }),
-    P({ name: '自然環境音研究', emoji: '🔬', kind: 'research', outcome: 'research', status: 'focus',
+    P({ name: '自然環境音研究', emoji: '🔬', kind: 'research', outcome: 'research', status: 'focus', assetTargets: ['research', 'coreSkills'],
       goal: '論文執筆・学会発表。',
-      milestones: [M('研究テーマ決定', true), M('データ収集を開始'), M('論文ドラフト完成', true), M('学会発表', true)] }),
-    P({ name: '交換留学', emoji: '✈️', kind: 'study', outcome: 'global',
+      milestones: [M('研究テーマ決定', true), M('データ収集を開始'), M('論文ドラフト完成', true, 'publication'), M('学会発表', true, 'conference')] }),
+    P({ name: '交換留学', emoji: '✈️', kind: 'study', outcome: 'global', assetTargets: ['englishGlobal'],
       goal: '2028年秋から交換留学する。',
       deadline: { label: '学内選考 出願', date: '2027-09-15' },
-      milestones: [M('英語資格取得'), M('GPA条件達成'), M('志望校決定'), M('出願書類準備'), M('学内選考 出願'), M('留学決定', true), M('渡航', true)] }),
-    P({ name: '馬佐良プロジェクト', emoji: '🌿', kind: 'project', outcome: 'project',
+      milestones: [M('英語資格取得'), M('GPA条件達成'), M('志望校決定'), M('出願書類準備'), M('学内選考 出願'), M('留学決定', true, 'studyAbroad'), M('渡航', true)] }),
+    P({ name: '馬佐良プロジェクト', emoji: '🌿', kind: 'project', outcome: 'project', assetTargets: ['leadership', 'business', 'coreSkills'],
       goal: '慶應公認団体化・継続的な組織化。',
       milestones: [M('公認団体の要件を確認'), M('自分に依存しない運営体制'), M('慶應の公認団体になる', true)] }),
-    P({ name: '就職準備', emoji: '💼', kind: 'career', outcome: 'career',
+    P({ name: '就職準備', emoji: '💼', kind: 'career', outcome: 'career', assetTargets: ['business', 'coreSkills'],
       goal: '2030年の選考に向けて経験・スキルを蓄積する。',
       deadline: { label: '博報堂インターン 申込〆切', date: '2026-10-02' },
-      milestones: [M('博報堂インターンに参加'), M('サマーインターンに参加'), M('早期選考で内々定', true)] }),
+      milestones: [M('博報堂インターンに参加', false, 'internship'), M('サマーインターンに参加', false, 'internship'), M('早期選考で内々定', true)] }),
   ];
 }
 function defaultState() {
   const ps = seedProjects();
   const pid = (n) => (ps.find(p => p.name === n) || {}).id;
+  const t = todayISO();
   return {
-    version: 4,
-    tipsSeen: false,
-    ideal: { headline: '2030年3月・目指す企業・業界を選べる状態で就活する。', outcomes: Object.fromEntries(OUTCOMES.map(o => [o.id, o.desc])) },
-    weights: { small: 1, focusBonus: 2, milestone: 12, milestoneBig: 25, stall: -2, deadlineNoProgress: -4, stallDays: 4, deadlineWindow: 30, dailyCap: 8 },
+    version: 5, tipsSeen: false,
+    profile: { university: '慶應SFC', faculty: '環境情報', gradYear: 2030, targetPath: 'advertising', english: 'Intermediate（≈ IELTS 5.5）', gpa: 3.2 },
+    assets: { academic: 55, englishGlobal: 35, research: 22, leadership: 42, business: 32, coreSkills: 36 },
+    assetTouch: Object.fromEntries(ASSETS.map(a => [a.id, t])),
+    assetDay: { date: t, used: {} },
+    weights: { dailyGrow: 1.3, milestoneGrow: 8, milestoneBigGrow: 16, focusMult: 1.6, decayPerWeek: 0.4, dailyCapPerAsset: 4 },
+    fitMatrix: {
+      academic: { advertising: 0.5, consulting: 0.6, trading: 0.6, other: 0.5 },
+      englishGlobal: { advertising: 0.8, consulting: 0.8, trading: 1.0, other: 0.5 },
+      research: { advertising: 0.5, consulting: 0.8, trading: 0.5, other: 0.4 },
+      leadership: { advertising: 0.8, consulting: 0.8, trading: 0.8, other: 0.6 },
+      business: { advertising: 0.8, consulting: 0.8, trading: 0.8, other: 0.7 },
+      coreSkills: { advertising: 1.0, consulting: 0.9, trading: 0.7, other: 0.7 },
+    },
+    pathAnchors: { advertising: [4800000, 8500000], consulting: [5500000, 12000000], trading: [5500000, 11000000], other: [3800000, 6500000] },
     projects: ps,
     today: [
       { id: uid(), projectId: pid('英語'), action: 'Reading', done: false, doneAt: null },
@@ -105,7 +131,7 @@ function defaultState() {
     ],
     activity: [],
     ideas: [{ id: uid(), text: '里山プロジェクトのInstagramを毎日更新する', createdAt: new Date().toISOString() }],
-    index: { start: INDEX_START, log: [] },
+    income: { log: [] },
   };
 }
 
@@ -118,108 +144,120 @@ function loadState() {
     if (!raw) return defaultState();
     const s = JSON.parse(raw); const d = defaultState();
     return { ...d, ...s,
-      ideal: { ...d.ideal, ...(s.ideal || {}), outcomes: { ...d.ideal.outcomes, ...((s.ideal || {}).outcomes || {}) } },
+      profile: { ...d.profile, ...(s.profile || {}) },
+      assets: { ...d.assets, ...(s.assets || {}) },
       weights: { ...d.weights, ...(s.weights || {}) },
-      index: { ...d.index, ...(s.index || {}) },
+      fitMatrix: { ...d.fitMatrix, ...(s.fitMatrix || {}) },
+      pathAnchors: { ...d.pathAnchors, ...(s.pathAnchors || {}) },
+      income: { ...d.income, ...(s.income || {}) },
     };
   } catch (e) { return defaultState(); }
 }
 function saveState(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
 
 /* ============================================================
-   Career Index エンジン
+   年収推定エンジン
    ============================================================ */
-function progressOf(p) {
-  const ms = p.milestones || [];
-  if (!ms.length) return 0;
-  return Math.round(ms.filter(m => m.done).length / ms.length * 100);
+function fitScore(assets, fitMatrix, path) {
+  let num = 0, den = 0;
+  ASSETS.forEach(a => { const w = fitMatrix[a.id][path]; num += (assets[a.id] / 100) * w; den += w; });
+  return den ? clamp(num / den, 0, 1) : 0;
 }
-function nextActionOf(p) {
-  const m = (p.milestones || []).find(x => !x.done);
-  return (p.nextActionText && p.nextActionText.trim()) || (m ? m.label : '—');
+function fitLabel(f) { return f >= 0.62 ? 'Strong' : f >= 0.42 ? 'Growing' : 'Developing'; }
+function evidenceCount(s) {
+  let c = 0;
+  s.projects.forEach(p => (p.milestones || []).forEach(m => {
+    if (m.done) { c += 1; if (m.evidence === 'studyAbroad') c += 3; else if (m.evidence === 'publication') c += 3; else if (m.evidence === 'conference') c += 2; else if (m.evidence === 'internship') c += 1; }
+  }));
+  return c;
 }
-function lastProgressAt(s) {
-  let t = 0;
-  (s.activity || []).forEach(a => { t = Math.max(t, parseISO(a.date).getTime()); });
-  (s.projects || []).forEach(p => {
-    (p.moveLog || []).forEach(m => { t = Math.max(t, parseISO(m.date).getTime()); });
-    (p.milestones || []).forEach(m => { if (m.done && m.doneAt) t = Math.max(t, new Date(m.doneAt).getTime()); });
+function confidenceOf(s) {
+  const c = evidenceCount(s);
+  if (c < 4) return { label: 'Developing', band: 0.16 };
+  if (c < 9) return { label: 'Growing', band: 0.11 };
+  return { label: 'Solid', band: 0.07 };
+}
+function estimateFor(s, assets) {
+  const fits = {}, ests = {};
+  PATHS.forEach(p => {
+    const f = fitScore(assets, s.fitMatrix, p.id);
+    fits[p.id] = f;
+    const [lo, hi] = s.pathAnchors[p.id];
+    ests[p.id] = lo + (hi - lo) * f;
   });
-  return t ? new Date(t).toISOString() : null;
+  const tgt = s.profile.targetPath || 'advertising';
+  let wsum = 0, blended = 0;
+  PATHS.forEach(p => { const w = fits[p.id] * fits[p.id]; wsum += w; blended += ests[p.id] * w; });
+  blended = wsum ? blended / wsum : ests[tgt];
+  const main = 0.5 * ests[tgt] + 0.5 * blended;
+  return { main, fits, ests };
 }
-function ensureIndex(s) {
-  const w = s.weights;
-  const log = [...((s.index && s.index.log) || [])];
+function incomeNow(s) {
+  const { main, fits, ests } = estimateFor(s, s.assets);
+  const conf = confidenceOf(s);
+  return { main, lo: main * (1 - conf.band), hi: main * (1 + conf.band), fits, ests, conf };
+}
+function growAssets(s, ids, per, cap) {
+  const day = (s.assetDay && s.assetDay.date === todayISO()) ? { date: s.assetDay.date, used: { ...s.assetDay.used } } : { date: todayISO(), used: {} };
+  const na = { ...s.assets }; const touch = { ...(s.assetTouch || {}) };
+  ids.forEach(id => {
+    let amt = per * (1 - na[id] / 125);
+    if (cap) { const u = day.used[id] || 0; amt = Math.max(0, Math.min(amt, cap - u)); day.used[id] = u + amt; }
+    na[id] = clamp(r1(na[id] + amt), 0, 100);
+    touch[id] = todayISO();
+  });
+  return { ...s, assets: na, assetDay: day, assetTouch: touch };
+}
+function snapshotIncome(s, why) {
+  const inc = incomeNow(s);
+  const log = [...((s.income && s.income.log) || [])];
+  const t = todayISO();
+  const pt = { date: t, value: Math.round(inc.main), range: [Math.round(inc.lo), Math.round(inc.hi)], why: [] };
+  if (log.length && log[log.length - 1].date === t) {
+    const e = { ...log[log.length - 1] };
+    e.value = pt.value; e.range = pt.range; e.why = [...(e.why || []), ...(why || [])];
+    log[log.length - 1] = e;
+  } else { pt.why = why || []; log.push(pt); }
+  return { ...s, income: { ...s.income, log: log.slice(-620) } };
+}
+function actGrow(s, ids, per, label, cap) {
+  const before = estimateFor(s, s.assets).main;
+  const ns = growAssets(s, ids, per, cap);
+  const after = estimateFor(ns, ns.assets).main;
+  const d = Math.round((after - before) / 10000) * 10000;
+  const why = [];
+  if (Math.abs(d) >= 10000 && ids.length) {
+    const a0 = ids[0];
+    why.push({ reason: label, asset: a0, from: r1(s.assets[a0]), to: r1(ns.assets[a0]), incomeDelta: d, up: d >= 0 });
+  }
+  return snapshotIncome(ns, why);
+}
+function ensureIncome(s) {
+  // 停滞資産の緩やかな減衰（7日以上 未活動）
+  const na = { ...s.assets }; let decayed = false;
+  ASSETS.forEach(a => {
+    const last = (s.assetTouch || {})[a.id];
+    if (last && daysSinceDate(last) >= 7) { na[a.id] = clamp(r1(na[a.id] - s.weights.decayPerWeek), 12, 100); decayed = true; }
+  });
+  let ns = decayed ? { ...s, assets: na } : s;
+  const log = [...((ns.income && ns.income.log) || [])];
   let last = log.length ? log[log.length - 1].date : addDaysISO(todayISO(), -1);
-  let val = log.length ? log[log.length - 1].value : (s.index.start || INDEX_START);
-  const nl = [...log];
+  let val = log.length ? log[log.length - 1].value : Math.round(incomeNow(ns).main);
+  let rng = log.length ? log[log.length - 1].range : [val, val];
   let g = 0;
-  while (last < todayISO() && g++ < 800) {
-    const nx = addDaysISO(last, 1); if (nx <= last) break; last = nx;
-    nl.push({ date: last, value: val, delta: 0, events: [] });
-  }
-  if (!nl.length) nl.push({ date: todayISO(), value: s.index.start || INDEX_START, delta: 0, events: [] });
-  if (nl[nl.length - 1].date !== todayISO()) nl.push({ date: todayISO(), value: nl[nl.length - 1].value, delta: 0, events: [] });
-
-  const today = { ...nl[nl.length - 1] };
-  if (!today.checked && nl.length > w.stallDays) {
-    let add = 0; const evs = [];
-    const lp = lastProgressAt(s);
-    const dsp = lp ? daysSince(lp) : 999;
-    if (dsp >= w.stallDays && dsp < 900) { add += w.stall; evs.push({ reason: `重要な活動が ${dsp}日 進んでいません`, amt: w.stall }); }
-    (s.projects || []).forEach(p => {
-      if (p.deadline && p.deadline.date) {
-        const du = daysUntil(p.deadline.date);
-        const recent = (p.moveLog || []).some(m => daysSinceDate(m.date) < w.stallDays);
-        if (du >= 0 && du <= w.deadlineWindow && !recent) {
-          add += w.deadlineNoProgress;
-          evs.push({ reason: `${p.name}：締切まで${du}日、進捗なし`, amt: w.deadlineNoProgress, projectId: p.id });
-        }
-      }
-    });
-    today.checked = true;
-    if (add !== 0) {
-      today.delta = r1(today.delta + add);
-      today.events = [...(today.events || []), ...evs];
-      const prev = nl.length > 1 ? nl[nl.length - 2].value : (s.index.start || INDEX_START);
-      today.value = r1(prev + today.delta);
-    }
-  }
-  nl[nl.length - 1] = today;
-  return { ...s, index: { ...s.index, log: nl.slice(-560) } };
+  while (last < todayISO() && g++ < 800) { const nx = addDaysISO(last, 1); if (nx <= last) break; last = nx; log.push({ date: last, value: val, range: rng, why: [] }); }
+  ns = { ...ns, income: { ...ns.income, log } };
+  return snapshotIncome(ns, decayed ? [{ reason: '一部の資産が停滞（7日以上 未活動）', asset: null, incomeDelta: 0, up: false }] : []);
 }
-function bumpIndex(s, amt, reason, projectId) {
-  const log = [...((s.index && s.index.log) || [])];
-  if (!log.length || log[log.length - 1].date !== todayISO()) {
-    const prev = log.length ? log[log.length - 1].value : (s.index.start || INDEX_START);
-    log.push({ date: todayISO(), value: prev, delta: 0, events: [], checked: true });
-  }
-  const e = { ...log[log.length - 1] };
-  e.delta = r1((e.delta || 0) + amt);
-  e.events = [...(e.events || []), { reason, amt: r1(amt), projectId }];
-  const prev = log.length > 1 ? log[log.length - 2].value : (s.index.start || INDEX_START);
-  e.value = r1(prev + e.delta);
-  log[log.length - 1] = e;
-  return { ...s, index: { ...s.index, log } };
-}
-function gainToday(s) {
-  const log = (s.index && s.index.log) || [];
-  if (!log.length || log[log.length - 1].date !== todayISO()) return 0;
-  return (log[log.length - 1].events || []).filter(e => e._sm).reduce((a, e) => a + Math.max(0, e.amt), 0);
-}
-function indexInfo(log, days) {
+function incInfo(log, days) {
   const cut = addDaysISO(todayISO(), -days);
   const win = (log || []).filter(e => e.date >= cut);
   const series = win.length ? win : (log || []).slice(-2);
-  const now = series.length ? series[series.length - 1].value : INDEX_START;
-  // データが1点しかない日でも、その日の変化を見せる（当日デルタ差し引きを基準に）
-  const base = series.length
-    ? (series.length === 1 ? r1(series[0].value - (series[0].delta || 0)) : series[0].value)
-    : INDEX_START;
-  const chg = r1(now - base);
-  const pct = base ? chg / base * 100 : 0;
-  const arrow = chg > 0.4 ? '↗' : chg < -0.4 ? '↘' : '→';
-  return { now, base, chg, pct, arrow, series };
+  const now = series.length ? series[series.length - 1].value : 0;
+  const base = series.length ? (series.length === 1 ? Math.round(now - (series[0].why || []).reduce((a, w) => a + (w.incomeDelta || 0), 0)) : series[0].value) : now;
+  const chg = now - base;
+  const arrow = chg > 5000 ? '↗' : chg < -5000 ? '↘' : '→';
+  return { now, base, chg, arrow, series };
 }
 function momentum(p) {
   const ml = p.moveLog || [];
@@ -230,6 +268,8 @@ function momentum(p) {
   if (r < q * 0.6 || (r === 0 && q > 0)) return { a: '↘', l: 'Slowing' };
   return { a: '→', l: 'Stable' };
 }
+function progressOf(p) { const ms = p.milestones || []; return ms.length ? Math.round(ms.filter(m => m.done).length / ms.length * 100) : 0; }
+function nextActionOf(p) { const m = (p.milestones || []).find(x => !x.done); return (p.nextActionText && p.nextActionText.trim()) || (m ? m.label : '—'); }
 function projById(s, id) { return (s.projects || []).find(p => p.id === id); }
 function upcomingDeadlines(s, n) {
   return (s.projects || []).map(p => p.deadline && p.deadline.date ? { ...p.deadline, project: p.name, emoji: p.emoji } : null)
@@ -237,28 +277,51 @@ function upcomingDeadlines(s, n) {
 }
 
 /* ============================================================
+   What If シミュレーション
+   ============================================================ */
+function withOverrides(base, ov) {
+  const a = { ...base };
+  const eng = { '6.0': 58, '6.5': 68, '7.0': 80, '7.5': 90 };
+  if (ov.english && eng[ov.english]) a.englishGlobal = Math.max(a.englishGlobal, eng[ov.english]);
+  if (ov.abroad === '6m') { a.englishGlobal += 12; a.business += 6; }
+  if (ov.abroad === '1y') { a.englishGlobal += 20; a.business += 10; a.leadership += 5; }
+  if (ov.research === 'conf') a.research += 15;
+  if (ov.research === 'pub') a.research += 25;
+  if (ov.research === 'both') { a.research += 35; a.coreSkills += 10; }
+  if (ov.project === '6m') { a.leadership += 8; a.business += 6; }
+  if (ov.project === '1y') { a.leadership += 15; a.business += 12; }
+  if (ov.project === '2y') { a.leadership += 24; a.business += 20; a.coreSkills += 8; }
+  if (ov.intern === '1') a.business += 12;
+  if (ov.intern === '2') { a.business += 22; a.coreSkills += 8; }
+  if (ov.intern === 'long') { a.business += 32; a.leadership += 10; a.coreSkills += 12; }
+  Object.keys(a).forEach(k => a[k] = clamp(a[k], 0, 100));
+  return a;
+}
+function scenarioIncomes(s) {
+  const cur = { ...s.assets };
+  ASSETS.forEach(a => { if ((s.assetTouch || {})[a.id] && daysSinceDate(s.assetTouch[a.id]) < 21) cur[a.id] = clamp(cur[a.id] + 6, 0, 100); });
+  const minimum = {}; ASSETS.forEach(a => minimum[a.id] = clamp(s.assets[a.id] - 8, 0, 100));
+  const growth = withOverrides(s.assets, { english: '7.0', abroad: '1y', research: 'both', project: '2y', intern: 'long' });
+  return {
+    minimum: estimateFor(s, minimum).main,
+    current: estimateFor(s, cur).main,
+    growth: estimateFor(s, growth).main,
+  };
+}
+
+/* ============================================================
    共通パーツ
    ============================================================ */
-function Ring({ v }) {
-  const R = 15, C = 2 * Math.PI * R;
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36">
-      <circle cx="18" cy="18" r={R} fill="none" stroke="var(--line)" strokeWidth="3.5" />
-      <circle cx="18" cy="18" r={R} fill="none" stroke="var(--ink)" strokeWidth="3.5" strokeLinecap="round"
-        strokeDasharray={`${C * v / 100} ${C}`} transform="rotate(-90 18 18)" />
-    </svg>
-  );
-}
 function Bar({ v }) { return <div className="bar"><span style={{ width: clamp(v, 0, 100) + '%' }} /></div>; }
 function Trend({ p }) { const m = momentum(p); return <span className={`trend t-${m.l.toLowerCase()}`}>{m.a} {m.l}</span>; }
 
-function IndexChart({ log, days, showMarkers, onPick, h }) {
-  const info = indexInfo(log, days);
+function IncomeChart({ log, days, showMarkers, onPick, h }) {
+  const info = incInfo(log, days);
   const s = info.series;
-  const pts = s.length >= 2 ? s : [{ date: addDaysISO((s[0] || { date: todayISO() }).date, -1), value: (s[0] || { value: INDEX_START }).value, events: [] }, ...s];
+  const pts = s.length >= 2 ? s : [{ date: addDaysISO((s[0] || { date: todayISO() }).date, -1), value: (s[0] || { value: 0 }).value * 0.98, why: [] }, ...s];
   const vals = pts.map(p => p.value);
   const lo = Math.min(...vals), hi = Math.max(...vals);
-  const pad = (hi - lo || 4) * 0.18;
+  const pad = (hi - lo || 200000) * 0.2;
   const mn = lo - pad, mx = hi + pad, rng = mx - mn || 1;
   const W = 320, HT = h || 120;
   const x = (i) => (i / (pts.length - 1)) * W;
@@ -271,13 +334,13 @@ function IndexChart({ log, days, showMarkers, onPick, h }) {
     <svg viewBox={`0 0 ${W} ${HT + 4}`} width="100%" preserveAspectRatio="none" style={{ display: 'block', overflow: 'visible' }}>
       <defs>
         <linearGradient id="cig" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor={up ? '#34A853' : '#E5484D'} stopOpacity="0.16" />
-          <stop offset="1" stopColor={up ? '#34A853' : '#E5484D'} stopOpacity="0" />
+          <stop offset="0" stopColor={up ? '#2FA35E' : '#E5484D'} stopOpacity="0.16" />
+          <stop offset="1" stopColor={up ? '#2FA35E' : '#E5484D'} stopOpacity="0" />
         </linearGradient>
       </defs>
       <polygon points={area} fill="url(#cig)" />
       <polyline points={line} fill="none" stroke={col} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
-      {showMarkers && pts.map((p, i) => (p.events && p.events.length
+      {showMarkers && pts.map((p, i) => (p.why && p.why.length
         ? <circle key={i} cx={x(i)} cy={y(p.value)} r="3.4" fill="#fff" stroke={col} strokeWidth="2" style={{ cursor: 'pointer' }} onClick={() => onPick && onPick(p)} />
         : null))}
       <circle cx={x(pts.length - 1)} cy={y(vals[vals.length - 1])} r="3" fill={col} />
@@ -294,43 +357,80 @@ function AddProgress({ s, set, onClose }) {
   const [mins, setMins] = useState(null);
   const proj = projById(s, pid);
   const acts = (proj && ACTIONS[proj.kind]) || ACTIONS.project;
-
+  const impact = useMemo(() => {
+    if (!proj || !proj.assetTargets.length) return null;
+    const per = s.weights.dailyGrow * (proj.status === 'focus' ? s.weights.focusMult : 1);
+    const proj3 = growAssets(growAssetsN(s, proj.assetTargets, per, 12), proj.assetTargets, per, 12); // rough
+    return null;
+  }, [pid]);
   function done() {
     set(p => {
       const pr = projById(p, pid); const w = p.weights;
-      let amt = w.small + (pr.status === 'focus' ? w.focusBonus : 0);
-      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
+      const per = w.dailyGrow * (pr.status === 'focus' ? w.focusMult : 1);
       let np = { ...p,
         projects: p.projects.map(x => x.id === pid ? { ...x, moveLog: [...(x.moveLog || []), { date: todayISO(), amt: 1 }] } : x),
         activity: [{ date: todayISO(), projectId: pid, action: action || '進捗', minutes: mins || null }, ...(p.activity || [])].slice(0, 200),
         today: p.today.map(t => (t.projectId === pid && !t.done && (t.action === action || !action)) ? { ...t, done: true, doneAt: new Date().toISOString() } : t),
       };
-      if (amt > 0) {
-        np = bumpIndex(np, amt, `${pr.name} — ${action || '進捗'}${mins ? ' ' + mins + 'min' : ''}`, pid);
-        const lg = np.index.log; lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true;
-      }
+      np = actGrow(np, pr.assetTargets, per, `${pr.name} — ${action || '進捗'}`, w.dailyCapPerAsset);
       return np;
     });
     onClose();
   }
-
   return (
-    <div className="sheet">
+    <div className="sheet" onClick={e => { if (e.target.className === 'sheet') onClose(); }}>
       <div className="sheet-in">
         <div className="between"><div className="h2">Add Progress</div><button className="x" onClick={onClose}>✕</button></div>
         <div className="lbl">Project</div>
-        <div className="chips">
-          {s.projects.map(p => <button key={p.id} className={`chip ${pid === p.id ? 'on' : ''}`} onClick={() => { setPid(p.id); setAction(null); }}>{p.emoji} {p.name}</button>)}
-        </div>
+        <div className="chips">{s.projects.map(p => <button key={p.id} className={`chip ${pid === p.id ? 'on' : ''}`} onClick={() => { setPid(p.id); setAction(null); }}>{p.emoji} {p.name}</button>)}</div>
         <div className="lbl">Action</div>
-        <div className="chips">
-          {acts.map(a => <button key={a} className={`chip ${action === a ? 'on' : ''}`} onClick={() => setAction(a)}>{a}</button>)}
-        </div>
+        <div className="chips">{acts.map(a => <button key={a} className={`chip ${action === a ? 'on' : ''}`} onClick={() => setAction(a)}>{a}</button>)}</div>
         <div className="lbl">Time（任意）</div>
-        <div className="chips">
-          {[15, 30, 60, 90].map(m => <button key={m} className={`chip ${mins === m ? 'on' : ''}`} onClick={() => setMins(mins === m ? null : m)}>{m}min</button>)}
+        <div className="chips">{[15, 30, 60, 90].map(m => <button key={m} className={`chip ${mins === m ? 'on' : ''}`} onClick={() => setMins(mins === m ? null : m)}>{m}min</button>)}</div>
+        {proj && proj.assetTargets.length > 0 && (
+          <div className="hint">育つ資産：{proj.assetTargets.map(a => ASSET_MAP[a].jp).join(' / ')}</div>
+        )}
+        <button className="btn btn-fill btn-block" style={{ marginTop: 14 }} onClick={done} disabled={!action}>Done</button>
+      </div>
+    </div>
+  );
+}
+function growAssetsN(s, ids, per, times) { let ns = s; for (let i = 0; i < times; i++) ns = growAssets(ns, ids, per); return ns; }
+
+/* ============================================================
+   Task Impact モーダル
+   ============================================================ */
+function TaskImpact({ s, projId, action, onClose }) {
+  const p = projById(s, projId);
+  const per = s.weights.dailyGrow * (p.status === 'focus' ? s.weights.focusMult : 1);
+  const a3 = growAssetsN(s, p.assetTargets, per, 12).assets;
+  const a6 = growAssetsN(s, p.assetTargets, per, 26).assets;
+  const cur = incomeNow(s).main;
+  const inc6 = estimateFor(s, a6).main;
+  const key = p.assetTargets[0];
+  return (
+    <div className="sheet" onClick={e => { if (e.target.className === 'sheet') onClose(); }}>
+      <div className="sheet-in">
+        <div className="between"><div className="h2">Task Impact</div><button className="x" onClick={onClose}>✕</button></div>
+        <div className="sub" style={{ marginTop: 4 }}>{p.emoji} {p.name}{action ? ' — ' + action : ''}</div>
+        {key && (
+          <div className="card" style={{ marginTop: 12, boxShadow: 'none', border: '1px solid var(--line)' }}>
+            <div className="lbl">{ASSET_MAP[key].name}（{ASSET_MAP[key].jp}）</div>
+            <div className="row" style={{ gap: 14, marginTop: 8 }}>
+              <div><div className="ts">now</div><div className="big-n">{Math.round(s.assets[key])}</div></div>
+              <div><div className="ts">3ヶ月</div><div className="big-n">{Math.round(a3[key])}</div></div>
+              <div><div className="ts">6ヶ月</div><div className="big-n">{Math.round(a6[key])}</div></div>
+            </div>
+          </div>
+        )}
+        <div className="card" style={{ boxShadow: 'none', border: '1px solid var(--line)' }}>
+          <div className="lbl">Potential Career Impact（Model Estimate）</div>
+          <div className="row" style={{ gap: 14, marginTop: 8 }}>
+            <div><div className="ts">現在の想定</div><div className="big-n">{man(cur)}</div></div>
+            <div><div className="ts">6ヶ月 続けた場合</div><div className="big-n" style={{ color: 'var(--up)' }}>{man(inc6)}</div></div>
+          </div>
+          <div className="ts" style={{ marginTop: 6 }}>「必ず上がる」ではなく、続けた場合のモデル推定です。</div>
         </div>
-        <button className="btn btn-fill btn-block" style={{ marginTop: 16 }} onClick={done} disabled={!action}>Done</button>
       </div>
     </div>
   );
@@ -343,25 +443,30 @@ function Home({ s, set, go, openProject }) {
   const [days, setDays] = useState(30);
   const [pick, setPick] = useState(null);
   const [adding, setAdding] = useState(false);
-  const info = useMemo(() => indexInfo(s.index.log, days), [s.index.log, days]);
+  const inc = useMemo(() => incomeNow(s), [s]);
+  const info30 = useMemo(() => incInfo(s.income.log, 30), [s.income.log]);
   const focus = s.projects.filter(p => p.status === 'focus').slice(0, FOCUS_MAX);
   const today = s.today.slice(0, TODAY_MAX);
-  const dls = upcomingDeadlines(s, 3);
-  const RANGES = [[7, '7D'], [30, '30D'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
-  const info30 = useMemo(() => indexInfo(s.index.log, 30), [s.index.log]);
+  const RANGES = [[7, '7D'], [30, '1M'], [90, '3M'], [365, '1Y'], [99999, 'ALL']];
+  const whyRecent = (() => {
+    const out = [];
+    for (let i = s.income.log.length - 1; i >= 0 && out.length < 4; i--) {
+      (s.income.log[i].why || []).slice().reverse().forEach(wv => { if (out.length < 4) out.push({ ...wv, date: s.income.log[i].date }); });
+    }
+    return out;
+  })();
 
   function toggleToday(id) {
     set(p => {
       const t = p.today.find(x => x.id === id); if (!t || t.done) return p;
       const pr = projById(p, t.projectId); const w = p.weights;
-      let amt = w.small + (pr && pr.status === 'focus' ? w.focusBonus : 0);
-      amt = Math.max(0, Math.min(amt, w.dailyCap - gainToday(p)));
+      const per = w.dailyGrow * (pr && pr.status === 'focus' ? w.focusMult : 1);
       let np = { ...p,
         today: p.today.map(x => x.id === id ? { ...x, done: true, doneAt: new Date().toISOString() } : x),
         projects: p.projects.map(x => x.id === t.projectId ? { ...x, moveLog: [...(x.moveLog || []), { date: todayISO(), amt: 1 }] } : x),
         activity: [{ date: todayISO(), projectId: t.projectId, action: t.action, minutes: null }, ...(p.activity || [])].slice(0, 200),
       };
-      if (amt > 0 && pr) { np = bumpIndex(np, amt, `${pr.name} — ${t.action}`, t.projectId); const lg = np.index.log; lg[lg.length - 1].events[lg[lg.length - 1].events.length - 1]._sm = true; }
+      if (pr) np = actGrow(np, pr.assetTargets, per, `${pr.name} — ${t.action}`, w.dailyCapPerAsset);
       return np;
     });
   }
@@ -381,25 +486,26 @@ function Home({ s, set, go, openProject }) {
         <button className="gear" onClick={() => go('settings')}>⚙</button>
       </div>
 
-      {/* Career Index */}
+      {/* ① Estimated Income */}
       <div className="card">
-        <div className="lbl">CAREER INDEX</div>
-        <div className="idx-now">{info30.now.toFixed(1)}</div>
+        <div className="lbl">2030 想定初年度年収</div>
+        <div className="idx-now">{man(inc.main)}<span className="yen">円</span></div>
         <div className="idx-sub" style={{ color: info30.chg >= 0 ? 'var(--up)' : 'var(--down)' }}>
-          {info30.arrow} {info30.chg >= 0 ? '+' : ''}{info30.chg} this month
+          {info30.arrow} {manD(info30.chg)}　<span className="muted2">this month</span>
         </div>
-        <div style={{ marginTop: 14 }}><IndexChart log={s.index.log} days={days} showMarkers onPick={setPick} h={116} /></div>
-        <div className="range">
-          {RANGES.map(([d, l]) => <button key={d} className={days === d ? 'on' : ''} onClick={() => { setDays(d); setPick(null); }}>{l}</button>)}
-        </div>
+        <div className="ts" style={{ marginTop: 8 }}>想定レンジ　{man(inc.lo)} — {man(inc.hi)}</div>
+        <div className="ts">現在のキャリア資産にもとづく　・　Confidence: {inc.conf.label}</div>
+
+        <div style={{ marginTop: 14 }}><IncomeChart log={s.income.log} days={days} showMarkers onPick={setPick} h={116} /></div>
+        <div className="range">{RANGES.map(([d, l]) => <button key={d} className={days === d ? 'on' : ''} onClick={() => { setDays(d); setPick(null); }}>{l}</button>)}</div>
         {pick && (
           <div className="pick">
             <div className="lbl">{fmtFull(pick.date)}</div>
-            <div className="pick-v">{r1(pick.value - pick.delta)} → {pick.value}</div>
-            {pick.events.map((e, i) => (
+            <div className="pick-v">{man(pick.value)}円</div>
+            {(pick.why || []).map((wv, i) => (
               <div key={i} className="pick-e">
-                <span>{e.reason}</span>
-                {e.projectId && projById(s, e.projectId) && <span className="pick-p">{projById(s, e.projectId).name}</span>}
+                <span>{wv.up ? '↑' : '↓'} {wv.reason}{wv.asset ? `（${ASSET_MAP[wv.asset].jp} ${wv.from}→${wv.to}）` : ''}</span>
+                {wv.incomeDelta ? <span className="pick-p">{manD(wv.incomeDelta)}</span> : null}
               </div>
             ))}
           </div>
@@ -408,25 +514,37 @@ function Home({ s, set, go, openProject }) {
 
       {!s.tipsSeen && (
         <div className="card soft">
-          <div className="sub">指数は株価ではなく「2030年に向けて最近どれだけ前進できているか」。数をこなしても上がらない。重要な活動が数日止まると緩く下がる（1日の休みでは下げない）。</div>
+          <div className="sub">タスクは円に換算していません。行動で <b>キャリア資産</b>（英語・研究・実績…）が育ち、その結果として選べる企業群と想定年収レンジが変わります。</div>
           <button className="btn btn-sm" style={{ marginTop: 10 }} onClick={() => set(p => ({ ...p, tipsSeen: true }))}>OK</button>
         </div>
       )}
 
-      {/* Current Focus */}
+      {/* ③ Why it changed */}
       <div className="card">
-        <div className="between"><div className="lbl">CURRENT FOCUS</div><button className="link" onClick={() => go('projects')}>変更</button></div>
-        {focus.length === 0 && <div className="sub" style={{ marginTop: 6 }}>PROJECTSで最大3つ選ぶ。</div>}
-        {focus.map(p => (
-          <div key={p.id} className="focus" onClick={() => openProject(p.id)}>
-            <span className="emo">{p.emoji}</span>
-            <span className="fname">{p.name}</span>
-            <span className="fpct">{progressOf(p)}%</span>
+        <div className="between"><div className="lbl">WHY IT CHANGED</div><button className="link" onClick={() => go('career')}>資産を見る</button></div>
+        {whyRecent.length === 0 && <div className="sub" style={{ marginTop: 6 }}>まだ変化なし。Add Progress で記録すると動きます。</div>}
+        {whyRecent.map((wv, i) => (
+          <div key={i} className="why-row">
+            <span className="why-a" style={{ color: wv.up ? 'var(--up)' : 'var(--down)' }}>{wv.up ? '↑' : '↓'}</span>
+            <span style={{ flex: 1 }}>{wv.reason}</span>
+            {wv.asset && <span className="ts">{ASSET_MAP[wv.asset].jp} {wv.from}→{wv.to}</span>}
           </div>
         ))}
       </div>
 
-      {/* Today */}
+      {/* ④ Current Focus */}
+      <div className="card">
+        <div className="between"><div className="lbl">CURRENT FOCUS</div><button className="link" onClick={() => go('projects')}>変更</button></div>
+        {focus.map(p => (
+          <div key={p.id} className="focus" onClick={() => openProject(p.id)}>
+            <span className="emo">{p.emoji}</span>
+            <span className="fname">{p.name}</span>
+            <span className="fpct">{(p.assetTargets || []).map(a => ASSET_MAP[a].jp).join('・')}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* ⑤ Today */}
       <div className="card">
         <div className="lbl">TODAY</div>
         {today.length === 0 && <div className="sub" style={{ marginTop: 6 }}>ルーティンから追加、または Add Progress で記録。</div>}
@@ -435,41 +553,21 @@ function Home({ s, set, go, openProject }) {
           return (
             <div key={t.id} className="todo">
               <button className={`ck ${t.done ? 'on' : ''}`} onClick={() => toggleToday(t.id)}>{t.done ? '✓' : ''}</button>
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1 }} onClick={() => setPick({ _impact: { projId: t.projectId, action: t.action } })}>
                 <div className="tt" style={{ textDecoration: t.done ? 'line-through' : 'none', color: t.done ? 'var(--sub)' : 'var(--ink)' }}>{t.action}</div>
-                <div className="ts">{pr ? `${pr.emoji} ${pr.name}` : '—'}</div>
+                <div className="ts">{pr ? `${pr.emoji} ${pr.name}` : '—'}　·　影響を見る</div>
               </div>
               <button className="x sm" onClick={() => set(p => ({ ...p, today: p.today.filter(x => x.id !== t.id) }))}>✕</button>
             </div>
           );
         })}
-        <div className="rts">
-          {s.routines.map(rt => <button key={rt.id} className="chip sm" onClick={() => addRoutine(rt)}>＋ {rt.name}</button>)}
-        </div>
+        <div className="rts">{s.routines.map(rt => <button key={rt.id} className="chip sm" onClick={() => addRoutine(rt)}>＋ {rt.name}</button>)}</div>
       </div>
 
       <button className="btn btn-fill btn-block big" onClick={() => setAdding(true)}>＋ Add Progress</button>
 
-      {/* Next Deadline */}
-      <div className="card">
-        <div className="lbl">NEXT DEADLINE</div>
-        {dls.length === 0 && <div className="sub" style={{ marginTop: 6 }}>設定なし</div>}
-        {dls.map((d, i) => {
-          const du = daysUntil(d.date);
-          return (
-            <div key={i} className="dl">
-              <div className="dl-m">{MON3[parseISO(d.date).getMonth()]} {parseISO(d.date).getDate()}</div>
-              <div style={{ flex: 1 }}>
-                <div className="dl-t">{d.label}</div>
-                <div className="ts">{d.emoji} {d.project}</div>
-              </div>
-              <div className="dl-d" style={{ color: du <= 14 ? 'var(--down)' : 'var(--sub)' }}>{du < 0 ? 'now' : `${du}d`}</div>
-            </div>
-          );
-        })}
-      </div>
-
       {adding && <AddProgress s={s} set={set} onClose={() => setAdding(false)} />}
+      {pick && pick._impact && <TaskImpact s={s} projId={pick._impact.projId} action={pick._impact.action} onClose={() => setPick(null)} />}
     </div>
   );
 }
@@ -480,6 +578,7 @@ function Home({ s, set, go, openProject }) {
 function Roadmap({ s }) {
   const curYear = new Date().getFullYear();
   const [open, setOpen] = useState(curYear);
+  const dls = upcomingDeadlines(s, 3);
   return (
     <div className="screen">
       <div className="lbl">ROADMAP</div>
@@ -496,12 +595,23 @@ function Roadmap({ s }) {
       {ROADMAP.filter(r => r.year === open).map(r => (
         <div key={r.year} className={`card ${r.year < curYear ? 'faint' : ''}`}>
           <div className="between"><div className="h2">{r.year}</div><div className="sub">{r.summary}</div></div>
-          <div style={{ marginTop: 8 }}>
-            {r.events.map((e, i) => <div key={i} className="rm-e">{r.year < curYear ? '◦' : '•'} {e}</div>)}
-          </div>
+          <div style={{ marginTop: 8 }}>{r.events.map((e, i) => <div key={i} className="rm-e">{r.year < curYear ? '◦' : '•'} {e}</div>)}</div>
         </div>
       ))}
-      <div className="card soft"><div className="sub">日々のタスクは載せません。大きなイベントだけ。年をタップで切り替え。</div></div>
+      <div className="card">
+        <div className="lbl">NEXT DEADLINE</div>
+        {dls.length === 0 && <div className="sub" style={{ marginTop: 6 }}>設定なし</div>}
+        {dls.map((d, i) => {
+          const du = daysUntil(d.date);
+          return (
+            <div key={i} className="dl">
+              <div className="dl-m">{MON3[parseISO(d.date).getMonth()]} {parseISO(d.date).getDate()}</div>
+              <div style={{ flex: 1 }}><div className="dl-t">{d.label}</div><div className="ts">{d.emoji} {d.project}</div></div>
+              <div className="dl-d" style={{ color: du <= 14 ? 'var(--down)' : 'var(--sub)' }}>{du < 0 ? 'now' : `${du}d`}</div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -512,6 +622,7 @@ function Roadmap({ s }) {
 function Projects({ s, set, sel, setSel, openProject }) {
   const [adding, setAdding] = useState(false);
   const [promo, setPromo] = useState(null);
+  const [stopSim, setStopSim] = useState(null); // routine id
   const detail = sel && projById(s, sel);
   const focusCount = s.projects.filter(p => p.status === 'focus').length;
 
@@ -526,16 +637,13 @@ function Projects({ s, set, sel, setSel, openProject }) {
     set(p => {
       const pr = p.projects.find(x => x.id === pid);
       const ms = pr.milestones.find(m => m.id === mid);
-      const turningOn = !ms.done;
+      const on = !ms.done;
       let np = { ...p, projects: p.projects.map(x => x.id === pid ? {
-        ...x,
-        moveLog: turningOn ? [...(x.moveLog || []), { date: todayISO(), amt: 6 }] : x.moveLog,
-        milestones: x.milestones.map(m => m.id === mid ? { ...m, done: turningOn, doneAt: turningOn ? new Date().toISOString() : null } : m),
+        ...x, moveLog: on ? [...(x.moveLog || []), { date: todayISO(), amt: 6 }] : x.moveLog,
+        milestones: x.milestones.map(m => m.id === mid ? { ...m, done: on, doneAt: on ? new Date().toISOString() : null } : m),
       } : x) };
-      if (turningOn) {
-        const amt = ms.big ? p.weights.milestoneBig : p.weights.milestone;
-        np = bumpIndex(np, amt, `マイルストーン達成：${ms.label}（${pr.name}）`, pid);
-      }
+      if (on) np = actGrow(np, pr.assetTargets, ms.big ? p.weights.milestoneBigGrow : p.weights.milestoneGrow, `マイルストーン：${ms.label}（${pr.name}）`);
+      else np = snapshotIncome(np, []);
       return np;
     });
   }
@@ -546,12 +654,14 @@ function Projects({ s, set, sel, setSel, openProject }) {
       let np = { ...p };
       if (choice === 'end' && sac) np = { ...np, projects: np.projects.filter(x => x.id !== sac) };
       if (choice === 'reduce' && sac) np = { ...np, projects: np.projects.map(x => x.id === sac ? { ...x, status: 'active' } : x) };
-      np = { ...np,
-        projects: [...np.projects, { id: uid(), name: idea.text.slice(0, 18), emoji: '•', kind: 'project', outcome: 'career', goal: idea.text, status: 'active', deadline: null, milestones: [], moveLog: [], nextActionText: '最初の一歩を決める' }],
-        ideas: np.ideas.filter(x => x.id !== idea.id) };
+      np = { ...np, projects: [...np.projects, { id: uid(), name: idea.text.slice(0, 18), emoji: '•', kind: 'project', outcome: 'career', goal: idea.text, status: 'active', deadline: null, milestones: [], moveLog: [], assetTargets: ['coreSkills'], nextActionText: '最初の一歩を決める' }], ideas: np.ideas.filter(x => x.id !== idea.id) };
       return np;
     });
     setPromo(null);
+  }
+  function doStop(rt) {
+    set(p => ({ ...p, routines: p.routines.filter(x => x.id !== rt.id) }));
+    setStopSim(null);
   }
 
   if (detail) {
@@ -564,15 +674,14 @@ function Projects({ s, set, sel, setSel, openProject }) {
             <div className="h1">{p.emoji} {p.name}</div>
             <button className={`chip ${p.status === 'focus' ? 'on' : ''}`} onClick={() => toggleFocus(p.id)}>{p.status === 'focus' ? '★ Focus' : 'Focusにする'}</button>
           </div>
-          <div className="row" style={{ gap: 12, marginTop: 12, alignItems: 'center' }}>
-            <Ring v={pct} />
-            <div><div className="big-n">{pct}%</div><Trend p={p} /></div>
+          <div className="row" style={{ gap: 12, marginTop: 12 }}>
+            <div style={{ flex: 1 }}><Bar v={pct} /></div>
+            <div className="big-n sm">{pct}%</div>
+            <Trend p={p} />
           </div>
+          <div className="ts" style={{ marginTop: 8 }}>育つ資産：{(p.assetTargets || []).map(a => ASSET_MAP[a].jp).join(' / ') || '—'}</div>
         </div>
-        <div className="card">
-          <div className="lbl">GOAL</div>
-          <textarea className="ta" value={p.goal || ''} onChange={e => setField(p.id, 'goal', e.target.value)} />
-        </div>
+        <div className="card"><div className="lbl">GOAL</div><textarea className="ta" value={p.goal || ''} onChange={e => setField(p.id, 'goal', e.target.value)} /></div>
         <div className="card">
           <div className="lbl">NEXT DEADLINE</div>
           <input className="in" placeholder="内容" value={(p.deadline || {}).label || ''} onChange={e => setDl(p.id, 'label', e.target.value)} />
@@ -580,7 +689,7 @@ function Projects({ s, set, sel, setSel, openProject }) {
           {(p.deadline || {}).date && <div className="sub" style={{ marginTop: 6 }}>あと {daysUntil(p.deadline.date)}日</div>}
         </div>
         <div className="card">
-          <div className="lbl">MILESTONES（達成で進捗が自動計算）</div>
+          <div className="lbl">MILESTONES（達成で進捗と資産が伸びる）</div>
           {(p.milestones || []).map(ms => (
             <div key={ms.id} className="todo">
               <button className={`ck ${ms.done ? 'on' : ''}`} onClick={() => toggleMs(p.id, ms.id)}>{ms.done ? '✓' : ''}</button>
@@ -590,9 +699,7 @@ function Projects({ s, set, sel, setSel, openProject }) {
         </div>
         <div className="card">
           <div className="lbl">最近の記録</div>
-          {(s.activity || []).filter(a => a.projectId === p.id).slice(0, 8).map((a, i) => (
-            <div key={i} className="ts" style={{ padding: '4px 0' }}>{fmtDate(a.date)}　{a.action}{a.minutes ? ` ・${a.minutes}min` : ''}</div>
-          ))}
+          {(s.activity || []).filter(a => a.projectId === p.id).slice(0, 8).map((a, i) => <div key={i} className="ts" style={{ padding: '4px 0' }}>{fmtDate(a.date)}　{a.action}{a.minutes ? ` ・${a.minutes}min` : ''}</div>)}
           {(s.activity || []).filter(a => a.projectId === p.id).length === 0 && <div className="sub" style={{ marginTop: 6 }}>まだなし</div>}
         </div>
       </div>
@@ -613,12 +720,20 @@ function Projects({ s, set, sel, setSel, openProject }) {
             <div style={{ flex: 1 }}><Bar v={progressOf(p)} /></div>
             <div className="big-n sm">{progressOf(p)}%</div>
           </div>
-          <div className="between" style={{ marginTop: 8 }}>
-            <Trend p={p} />
-            <div className="ts">Next：{nextActionOf(p)}</div>
-          </div>
+          <div className="between" style={{ marginTop: 8 }}><Trend p={p} /><div className="ts">Next：{nextActionOf(p)}</div></div>
         </div>
       ))}
+
+      <div className="card">
+        <div className="lbl">ROUTINES</div>
+        {s.routines.map(rt => (
+          <div key={rt.id} className="todo" style={{ alignItems: 'center' }}>
+            <div style={{ flex: 1 }}><div className="tt">{rt.name}</div><div className="ts">{rt.actions.join(' / ')}</div></div>
+            <button className="btn btn-sm" onClick={() => setStopSim(rt)}>Stop</button>
+          </div>
+        ))}
+        {stopSim && <StopSim s={s} rt={stopSim} onStop={() => doStop(stopSim)} onCancel={() => setStopSim(null)} />}
+      </div>
 
       <div className="card">
         <div className="between"><div className="lbl">IDEA（すぐProjectにしない）</div><button className="link" onClick={() => setAdding(a => !a)}>{adding ? '閉じる' : '＋'}</button></div>
@@ -637,14 +752,37 @@ function Projects({ s, set, sel, setSel, openProject }) {
     </div>
   );
 }
-function IdeaAdd({ onAdd }) {
-  const [v, setV] = useState('');
+function StopSim({ s, rt, onStop, onCancel }) {
+  const p = projById(s, rt.projectId);
+  const per = s.weights.dailyGrow * (p && p.status === 'focus' ? s.weights.focusMult : 1);
+  const targets = (p && p.assetTargets) || [];
+  const cont = growAssetsN(s, targets, per, 26).assets;
+  const stop = {}; ASSETS.forEach(a => stop[a.id] = targets.includes(a.id) ? clamp(s.assets[a.id] + 2, 0, 100) : s.assets[a.id]);
+  const key = targets[0];
+  const curInc = incomeNow(s).main;
+  const contInc = estimateFor(s, cont).main;
+  const stopInc = estimateFor(s, stop).main;
   return (
-    <div style={{ marginTop: 8 }}>
-      <textarea className="ta" value={v} onChange={e => setV(e.target.value)} placeholder="思いついたこと" />
-      <button className="btn btn-sm" style={{ marginTop: 6 }} disabled={!v.trim()} onClick={() => onAdd(v.trim())}>IDEAに保存</button>
+    <div className="pick" style={{ marginTop: 10 }}>
+      <div style={{ fontWeight: 700 }}>{rt.name} を止める前に</div>
+      <div className="ts" style={{ marginTop: 4 }}>6ヶ月後の見込み（{key ? ASSET_MAP[key].jp : '資産'} ／ 想定年収）</div>
+      <div className="scn" style={{ marginTop: 8 }}>
+        <div><div className="ts">Continue</div><div className="big-n sm">{key ? `${Math.round(s.assets[key])}→${Math.round(cont[key])}` : '—'}</div><div className="ts" style={{ color: 'var(--up)' }}>{man(contInc)}</div></div>
+        <div><div className="ts">Stop</div><div className="big-n sm">{key ? `${Math.round(s.assets[key])}→${Math.round(stop[key])}` : '—'}</div><div className="ts">{man(stopInc)}</div></div>
+      </div>
+      <div className="row" style={{ gap: 8, marginTop: 10 }}>
+        <button className="btn btn-sm btn-fill" onClick={onCancel}>Continue</button>
+        <button className="btn btn-sm danger" onClick={onStop}>Stop anyway</button>
+      </div>
     </div>
   );
+}
+function IdeaAdd({ onAdd }) {
+  const [v, setV] = useState('');
+  return (<div style={{ marginTop: 8 }}>
+    <textarea className="ta" value={v} onChange={e => setV(e.target.value)} placeholder="思いついたこと" />
+    <button className="btn btn-sm" style={{ marginTop: 6 }} disabled={!v.trim()} onClick={() => onAdd(v.trim())}>IDEAに保存</button>
+  </div>);
 }
 function PromoteQ({ s, idea, onDo, onCancel }) {
   const [c, setC] = useState(null); const [sac, setSac] = useState('');
@@ -656,8 +794,7 @@ function PromoteQ({ s, idea, onDo, onCancel }) {
       ))}
       {(c === 'reduce' || c === 'end') && (
         <select className="in" style={{ marginTop: 8 }} value={sac} onChange={e => setSac(e.target.value)}>
-          <option value="">— 対象のProject —</option>
-          {s.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          <option value="">— 対象のProject —</option>{s.projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       )}
       <div className="row" style={{ gap: 8, marginTop: 10 }}>
@@ -672,31 +809,120 @@ function PromoteQ({ s, idea, onDo, onCancel }) {
    ④ CAREER
    ============================================================ */
 function Career({ s, set, openProject }) {
-  const [open, setOpen] = useState(null);
-  const setOut = (k, v) => set(p => ({ ...p, ideal: { ...p.ideal, outcomes: { ...p.ideal.outcomes, [k]: v } } }));
+  const [wf, setWf] = useState(false);
+  const inc = useMemo(() => incomeNow(s), [s]);
+  const setP = (k, v) => set(p => ({ ...p, profile: { ...p.profile, [k]: v } }));
+  const setOut = (k, v) => set(p => ({ ...p, ideal: { ...(p.ideal || {}), outcomes: { ...((p.ideal || {}).outcomes || {}), [k]: v } } }));
+  const outcomes = (s.ideal && s.ideal.outcomes) || Object.fromEntries(OUTCOMES.map(o => [o.id, o.desc]));
+
   return (
     <div className="screen">
-      <div className="lbl">CAREER — 2030年3月の理想</div>
-      <textarea className="ta" style={{ marginTop: 8, fontSize: 15 }} value={s.ideal.headline} onChange={e => set(p => ({ ...p, ideal: { ...p.ideal, headline: e.target.value } }))} />
-      {OUTCOMES.map(o => (
-        <div key={o.id} className="card">
-          <div className="between" onClick={() => setOpen(open === o.id ? null : o.id)} style={{ cursor: 'pointer' }}>
-            <div className="h2">{o.name}</div>
-            <div className="link">{open === o.id ? '−' : '関連Project'}</div>
+      <div className="lbl">CAREER</div>
+
+      <div className="card">
+        <div className="lbl">CAREER ASSETS</div>
+        {ASSETS.map(a => (
+          <div key={a.id} className="arow">
+            <div className="aname">{a.name}<span className="ts"> {a.jp}</span></div>
+            <div style={{ flex: 1 }}><Bar v={s.assets[a.id]} /></div>
+            <div className="big-n sm">{Math.round(s.assets[a.id])}</div>
           </div>
-          <textarea className="ta" style={{ marginTop: 8 }} value={s.ideal.outcomes[o.id] || ''} onChange={e => setOut(o.id, e.target.value)} />
-          {open === o.id && (
-            <div style={{ marginTop: 8 }}>
-              {s.projects.filter(p => p.outcome === o.id).map(p => (
-                <div key={p.id} className="focus" onClick={() => openProject(p.id)}>
-                  <span className="emo">{p.emoji}</span><span className="fname">{p.name}</span><span className="fpct">{progressOf(p)}%</span>
-                </div>
-              ))}
-              {s.projects.filter(p => p.outcome === o.id).length === 0 && <div className="sub">関連Projectなし</div>}
+        ))}
+      </div>
+
+      <div className="card">
+        <div className="lbl">CAREER FIT</div>
+        {PATHS.map(p => {
+          const f = inc.fits[p.id];
+          return (
+            <div key={p.id} className="fit-row">
+              <span style={{ flex: 1 }}>{p.name}</span>
+              <span className={`fitb f-${fitLabel(f).toLowerCase()}`}>{fitLabel(f)}</span>
+              <span className="ts num">{man(inc.ests[p.id])}</span>
             </div>
-          )}
+          );
+        })}
+      </div>
+
+      <div className="card">
+        <div className="lbl">CAREER OPTIONS</div>
+        {[['High', '700万〜'], ['Competitive', '550万〜700万'], ['Broad Range', '400万〜550万']].map(([k, v], i) => (
+          <div key={i} className="opt-row"><span style={{ flex: 1, fontWeight: 700 }}>{k}</span><span className="ts">{v}</span></div>
+        ))}
+        <div className="ts" style={{ marginTop: 8 }}>いまの想定 {man(inc.main)}円 は「{inc.main >= 7000000 ? 'High' : inc.main >= 5500000 ? 'Competitive' : 'Broad Range'}」の水準に近づいています。内定確率などは表示しません。</div>
+      </div>
+
+      <button className="btn btn-fill btn-block big" onClick={() => setWf(true)}>What If? を試す</button>
+
+      <div className="card">
+        <div className="lbl">CAREER PROFILE</div>
+        <div className="grid2" style={{ marginTop: 8 }}>
+          <div className="fld"><label>大学</label><input className="in" value={s.profile.university} onChange={e => setP('university', e.target.value)} /></div>
+          <div className="fld"><label>学部</label><input className="in" value={s.profile.faculty} onChange={e => setP('faculty', e.target.value)} /></div>
+          <div className="fld"><label>卒業予定年</label><input className="in" value={s.profile.gradYear} onChange={e => setP('gradYear', Number(e.target.value) || 2030)} /></div>
+          <div className="fld"><label>GPA</label><input className="in" value={s.profile.gpa} onChange={e => setP('gpa', e.target.value)} /></div>
+          <div className="fld"><label>英語レベル</label><input className="in" value={s.profile.english} onChange={e => setP('english', e.target.value)} /></div>
+          <div className="fld"><label>第一志望の業界</label>
+            <select className="in" value={s.profile.targetPath} onChange={e => setP('targetPath', e.target.value)}>{PATHS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          </div>
         </div>
-      ))}
+      </div>
+
+      <div className="card">
+        <div className="lbl">2030年の理想</div>
+        {OUTCOMES.map(o => (
+          <div key={o.id} style={{ marginTop: 10 }}>
+            <div className="h2">{o.name}</div>
+            <textarea className="ta" style={{ marginTop: 4 }} value={outcomes[o.id] || ''} onChange={e => setOut(o.id, e.target.value)} />
+            <div style={{ marginTop: 4 }}>{s.projects.filter(p => p.outcome === o.id).map(p => (
+              <div key={p.id} className="map-proj" onClick={() => openProject(p.id)}><span style={{ flex: 1 }}>{p.emoji} {p.name}</span><span className="ts num">{progressOf(p)}%</span></div>
+            ))}</div>
+          </div>
+        ))}
+      </div>
+
+      {wf && <WhatIf s={s} onClose={() => setWf(false)} />}
+    </div>
+  );
+}
+function WhatIf({ s, onClose }) {
+  const [ov, setOv] = useState({ english: null, abroad: null, research: null, project: null, intern: null });
+  const custom = estimateFor(s, withOverrides(s.assets, ov)).main;
+  const cur = incomeNow(s).main;
+  const scn = useMemo(() => scenarioIncomes(s), [s]);
+  const Seg = ({ k, opts }) => (
+    <div className="chips">
+      {opts.map(([v, l]) => <button key={String(v)} className={`chip ${ov[k] === v ? 'on' : ''}`} onClick={() => setOv({ ...ov, [k]: ov[k] === v ? null : v })}>{l}</button>)}
+    </div>
+  );
+  return (
+    <div className="sheet" onClick={e => { if (e.target.className === 'sheet') onClose(); }}>
+      <div className="sheet-in">
+        <div className="between"><div className="h2">What If?</div><button className="x" onClick={onClose}>✕</button></div>
+
+        <div className="scn" style={{ marginTop: 10 }}>
+          <div><div className="ts">Minimum</div><div className="big-n sm">{man(scn.minimum)}</div></div>
+          <div><div className="ts">Current</div><div className="big-n sm">{man(scn.current)}</div></div>
+          <div><div className="ts">Growth</div><div className="big-n sm" style={{ color: 'var(--up)' }}>{man(scn.growth)}</div></div>
+        </div>
+        <div className="ts" style={{ marginTop: 6 }}>今の選択で、2030年の想定がどれだけ変わるか。</div>
+
+        <div className="card" style={{ marginTop: 14, boxShadow: 'none', border: '1px solid var(--line)' }}>
+          <div className="lbl">カスタム</div>
+          <div className="idx-now" style={{ fontSize: 30, marginTop: 4 }}>{man(cur)} <span className="muted2" style={{ fontSize: 15 }}>→</span> <span style={{ color: custom >= cur ? 'var(--up)' : 'var(--down)' }}>{man(custom)}</span></div>
+        </div>
+
+        <div className="lbl" style={{ marginTop: 12 }}>English（目標スコア）</div>
+        <Seg k="english" opts={[['6.0', '6.0'], ['6.5', '6.5'], ['7.0', '7.0'], ['7.5', '7.5']]} />
+        <div className="lbl">Study Abroad</div>
+        <Seg k="abroad" opts={[['6m', '6ヶ月'], ['1y', '1年']]} />
+        <div className="lbl">Research</div>
+        <Seg k="research" opts={[['conf', '学会発表'], ['pub', '論文'], ['both', '両方']]} />
+        <div className="lbl">Project</div>
+        <Seg k="project" opts={[['6m', '6ヶ月'], ['1y', '1年'], ['2y', '2年以上']]} />
+        <div className="lbl">Internship</div>
+        <Seg k="intern" opts={[['1', '1社'], ['2', '2社以上'], ['long', '長期']]} />
+      </div>
     </div>
   );
 }
@@ -715,9 +941,9 @@ function Settings({ s, set, go }) {
     <div className="screen">
       <div className="between"><div className="lbl">設定</div><button className="link" onClick={() => go('home')}>閉じる</button></div>
       <div className="card">
-        <div className="lbl">指数の変動幅（調整可）</div>
+        <div className="lbl">資産の成長・減衰（調整可）</div>
         <div className="grid2" style={{ marginTop: 10 }}>
-          {[['small', '行動'], ['focusBonus', 'Focus加算'], ['milestone', 'マイルストーン'], ['milestoneBig', 'マイルストーン(大)'], ['stall', '数日 停滞'], ['deadlineNoProgress', '締切近いのに停滞'], ['stallDays', '停滞とみなす日数'], ['deadlineWindow', '締切の警戒日数'], ['dailyCap', '行動の日次上限']].map(([k, l]) => (
+          {[['dailyGrow', '1回の行動'], ['focusMult', 'Focus倍率'], ['milestoneGrow', 'マイルストーン'], ['milestoneBigGrow', 'マイルストーン(大)'], ['decayPerWeek', '週の減衰'], ['dailyCapPerAsset', '資産の日次上限']].map(([k, l]) => (
             <div className="fld" key={k}><label>{l}</label><input className="in" value={w[k]} onChange={e => setW(k, e.target.value)} /></div>
           ))}
         </div>
@@ -729,7 +955,7 @@ function Settings({ s, set, go }) {
         <button className="btn btn-block" style={{ marginTop: 10 }} disabled={!imp.trim()} onClick={im}>インポート</button>
         <button className="btn btn-block danger" style={{ marginTop: 10 }} onClick={wipe}>すべて消して初期化</button>
       </div>
-      <div className="sub">データは端末内のみ。Safariで「ホーム画面に追加」でアプリになります。</div>
+      <div className="sub">データは端末内のみ。想定年収は将来を断定するものではなく、現在のキャリア資産にもとづくモデル推定です。</div>
     </div>
   );
 }
@@ -740,15 +966,13 @@ function Settings({ s, set, go }) {
 function Nav({ tab, go }) {
   const items = [['home', 'Home'], ['roadmap', 'Roadmap'], ['projects', 'Projects'], ['career', 'Career']];
   return (
-    <div className="nav">
-      {items.map(([id, label]) => (
-        <button key={id} className={`nav-item ${tab === id ? 'active' : ''}`} onClick={() => go(id)}><span>{label}</span></button>
-      ))}
-    </div>
+    <div className="nav">{items.map(([id, label]) => (
+      <button key={id} className={`nav-item ${tab === id ? 'active' : ''}`} onClick={() => go(id)}><span>{label}</span></button>
+    ))}</div>
   );
 }
 function App() {
-  const [s, setS] = useState(() => ensureIndex(loadState()));
+  const [s, setS] = useState(() => ensureIncome(loadState()));
   const [tab, setTab] = useState('home');
   const [sel, setSel] = useState(null);
   useEffect(() => { saveState(s); }, [s]);
