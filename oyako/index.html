@@ -227,7 +227,8 @@ const { useState, useEffect, useCallback, useRef } = React;
 /* ============================================================
    DATA
    ============================================================ */
-const FREE_APP_URL = 'https://jyu0mama.github.io/usagi-care-app/shikou-kuse/';
+// ?from=oyako を付けて遷移すると、思考の癖アプリ側に「親子診断にもどる」ボタンが出る
+const FREE_APP_URL = '../shikou-kuse/?from=oyako';
 const STORAGE_KEY = 'oyako_v1_profile';
 const BALANCE_THRESHOLD = 15;
 const BLEND_THRESHOLD = 10;
@@ -2001,7 +2002,7 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
               <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>あなたの「強いメガネ」を選んでください</div>
               <div className="text-sub mb12">
                 無料の「思考の癖」診断で出た結果を選びます（最大2つ）。<br />
-                まだ受けていない方は→ <a href={FREE_APP_URL} target="_blank" rel="noopener noreferrer">無料診断を受ける</a>
+                まだ受けていない方は→ <a href={FREE_APP_URL} rel="noopener">無料診断を受ける</a>
               </div>
               <div className="glasses-grid">
                 {SPECTRUMS.map(sp => [sp.A, sp.B].map(g => (
@@ -2717,7 +2718,7 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
           <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>
             <strong>メガネ診断</strong>がまだの方はこちら（無料・約5分）
           </div>
-          <a href={FREE_APP_URL} target="_blank" rel="noopener noreferrer"
+          <a href={FREE_APP_URL} rel="noopener"
             style={{ display: 'block', textAlign: 'center', padding: '10px', borderRadius: 10,
               background: '#fff', border: '1.5px solid var(--primary)', color: 'var(--primary)',
               fontWeight: 700, fontSize: 14 }}>
