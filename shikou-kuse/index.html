@@ -217,6 +217,28 @@
 </style>
 </head>
 <body>
+<style>
+  #back-oyako{display:none;}
+  #back-oyako.show{
+    position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:10px;z-index:1000;
+    display:inline-flex;align-items:center;gap:4px;padding:8px 13px;border-radius:999px;
+    background:rgba(255,255,255,.92);color:var(--accent-deep);border:1px solid var(--line);
+    font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.08);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  }
+</style>
+<a id="back-oyako" href="../oyako/">‹ 親子診断にもどる</a>
+<script>
+  (function () {
+    // 親子診断アプリから来たときだけ「もどる」を表示（?from=oyako）。
+    // 思考の癖アプリ単体では、親子アプリへの導線は一切出さない。
+    try {
+      if (/[?&#]from=oyako(?:$|[&#])/.test(location.search + location.hash)) {
+        document.getElementById('back-oyako').className = 'show';
+      }
+    } catch (e) {}
+  })();
+</script>
 <div class="wrap">
 
   <!-- ================= intro ================= -->
