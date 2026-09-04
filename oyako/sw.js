@@ -1,7 +1,7 @@
 /* 親子まるごと診断 — Service Worker
    ネットワーク優先（オンライン時は必ず最新を表示、オフライン時のみキャッシュ）。
    キャッシュ名は oyako- プレフィックスのみ削除する。 */
-const CACHE = 'oyako-v2';
+const CACHE = 'oyako-v3';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {

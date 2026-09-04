@@ -1897,10 +1897,49 @@ function HomeScreen({ profile, onTab }) {
   );
 }
 
+/* ── ChildPickScreen（どの子で見るか選ぶ） ── */
+function ChildPickScreen({ profile, onPick, onBack }) {
+  const children = profile?.children || [];
+  return (
+    <div>
+      <div className="page-header">
+        <button className="back-btn" onClick={onBack}>‹</button>
+        <span className="page-title">どの子で見る？</span>
+      </div>
+      <div className="page">
+        <div style={{ fontSize: 15, color: '#666', marginBottom: 16 }}>
+          場面カードで見る、お子さんを選んでください
+        </div>
+        {children.map((c, i) => (
+          <button key={c.id} className="scene-btn" onClick={() => onPick(i)}
+            style={(profile.currentChildIdx || 0) === i ? { border: '2px solid var(--primary)', background: 'var(--primary-bg)' } : {}}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              {c.diagnosis
+                ? <TypeAvatar id={c.diagnosis.nearest} size={46} />
+                : <div style={{ width: 46, height: 46, borderRadius: '50%', background: '#EEE', flexShrink: 0 }} />}
+              <div>
+                <div className="scene-btn-label">{c.name}</div>
+                <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>
+                  {c.diagnosis ? CHILD_TYPE_MAP[c.diagnosis.nearest]?.name : '未診断'}
+                </div>
+              </div>
+            </div>
+            <span className="scene-arrow">›</span>
+          </button>
+        ))}
+        <div style={{ height: 16 }} />
+        <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
+        <div style={{ height: 20 }} />
+      </div>
+    </div>
+  );
+}
+
 /* ── SceneListScreen（場面一覧） ── */
-function SceneListScreen({ profile, onScene, onSetup, onBack }) {
+function SceneListScreen({ profile, onScene, onSetup, onBack, onChangeChild }) {
   const hasChild = profile?.children?.length > 0;
   const currentChild = hasChild ? profile.children[profile.currentChildIdx || 0] : null;
+  const multiChild = (profile?.children || []).length > 1;
   return (
     <div className="page">
       <div style={{ paddingTop: 20, marginBottom: 16 }}>
@@ -1909,8 +1948,14 @@ function SceneListScreen({ profile, onScene, onSetup, onBack }) {
           困った場面を<br />開いてください
         </div>
         {currentChild && (
-          <div style={{ marginTop: 8, fontSize: 13, color: '#888' }}>
-            📖 {currentChild.name}の場面カード
+          <div style={{ marginTop: 8, fontSize: 13, color: '#888', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span>📖 {currentChild.name}の場面カード</span>
+            {multiChild && (
+              <button onClick={onChangeChild}
+                style={{ fontSize: 11, color: 'var(--primary)', background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}>
+                子どもを変える
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -3770,11 +3815,14 @@ function App() {
   }
 
   function handleTabChange(t) {
-    setTab(t);
-    if (t === 'home') setScreen('scene-list');
-    else if (t === 'diagnosis') setScreen('diagnosis');
+    if (t === 'home' && tab !== 'home' && (profile?.children || []).length > 1) {
+      setScreen('child-pick');
+    } else if (t === 'home') {
+      setScreen('scene-list');
+    } else if (t === 'diagnosis') setScreen('diagnosis');
     else if (t === 'cards') setScreen('cards45');
     else if (t === 'settings') setScreen('settings');
+    setTab(t);
   }
 
   function handleSceneOpen(sc) {
@@ -3789,12 +3837,20 @@ function App() {
       {screen === 'top' && (
         <HomeScreen profile={profile} onTab={handleTabChange} />
       )}
+      {screen === 'child-pick' && (
+        <ChildPickScreen
+          profile={profile}
+          onPick={(idx) => { saveProfile({ ...profile, currentChildIdx: idx }); setScreen('scene-list'); }}
+          onBack={goTop}
+        />
+      )}
       {screen === 'scene-list' && (
         <SceneListScreen
           profile={profile}
           onScene={handleSceneOpen}
           onSetup={() => setScreen('setup')}
           onBack={goTop}
+          onChangeChild={() => setScreen('child-pick')}
         />
       )}
       {screen === 'setup' && (
@@ -3834,7 +3890,7 @@ function App() {
           onBack={goTop}
         />
       )}
-      {screen !== 'setup' && screen !== 'scene-card' && screen !== 'top' && (
+      {screen !== 'setup' && screen !== 'scene-card' && screen !== 'top' && screen !== 'child-pick' && (
         <NavBar tab={tab} onTab={handleTabChange} />
       )}
     </div>
