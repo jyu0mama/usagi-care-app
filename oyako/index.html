@@ -94,6 +94,9 @@
 
     /* SECTION HEADER */
     .sec-num { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    .bias-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; vertical-align: 2px; }
+    .bias-tag-glass { background: #FFF4E8; color: #B45309; border: 1px solid #F0C9A0; }
+    .bias-tag-parent { background: var(--primary-bg); color: var(--primary-dark); border: 1px solid var(--border); }
     .sec-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
 
     /* NG / OK */
@@ -307,6 +310,34 @@ const GLASSES_BIAS = {
   convince_B:  { seeing: '途中の粘りや工夫を見落としがちです', hand: '結果でなく「やり方」をほめる' },
   outlook_A:   { seeing: '「大丈夫」と信じる力が強いぶん、お子さんが不安を感じていることを見落としやすいときです', hand: '「心配なことある？」と先に聞いてから話す' },
   outlook_B:   { seeing: '小さなつまずきを、大きな問題に見てしまいやすいときです', hand: '「本当に危険？　わたしの不安？」と一呼吸' },
+};
+
+/* ③⑥ メガネ・親タイプが「困りごと場面」でどう出やすいか（②で上位2メガネ＋親タイプと連動）
+   ※後段でメガネ×場面／親×場面の個別文へ差し替え可。まずは1行の一般形。 */
+const GLASS_SCENE_PHRASE = {
+  move_A:       'この場面では「なんでこんなことに時間がかかるの」が先に浮かびがち',
+  move_B:       'この場面では「勢いだけで、また雑になる」が先に浮かびがち',
+  focus_A:      'この場面では「早く終わらせて、次にいきたい」が先に浮かびがち',
+  focus_B:      'この場面では「このままだと、まずいことになる」が先に浮かびがち',
+  standard_A:   'この場面では「私はこうだったのに」が先に浮かびがち',
+  standard_B:   'この場面では「みんなできてるのに、うちだけ」が先に浮かびがち',
+  understand_A: 'この場面では「やり方が違う、それじゃダメ」が先に浮かびがち',
+  understand_B: 'この場面では「どれでもいいから、早く選んで」が先に浮かびがち',
+  convince_A:   'この場面では「言わなくても、分かるでしょ」が先に浮かびがち',
+  convince_B:   'この場面では「で、結果は？　できたの？」が先に浮かびがち',
+  outlook_A:    'この場面では「大げさだな、大丈夫でしょ」が先に浮かびがち',
+  outlook_B:    'この場面では「また失敗する」「悪化したら」が先に浮かびがち',
+};
+const PARENT_BIAS = {
+  shokunin:   '「もっとちゃんとできるはず」が先に立って、できていない所から言いがちです。',
+  sewayaku:   'お子さんが困る前に手を出しやすく、「私がなんとかしなきゃ」と抱え込みがちです。',
+  kaitakusha: '「早く前に進みたい」が強く、立ち止まっている時間をもどかしく感じやすいです。',
+  hyogensha:  'お子さんの気持ちに共鳴しやすいぶん、自分まで一緒に揺れて疲れやすいです。',
+  tankyusha:  '「なぜこうなるのか」を先に考えたくなり、その場の対応があと回しになりやすいです。',
+  mamorite:   '「もしものこと」が先に浮かんで、「危ないよ」「やめておこう」で早めに止めがちです。',
+  boukensha:  '「大丈夫、なんとかなる」で明るく流しやすく、お子さんの不安に気づきにくいことがあります。',
+  leader:     '「はっきりさせたい」が強く、白黒つける・強い言い方になりやすいです。',
+  kikite:     '対立を避けたくて、言うべきことを飲み込んだり、先延ばしにしやすいです。',
 };
 
 const SCENES = [
@@ -1753,10 +1784,11 @@ function SceneCardScreen({ scene, profile, onBack }) {
     );
   }
 
-  /* ① メガネ */
-  const glassBlocks = selectedGlasses.map(gid => GLASSES_BIAS[gid]).filter(Boolean);
+  /* ② あなたのメガネ・親タイプ（上位2メガネ＋親タイプ） */
+  const topGlasses = selectedGlasses.slice(0, 2);
+  const parentType = profile?.parentType || null;
 
-  /* ⑥ 組み合わせの注意 */
+  /* 組み合わせの注意 */
   const comboBlocks = selectedGlasses.flatMap(gid => {
     const note = childType ? COMBO_NOTES[`${gid}__${childType}`] : null;
     return note ? [{ gid, data: note }] : [];
@@ -1787,48 +1819,74 @@ function SceneCardScreen({ scene, profile, onBack }) {
           );
         })()}
 
-        {/* ① メガネ */}
-        {glassBlocks.length > 0 && (
-          <div className="card" style={{ borderTop: '3px solid #D96A2A' }}>
-            <div className="sec-num">① いま、あなたに見えているもの</div>
-            {glassBlocks.map((b, i) => {
-              const gid = selectedGlasses[i];
-              const g = ALL_GLASSES.find(x => x.id === gid);
-              return (
-                <div key={gid} style={{ marginBottom: i < glassBlocks.length - 1 ? 12 : 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>{g?.name}</div>
-                  <div className="text-sm" style={{ color: '#555' }}>{b.seeing}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '6px 10px' }}>
-                    → {b.hand}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ② NG → OK */}
+        {/* ② あなたのメガネ・親タイプでは、こう見えやすい（診断結果と連動） */}
         <div className="card">
-          <div className="sec-num">② つい出てしまう言葉 → こう変える</div>
-          <div className="ng-ok-box">
-            <div className="ng-row">
-              <span className="ngok-label ng-label">✕</span>
-              <span className="ngok-text">{data.common.ng}</span>
+          <div className="sec-num">① あなたのメガネでは、こう見えやすい</div>
+
+          {(topGlasses.length > 0 || parentType) ? (
+            <>
+              {topGlasses.map((gid) => {
+                const g = ALL_GLASSES.find(x => x.id === gid);
+                const b = GLASSES_BIAS[gid];
+                if (!g || !b) return null;
+                return (
+                  <div key={gid} style={{ marginBottom: 12 }}>
+                    <span className="bias-tag bias-tag-glass">メガネ</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, marginLeft: 6 }}>{g.name}</span>
+                    <div className="text-sm" style={{ color: '#555', marginTop: 4 }}>{b.seeing}</div>
+                    <div style={{ marginTop: 5, fontSize: 13, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '6px 10px' }}>
+                      → {GLASS_SCENE_PHRASE[gid]}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {parentType && PARENT_BIAS[parentType] && (
+                <div style={{ marginBottom: 12 }}>
+                  <span className="bias-tag bias-tag-parent">あなたのタイプ</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, marginLeft: 6 }}>
+                    {PARENT_TYPES.find(p => p.id === parentType)?.name}
+                  </span>
+                  <div className="text-sm" style={{ color: '#555', marginTop: 4 }}>{PARENT_BIAS[parentType]}</div>
+                </div>
+              )}
+
+              <div style={{ fontSize: 13, color: '#888', margin: '10px 0 6px' }}>だから、つい出てしまうのが</div>
+              <div className="ng-ok-box" style={{ marginBottom: 8 }}>
+                <div className="ng-row">
+                  <span className="ngok-label ng-label">✕</span>
+                  <span className="ngok-text">{data.common.ng}</span>
+                </div>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--primary-dark)', fontWeight: 700 }}>
+                → 変え方は、下の「うちの子には、こう届く」で ▼
+              </div>
+
+              <div className="why-box" style={{ marginTop: 12 }}>
+                <div className="why-brain">🧠 {WHY_TAGS[data.common.whyTag]?.text}</div>
+                <div style={{ marginTop: 4, fontSize: 13, color: '#555' }}>{data.common.whyLine}</div>
+              </div>
+
+              <div style={{ fontSize: 11, color: '#AAA', marginTop: 10, lineHeight: 1.7 }}>
+                <span className="bias-tag bias-tag-glass">メガネ</span> は、その瞬間に何が見えるか（あとから整えられます）。
+                <span className="bias-tag bias-tag-parent" style={{ marginLeft: 4 }}>あなたのタイプ</span> は、もともとの気質（変えなくて大丈夫）。
+              </div>
+            </>
+          ) : (
+            <div className="notice-box" style={{ fontSize: 12 }}>
+              メガネ診断・親タイプ診断をすると、この場面で「あなたにこう見えやすい」が表示されます。
+              <div style={{ marginTop: 6 }}>だから、つい出てしまうのが</div>
+              <div className="ng-ok-box" style={{ marginTop: 6 }}>
+                <div className="ng-row"><span className="ngok-label ng-label">✕</span><span className="ngok-text">{data.common.ng}</span></div>
+              </div>
+              <div style={{ marginTop: 6, color: 'var(--primary-dark)', fontWeight: 700 }}>→ 変え方は、下の「うちの子には、こう届く」で ▼</div>
             </div>
-            <div className="ok-row">
-              <span className="ngok-label ok-label">◯</span>
-              <span className="ngok-text">{data.common.ok}</span>
-            </div>
-          </div>
-          <div className="why-box">
-            <div className="why-brain">🧠 {WHY_TAGS[data.common.whyTag]?.text}</div>
-            <div style={{ marginTop: 4, fontSize: 13, color: '#555' }}>{data.common.whyLine}</div>
-          </div>
+          )}
         </div>
 
         {/* ③ タイプ別 */}
         <div className="card">
-          <div className="sec-num">③ うちの子には、こう届く</div>
+          <div className="sec-num">② うちの子には、こう届く</div>
           {currentChild?.diagnosis ? (
             <>
               <MiniTypeChart diag={currentChild.diagnosis} />
@@ -1879,14 +1937,14 @@ function SceneCardScreen({ scene, profile, onBack }) {
 
         {/* ④ 先に、減らせること */}
         <div className="card">
-          <div className="sec-num">④ 先に、減らせること</div>
+          <div className="sec-num">③ 先に、減らせること</div>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{data.reduce.text}</div>
           <div className="text-sm" style={{ color: '#555' }}>{data.reduce.why}</div>
         </div>
 
         {/* ⑤ 見ておく数字 */}
         <div className="card">
-          <div className="sec-num">⑤ 見ておく数字</div>
+          <div className="sec-num">④ 見ておく数字</div>
           <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 6 }}>{data.measure.text}</div>
           <div className="text-sm" style={{ color: '#555' }}>{data.measure.note}</div>
         </div>
@@ -1894,7 +1952,7 @@ function SceneCardScreen({ scene, profile, onBack }) {
         {/* ⑥ 組み合わせの注意（該当時のみ） */}
         {comboBlocks.length > 0 && (
           <div className="card">
-            <div className="sec-num">⑥ うちの組み合わせの、注意点</div>
+            <div className="sec-num">⑤ うちの組み合わせの、注意点</div>
             {comboBlocks.map((c, i) => (
               <div key={i} className="combo-box">
                 <div className="combo-title">
@@ -1909,7 +1967,7 @@ function SceneCardScreen({ scene, profile, onBack }) {
 
         {/* ⑦ 効かなかったとき */}
         <div className="card">
-          <div className="sec-num">⑦ 効かなかったときは</div>
+          <div className="sec-num">⑥ 効かなかったときは</div>
           <div className="text-sm" style={{ marginBottom: 12, color: '#555' }}>
             上から順に見ていくと、次に変える場所が絞れます。
           </div>
