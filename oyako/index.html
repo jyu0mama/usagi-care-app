@@ -1998,6 +1998,33 @@ const PARENT_BAR_COLORS = {
   hyogensha: '#C090D0', tankyusha: '#90B0E0', mamorite: '#A0C888',
   boukensha: '#F0A860', leader: '#E08080', kikite: '#A0C8D8',
 };
+
+/* ── タイプ別イラスト（親9・子5）── */
+const TYPE_IMG = {
+  gungun: './img/child-gungun.png', funwari: './img/child-funwari.png',
+  monoshiri: './img/child-monoshiri.png', tokoton: './img/child-tokoton.png',
+  shokunin: './img/parent-shokunin.png', sewayaku: './img/parent-sewayaku.png',
+  kaitakusha: './img/parent-kaitakusha.png', hyogensha: './img/parent-hyogensha.png',
+  tankyusha: './img/parent-tankyusha.png', mamorite: './img/parent-mamorite.png',
+  boukensha: './img/parent-boukensha.png', leader: './img/parent-leader.png',
+  kikite: './img/parent-kikite.png',
+};
+function TypeAvatar({ id, size = 44, ring }) {
+  const src = TYPE_IMG[id];
+  const name = (CHILD_TYPE_MAP[id] || PARENT_TYPES.find(p => p.id === id) || {}).name || '';
+  const color = (CHILD_TYPE_MAP[id] || {}).barColor || PARENT_BAR_COLORS[id] || '#BBB';
+  const base = { width: size, height: size, borderRadius: '50%', flexShrink: 0 };
+  if (src) {
+    return <img src={src} alt={name} style={{ ...base, objectFit: 'cover', background: '#F4F1EC',
+      border: ring ? `2px solid ${ring}` : '1px solid var(--border)' }} />;
+  }
+  return (
+    <div style={{ ...base, background: color + '2E', color, border: `1px solid ${color}66`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: Math.round(size * 0.38), fontWeight: 800 }}>
+      {name.slice(0, 1) || '?'}
+    </div>
+  );
+}
 function childStatusRows(diag) {
   if (!diag) return [];
   return diag.sorted.map(tid => ({
@@ -2253,7 +2280,10 @@ function ComboSummary({ parentId, childId }) {
     : [];
   return (
     <div>
-      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>{p.name} × {ct.name}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+        <TypeAvatar id={parentId} size={34} /><span style={{ color: '#BBB' }}>×</span><TypeAvatar id={childId} size={34} />
+        <span style={{ fontSize: 15, fontWeight: 800, marginLeft: 2 }}>{p.name} × {ct.name}</span>
+      </div>
       <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, marginBottom: 14 }}>{c.sketch}</div>
 
       <div className="sec-num" style={{ marginBottom: 8 }}>特性を重ねると（親 vs 子）</div>
@@ -3199,6 +3229,19 @@ function Card45Screen({ profile, onBack }) {
             </div>
           ) : (
             <>
+              <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <TypeAvatar id={pid} size={54} />
+                  <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>{pname}</div>
+                  <div style={{ fontSize: 10, color: '#AAA' }}>親</div>
+                </div>
+                <span style={{ fontSize: 18, color: '#BBB' }}>×</span>
+                <div style={{ textAlign: 'center' }}>
+                  <TypeAvatar id={cid} size={54} />
+                  <div style={{ fontSize: 12, fontWeight: 700, marginTop: 4 }}>{cname}</div>
+                  <div style={{ fontSize: 10, color: '#AAA' }}>子</div>
+                </div>
+              </div>
               <div className="card" style={{ fontSize: 15, color: '#555', lineHeight: 1.7 }}>{c.sketch}</div>
               {CARD45_SECTIONS.map((sec, idx) => c[sec.key] ? (
                 <div key={sec.key} className="card">
@@ -3243,15 +3286,21 @@ function Card45Screen({ profile, onBack }) {
           <span className="page-title">{pt?.name} ×…</span>
         </div>
         <div className="page">
-          <div style={{ fontSize: 15, color: '#666', marginBottom: 16 }}>お子さんのタイプを選んでください</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <TypeAvatar id={selectedParent} size={40} />
+            <div style={{ fontSize: 15, color: '#666' }}>{pt?.name} × お子さんのタイプを選んでください</div>
+          </div>
           {myParentType === selectedParent && myChildType && (
             <div style={{ marginBottom: 12 }}>
               <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, marginBottom: 6 }}>▼ あなたとこの子のカード</div>
               <button className="scene-btn" style={{ border: '2px solid var(--primary)', background: 'var(--primary-bg)' }}
                 onClick={() => setSelected(`${selectedParent}_${myChildType}`)}>
-                <div>
-                  <div className="scene-btn-label">{CHILD_TYPE_MAP[myChildType]?.name}</div>
-                  <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{myChild?.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                  <TypeAvatar id={myChildType} size={46} ring="var(--primary)" />
+                  <div>
+                    <div className="scene-btn-label">{CHILD_TYPE_MAP[myChildType]?.name}</div>
+                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{myChild?.name}</div>
+                  </div>
                 </div>
                 <span className="scene-arrow">›</span>
               </button>
@@ -3259,8 +3308,9 @@ function Card45Screen({ profile, onBack }) {
           )}
           {CHILD_TYPES.map(ct => (
             <button key={ct.id} className="scene-btn" onClick={() => setSelected(`${selectedParent}_${ct.id}`)}>
-              <div>
-                <div className="scene-btn-label">{ct.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                <TypeAvatar id={ct.id} size={46} ring={myChildType === ct.id ? 'var(--primary)' : null} />
+                <div className="scene-btn-label">{ct.name}{myChildType === ct.id ? '（この子）' : ''}</div>
               </div>
               <span className="scene-arrow">›</span>
             </button>
@@ -3287,9 +3337,12 @@ function Card45Screen({ profile, onBack }) {
         {PARENT_TYPES.map(pt => (
           <button key={pt.id} className="scene-btn" onClick={() => setSelectedParent(pt.id)}
             style={myParentType === pt.id ? { border: '2px solid var(--primary)', background: 'var(--primary-bg)' } : {}}>
-            <div>
-              <div className="scene-btn-label">{pt.name}</div>
-              <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{pt.core}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              <TypeAvatar id={pt.id} size={46} ring={myParentType === pt.id ? 'var(--primary)' : null} />
+              <div>
+                <div className="scene-btn-label">{pt.name}{myParentType === pt.id ? '（あなた）' : ''}</div>
+                <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{pt.core}</div>
+              </div>
             </div>
             <span className="scene-arrow">›</span>
           </button>
@@ -3321,17 +3374,29 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
           if (!pType && !cType) return null;
           return (
             <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--border)' }}>
-              <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>診断結果まとめ</div>
-              <div style={{ fontSize: 12, color: 'var(--primary-dark)', marginBottom: 12 }}>
-                {pType && `あなた：${PARENT_TYPES.find(p => p.id === pType)?.name}`}
-                {pType && cType && '　／　'}
-                {cType && `${kid?.name}：${CHILD_TYPE_MAP[cType]?.name}`}
+              <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 10 }}>診断結果まとめ</div>
+              <div style={{ display: 'flex', gap: 18, marginBottom: 12 }}>
+                {pType && (
+                  <div style={{ textAlign: 'center' }}>
+                    <TypeAvatar id={pType} size={52} />
+                    <div style={{ fontSize: 11, marginTop: 3 }}>あなた</div>
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>{PARENT_TYPES.find(p => p.id === pType)?.name}</div>
+                  </div>
+                )}
+                {cType && (
+                  <div style={{ textAlign: 'center' }}>
+                    <TypeAvatar id={cType} size={52} />
+                    <div style={{ fontSize: 11, marginTop: 3 }}>{kid?.name}</div>
+                    <div style={{ fontSize: 12, fontWeight: 700 }}>{CHILD_TYPE_MAP[cType]?.name}</div>
+                  </div>
+                )}
               </div>
 
               {pType && (
                 <details style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
-                    ▸ あなた（親）のタイプ … {PARENT_TYPES.find(p => p.id === pType)?.name}
+                  <summary style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                    <TypeAvatar id={pType} size={30} />
+                    <span>あなた（親）のタイプ … {PARENT_TYPES.find(p => p.id === pType)?.name}</span>
                   </summary>
                   <div style={{ padding: '4px 14px 14px' }}>
                     {profile?.parentResult?.sorted && (
@@ -3344,8 +3409,9 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
 
               {cType && (
                 <details style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
-                    ▸ {kid?.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}
+                  <summary style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '10px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                    <TypeAvatar id={cType} size={30} />
+                    <span>{kid?.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}</span>
                   </summary>
                   <div style={{ padding: '4px 12px 12px' }}>
                     <div style={{ marginBottom: 14 }}><StatusBars rows={childStatusRows(kid.diagnosis)} compact /></div>
@@ -3356,8 +3422,9 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
 
               {pType && cType && COMBO45[pType] && COMBO45[pType][cType] && (
                 <details style={{ background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
-                    ▸ この親子の組み合わせ（45通りのうち）… {PARENT_TYPES.find(p => p.id === pType)?.name} × {CHILD_TYPE_MAP[cType]?.name}
+                  <summary style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '10px 14px', fontWeight: 700, fontSize: 13.5, cursor: 'pointer', listStyle: 'none' }}>
+                    <TypeAvatar id={pType} size={28} /><span style={{ color: '#BBB' }}>×</span><TypeAvatar id={cType} size={28} />
+                    <span style={{ marginLeft: 3 }}>この親子の組み合わせ（45通りのうち）</span>
                   </summary>
                   <div style={{ padding: '0 14px 14px' }}><ComboSummary parentId={pType} childId={cType} /></div>
                 </details>
@@ -3389,7 +3456,10 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
             return (
               <div style={{ marginTop: 8 }}>
                 <div style={{ fontSize: 12, color: '#AAA', marginBottom: 4 }}>親タイプ</div>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{pt?.name}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <TypeAvatar id={profile.parentType} size={48} />
+                  <div style={{ fontSize: 16, fontWeight: 700 }}>{pt?.name}</div>
+                </div>
                 <div style={{ fontSize: 13, color: 'var(--primary)', marginBottom: 4 }}>いちばん大事：{pt?.core}</div>
                 <div style={{ fontSize: 13, color: '#666', marginBottom: 10 }}>{pt?.desc}</div>
                 {profile?.parentResult?.sorted && (
@@ -3415,14 +3485,19 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>お子さんの診断結果</div>
             {profile.children.map((c, i) => (
               <div key={c.id} style={{ marginBottom: i < profile.children.length - 1 ? 16 : 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</span>
-                  <span className="tag tag-gray">{c.ageGroup === '0_9' ? '0〜9歳' : '10歳〜'}</span>
-                  {c.diagnosis && (
-                    <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
-                      {CHILD_TYPE_MAP[c.diagnosis.nearest]?.name}（{c.diagnosis.label}）
-                    </span>
-                  )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  {c.diagnosis && <TypeAvatar id={c.diagnosis.nearest} size={44} />}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontWeight: 700, fontSize: 14 }}>{c.name}</span>
+                      <span className="tag tag-gray">{c.ageGroup === '0_9' ? '0〜9歳' : '10歳〜'}</span>
+                    </div>
+                    {c.diagnosis && (
+                      <span style={{ fontSize: 13, color: 'var(--primary)', fontWeight: 600 }}>
+                        {CHILD_TYPE_MAP[c.diagnosis.nearest]?.name}（{c.diagnosis.label}）
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {c.diagnosis ? (
                   <MiniTypeChart diag={c.diagnosis} />
