@@ -1989,6 +1989,52 @@ function MiniTypeChart({ diag }) {
   );
 }
 
+/* ── ステータス表示（要素がどれくらいか一目で）── */
+const PARENT_BAR_COLORS = {
+  shokunin: '#7ABFB0', sewayaku: '#F0A0A0', kaitakusha: '#F0C060',
+  hyogensha: '#C090D0', tankyusha: '#90B0E0', mamorite: '#A0C888',
+  boukensha: '#F0A860', leader: '#E08080', kikite: '#A0C8D8',
+};
+function childStatusRows(diag) {
+  if (!diag) return [];
+  return diag.sorted.map(tid => ({
+    name: CHILD_TYPE_MAP[tid]?.name || tid,
+    pct: diag.pct[tid],
+    color: CHILD_TYPE_MAP[tid]?.barColor || '#AAA',
+    isTop: tid === diag.nearest,
+  }));
+}
+function parentStatusRows(sorted, n) {
+  if (!sorted) return [];
+  return sorted.slice(0, n || sorted.length).map((it, i) => ({
+    name: PARENT_TYPES.find(p => p.id === it.typeId)?.name || it.typeId,
+    pct: it.pct,
+    color: PARENT_BAR_COLORS[it.typeId] || '#AAA',
+    isTop: i === 0,
+  }));
+}
+function StatusBars({ rows, compact }) {
+  if (!rows || !rows.length) return null;
+  return (
+    <div style={{ padding: compact ? 0 : '2px 2px' }}>
+      {rows.map((r, i) => (
+        <div key={i} style={{ marginBottom: i === rows.length - 1 ? 0 : (compact ? 9 : 14) }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', marginBottom: compact ? 4 : 6 }}>
+            <span style={{ fontSize: r.isTop && !compact ? 19 : 14, fontWeight: 800, color: r.color, minWidth: compact ? 40 : 50, letterSpacing: '-0.02em' }}>{r.pct}%</span>
+            <span style={{ fontSize: r.isTop ? 13.5 : 12.5, fontWeight: r.isTop ? 800 : 600, color: r.isTop ? '#333' : '#9A9A9A' }}>{r.name}</span>
+            {r.isTop && !compact && (
+              <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 800, color: '#fff', background: r.color, borderRadius: 999, padding: '2px 9px' }}>いちばん強い</span>
+            )}
+          </div>
+          <div style={{ height: compact ? 9 : 13, background: '#ECECEC', borderRadius: 7, overflow: 'hidden' }}>
+            <div style={{ width: `${r.pct}%`, height: '100%', background: r.color, borderRadius: 7 }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── ① 子どもタイプの詳細（診断結果の直下に表示）── */
 function ChildTypeDetail({ sorted, nearest, blendWith }) {
   const openIds = new Set([nearest, blendWith].filter(Boolean));
@@ -2590,7 +2636,10 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                     <div style={{ fontSize: 14, color: 'var(--primary)', fontWeight: 600, marginTop: 6, marginBottom: 16 }}>
                       いちばん大事：{top1?.core}
                     </div>
-                    <ParentTypeChart sorted={pResult.sorted} />
+                    <div style={{ textAlign: 'left' }}>
+                      <div className="sec-num" style={{ marginBottom: 10 }}>どの要素が、どれくらい（上位5）</div>
+                      <StatusBars rows={parentStatusRows(pResult.sorted, 5)} />
+                    </div>
                   </div>
                   <div className="card">
                     <div className="sec-num" style={{ marginBottom: 8 }}>あなたのタイプについて</div>
@@ -2874,21 +2923,14 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
               {result.label === 'バランス型' ? 'バランス型' : `${nearest.name}${result.label === '二枚看板' && blend ? ` × ${blend.name}` : ''}`}
             </div>
             <div style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 16 }}>（{result.label}）</div>
-            <div className="radar-wrap"><RadarChart pct={result.pct} /></div>
-            <div className="type-dist">
-              {result.sorted.map(tid => {
-                const t = CHILD_TYPE_MAP[tid];
-                return (
-                  <div key={tid} className="type-bar-row">
-                    <span style={{ fontSize: 13, fontWeight: tid === result.nearest ? 700 : 400 }}>{t.name}</span>
-                    <div className="type-bar-track">
-                      <div className="type-bar-fill" style={{ width: `${result.pct[tid]}%`, background: t.barColor }} />
-                    </div>
-                    <span className="type-bar-pct">{result.pct[tid]}%</span>
-                  </div>
-                );
-              })}
+            <div style={{ textAlign: 'left' }}>
+              <div className="sec-num" style={{ marginBottom: 10 }}>どの要素が、どれくらい</div>
+              <StatusBars rows={childStatusRows(result)} />
             </div>
+            <details style={{ marginTop: 14 }}>
+              <summary style={{ fontSize: 12, color: '#999', cursor: 'pointer' }}>ぜんたいのバランス（レーダー）</summary>
+              <div className="radar-wrap" style={{ marginTop: 8 }}><RadarChart pct={result.pct} /></div>
+            </details>
           </div>
           <div className="card">
             <div className="sec-num" style={{ marginBottom: 8 }}>{child?.name}のタイプについて</div>
@@ -2920,21 +2962,14 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
               {result.label === 'バランス型' ? 'バランス型' : `${nearest.name}${result.label === '二枚看板' && blend ? ` × ${blend.name}` : ''}`}
             </div>
             <div style={{ fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 16 }}>（{result.label}）</div>
-            <div className="radar-wrap"><RadarChart pct={result.pct} /></div>
-            <div className="type-dist">
-              {result.sorted.map(tid => {
-                const t = CHILD_TYPE_MAP[tid];
-                return (
-                  <div key={tid} className="type-bar-row">
-                    <span className={`type-bar-label`} style={{ fontSize: 13, fontWeight: tid === result.nearest ? 700 : 400 }}>{t.name}</span>
-                    <div className="type-bar-track">
-                      <div className="type-bar-fill" style={{ width: `${result.pct[tid]}%`, background: t.barColor }} />
-                    </div>
-                    <span className="type-bar-pct">{result.pct[tid]}%</span>
-                  </div>
-                );
-              })}
+            <div style={{ textAlign: 'left' }}>
+              <div className="sec-num" style={{ marginBottom: 10 }}>どの要素が、どれくらい</div>
+              <StatusBars rows={childStatusRows(result)} />
             </div>
+            <details style={{ marginTop: 14 }}>
+              <summary style={{ fontSize: 12, color: '#999', cursor: 'pointer' }}>ぜんたいのバランス（レーダー）</summary>
+              <div className="radar-wrap" style={{ marginTop: 8 }}><RadarChart pct={result.pct} /></div>
+            </details>
           </div>
           <div className="card">
             <div className="sec-num" style={{ marginBottom: 8 }}>{child?.name}のタイプについて</div>
@@ -3124,7 +3159,12 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                   <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
                     ▸ あなた（親）のタイプ … {PARENT_TYPES.find(p => p.id === pType)?.name}
                   </summary>
-                  <div style={{ padding: '0 14px 14px' }}><ParentTypeDetail pid={pType} /></div>
+                  <div style={{ padding: '4px 14px 14px' }}>
+                    {profile?.parentResult?.sorted && (
+                      <div style={{ marginBottom: 14 }}><StatusBars rows={parentStatusRows(profile.parentResult.sorted, 5)} compact /></div>
+                    )}
+                    <ParentTypeDetail pid={pType} />
+                  </div>
                 </details>
               )}
 
@@ -3133,7 +3173,8 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                   <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
                     ▸ {kid?.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}
                   </summary>
-                  <div style={{ padding: '0 10px 10px' }}>
+                  <div style={{ padding: '4px 12px 12px' }}>
+                    <div style={{ marginBottom: 14 }}><StatusBars rows={childStatusRows(kid.diagnosis)} compact /></div>
                     <ChildTypeDetail sorted={kid.diagnosis.sorted} nearest={kid.diagnosis.nearest} blendWith={kid.diagnosis.blendWith} />
                   </div>
                 </details>
