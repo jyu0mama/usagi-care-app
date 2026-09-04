@@ -1,10 +1,13 @@
-/* わが家の新ルートMAP — Service Worker（このフォルダscopeのみ・キャッシュ名は routemap- プレフィックス） */
-const CACHE = 'routemap-v1';
+/* わが家の新ルートMAP — Service Worker
+   ネットワーク優先（オンライン時は必ず最新を表示、オフライン時のみキャッシュ）。
+   キャッシュ名は routemap- プレフィックスのみ削除する。 */
+const CACHE = 'routemap-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
 });
+
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
@@ -12,16 +15,19 @@ self.addEventListener('activate', (e) => {
       .then(() => self.clients.claim())
   );
 });
+
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request).then((hit) =>
-      hit || fetch(e.request).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
+    fetch(e.request)
+      .then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy));
+        }
         return res;
-      }).catch(() => caches.match('./index.html'))
-    )
+      })
+      .catch(() => caches.match(e.request).then((hit) => hit || caches.match('./index.html')))
   );
 });
