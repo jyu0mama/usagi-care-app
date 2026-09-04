@@ -2152,21 +2152,139 @@ function ParentTypeDetail({ pid, collapsible }) {
   );
 }
 
+/* ── 親子の「かかわりの4軸」：0=左の極 / 100=右の極 ── */
+const MESH_AXES = [
+  { key: 'tempo',   name: 'テンポ',   lo: '急ぎ',       hi: 'じっくり' },
+  { key: 'entrust', name: 'まかせ方', lo: '親が決める',  hi: '本人にまかせる' },
+  { key: 'connect', name: 'つながり', lo: '一緒に',      hi: 'ひとりで' },
+  { key: 'plan',    name: '見通し',   lo: '先を決める',  hi: 'その場で' },
+];
+const PARENT_AXIS = {
+  shokunin:   { tempo: 65, entrust: 25, connect: 60, plan: 25 },
+  sewayaku:   { tempo: 50, entrust: 20, connect: 20, plan: 45 },
+  kaitakusha: { tempo: 20, entrust: 20, connect: 50, plan: 20 },
+  hyogensha:  { tempo: 50, entrust: 70, connect: 50, plan: 70 },
+  tankyusha:  { tempo: 75, entrust: 55, connect: 80, plan: 35 },
+  mamorite:   { tempo: 65, entrust: 15, connect: 55, plan: 10 },
+  boukensha:  { tempo: 30, entrust: 75, connect: 35, plan: 85 },
+  leader:     { tempo: 25, entrust: 20, connect: 45, plan: 50 },
+  kikite:     { tempo: 80, entrust: 70, connect: 55, plan: 65 },
+};
+const CHILD_AXIS = {
+  nikoniko:  { tempo: 50, entrust: 75, connect: 15, plan: 55 },
+  monoshiri: { tempo: 55, entrust: 50, connect: 60, plan: 15 },
+  gungun:    { tempo: 10, entrust: 70, connect: 25, plan: 75 },
+  funwari:   { tempo: 80, entrust: 65, connect: 75, plan: 20 },
+  tokoton:   { tempo: 75, entrust: 80, connect: 70, plan: 10 },
+};
+const AXIS_GAP_TEXT = {
+  tempo: {
+    parentLo: { sign: '「早く」「まだ？」が増える。子は固まる・ぐずる・後回しにする。', prevent: '動き出しの合図を1つ決める（例：「タイマーが鳴ったらスタート」）。急かす前に10秒待つ。' },
+    parentHi: { sign: '子が先に動いて待てず、親が「ちょっと待って」と止める。子はイライラ。', prevent: '先に小さく動ける役割を渡す（「先にこれだけやってて」）。' },
+  },
+  entrust: {
+    parentLo: { sign: '指示に「じぶんでやる！」と反発。決めた通りにやらない・黙って別のやり方をする。', prevent: 'ゴールだけ伝えて、やり方は2択で選ばせる。「どっちでいく？」' },
+    parentHi: { sign: '「どうすればいい？」と何度も聞く。「自由にしていいよ」で手が止まる。', prevent: 'たたき台を先に出す。「まずはこれでどう？ 変えたい所ある？」' },
+  },
+  connect: {
+    parentLo: { sign: '話しかけると「あっち行って」。ひとり遊びを邪魔されると怒る。', prevent: 'ひとりの時間を予定に入れて先に伝える。用があるときは短く一度だけ。' },
+    parentHi: { sign: '「見て見て」が止まらない。ひとりにすると不安定・後をついてくる。', prevent: '「10分だけ一緒に」と時間を区切って、濃く関わる。' },
+  },
+  plan: {
+    parentLo: { sign: '予定を細かく決めると不機嫌。「今やりたい」ともめる。', prevent: '大枠だけ決めて、順番は本人に。「この3つ、どれからやる？」' },
+    parentHi: { sign: '「次なに？」「いつ終わる？」が多い。急な変更でパニック・かんしゃく。', prevent: '始める前に「順番」と「終わり」を先に見せる。変更は必ず予告する。' },
+  },
+};
+function meshGaps(parentId, childId) {
+  const pa = PARENT_AXIS[parentId], ca = CHILD_AXIS[childId];
+  if (!pa || !ca) return null;
+  const all = MESH_AXES.map(a => ({
+    ...a, p: pa[a.key], c: ca[a.key],
+    gap: Math.abs(pa[a.key] - ca[a.key]),
+    dir: pa[a.key] < ca[a.key] ? 'parentLo' : 'parentHi',
+  }));
+  const flagged = new Set([...all].sort((x, y) => y.gap - x.gap).slice(0, 2).filter(g => g.gap >= 20).map(g => g.key));
+  return { all, flagged };
+}
+function MeshOverlay({ parentId, childId }) {
+  const mg = meshGaps(parentId, childId);
+  if (!mg) return null;
+  return (
+    <div>
+      {mg.all.map(a => {
+        const isFlag = mg.flagged.has(a.key);
+        return (
+          <div key={a.key} style={{ marginBottom: 14, background: isFlag ? '#FFF7EE' : 'transparent', borderRadius: 8, padding: isFlag ? '8px 10px 6px' : '0 10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', fontSize: 12, marginBottom: 6 }}>
+              <span style={{ fontWeight: 800 }}>{a.name}</span>
+              {isFlag && <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 800, color: '#fff', background: '#D96A2A', borderRadius: 999, padding: '1px 7px' }}>✔ ズレ大</span>}
+            </div>
+            <div style={{ position: 'relative', height: 20 }}>
+              <div style={{ position: 'absolute', top: 8, left: 0, right: 0, height: 4, background: '#E4E4E4', borderRadius: 2 }} />
+              <div style={{ position: 'absolute', top: 2, left: `calc(${a.c}% - 8px)`, width: 16, height: 16, borderRadius: '50%', background: '#5AA0D0', border: '2px solid #fff', boxShadow: '0 0 0 1px #5AA0D0' }} />
+              <div style={{ position: 'absolute', top: 2, left: `calc(${a.p}% - 8px)`, width: 16, height: 16, borderRadius: '50%', background: '#E0985A', border: '2px solid #fff', boxShadow: '0 0 0 1px #E0985A' }} />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10.5, color: '#999' }}>
+              <span>{a.lo}</span><span>{a.hi}</span>
+            </div>
+          </div>
+        );
+      })}
+      <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#777', marginTop: 2, paddingLeft: 10 }}>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#E0985A', verticalAlign: 'middle', marginRight: 4 }} />親</span>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#5AA0D0', verticalAlign: 'middle', marginRight: 4 }} />子</span>
+      </div>
+    </div>
+  );
+}
+
 /* ── 親×子の組み合わせ（45通り）の要約 ── */
 function ComboSummary({ parentId, childId }) {
   const c = (COMBO45[parentId] || {})[childId];
   const p = PARENT_TYPES.find(x => x.id === parentId);
   const ct = CHILD_TYPE_MAP[childId];
   if (!c || !p || !ct) return null;
+  const mg = meshGaps(parentId, childId);
+  const gapDetails = mg
+    ? mg.all.filter(a => mg.flagged.has(a.key)).map(a => ({ name: a.name, ...AXIS_GAP_TEXT[a.key][a.dir] }))
+    : [];
   return (
     <div>
       <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>{p.name} × {ct.name}</div>
-      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, marginBottom: 12 }}>{c.sketch}</div>
-      <div className="sec-num">かみ合う所</div>
-      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.9, marginBottom: 12 }}>{c.mesh}</div>
-      <div className="sec-num" style={{ color: 'var(--accent, #D96A2A)' }}>いちばん、すれ違いやすい所</div>
+      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, marginBottom: 14 }}>{c.sketch}</div>
+
+      <div className="sec-num" style={{ marginBottom: 8 }}>特性を重ねると（親 vs 子）</div>
+      <MeshOverlay parentId={parentId} childId={childId} />
+
+      <div className="sec-num" style={{ color: 'var(--accent, #D96A2A)', marginTop: 16 }}>ズレやすい所</div>
       <div style={{ fontSize: 13.5, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '10px 12px', lineHeight: 1.9 }}>{c.clash}</div>
-      <div style={{ fontSize: 11, color: '#AAA', marginTop: 10, lineHeight: 1.7 }}>
+
+      {gapDetails.length > 0 && (
+        <>
+          <div className="sec-num" style={{ marginTop: 16 }}>ズレるサイン（✔の軸から）</div>
+          {gapDetails.map((g, i) => (
+            <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.85, marginBottom: 4, paddingLeft: 15, textIndent: -15 }}>
+              ・<b style={{ color: 'var(--primary-dark)' }}>{g.name}：</b>{g.sign}
+            </div>
+          ))}
+          <div className="sec-num" style={{ marginTop: 14 }}>ズレ予防（先回りでできること）</div>
+          {gapDetails.map((g, i) => (
+            <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.85, marginBottom: 4, paddingLeft: 15, textIndent: -15 }}>
+              ・<b style={{ color: 'var(--primary-dark)' }}>{g.name}：</b>{g.prevent}
+            </div>
+          ))}
+        </>
+      )}
+      {mg && gapDetails.length === 0 && (
+        <div style={{ fontSize: 12.5, color: '#4A8C3C', marginTop: 12, lineHeight: 1.8 }}>
+          4軸とも大きなズレはありません。噛み合いやすい組み合わせです。
+        </div>
+      )}
+
+      <div className="sec-num" style={{ marginTop: 16, color: '#4A8C3C' }}>かみ合う所</div>
+      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>{c.mesh}</div>
+
+      <div style={{ fontSize: 11, color: '#AAA', marginTop: 12, lineHeight: 1.7 }}>
         45通り（親9×子5）のうちの1つです。「相性が悪い」ではなく「噛み合わせのズレ＝戻せる」で読んでください。
         くわしい関わり方は「カード」タブの相性カードで。
       </div>
