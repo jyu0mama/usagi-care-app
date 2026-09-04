@@ -326,6 +326,39 @@ const SCENES = [
   { id: 'athome',     name: '外ではいい子、家では荒れる' },
 ];
 
+/* ── ④ 育つチャンス（場面カードの冒頭）｜9つの力の名前は一字も変えない ── */
+const GROWTH_BODY = {
+  '見通しを立てる力': '「この先どうなるか」を思い描いて、自分から動きだす練習をしています。まだ、大人のひと声が要る時期です。',
+  '切り替える力': '楽しいこと・集中していることから、次へ気持ちを移す練習をしています。すぐに切り替わらなくて、当たり前です。',
+  '気持ちを扱う力': '大きい気持ちを、自分で扱えるようになる途中です。いま、その練習をしています。',
+  '伝える力': '思っていることを言葉にして、相手に伝える練習をしています。安心できる相手から、少しずつで大丈夫です。',
+  '自分で決める力': '「やる・やらない」「どれにする」を、自分で選ぶ練習をしています。決めるには、少しの時間と後押しが要ります。',
+  '立て直す力': 'うまくいかなかったあと、気持ちを立て直して、もう一度やる練習をしています。切り替えには時間がかかります。',
+  '自分を見る力': '「自分はどうだったか」を、少しずつ振り返る練習をしています。まずは、自分を守りたい気持ちが先に出ます。',
+  '安心して、外でも出せる力': '家で出せている自分を、外でも出していく練習をしています。いまは家で、しっかり充電しているところです。',
+};
+const SCENE_POWER = {
+  morning:    '見通しを立てる力',
+  switch:     '切り替える力',
+  homework:   '自分で決める力',
+  sleep:      '切り替える力',
+  tantrum:    '気持ちを扱う力',
+  scolded:    '立て直す力',
+  blame:      '自分を見る力',
+  reluctant:  '安心して、外でも出せる力',
+  outside:    '伝える力',
+  friends:    '伝える力',
+  perfection: '立て直す力',
+  newthing:   '自分で決める力',
+  silence:    '伝える力',
+  athome:     '安心して、外でも出せる力',
+};
+function growthChance(sceneId) {
+  const power = SCENE_POWER[sceneId];
+  if (!power) return null;
+  return { power, body: GROWTH_BODY[power] };
+}
+
 /* ── 場面データ（STEP2：朝、動かない のみ） ── */
 const SCENE_DATA = {
   morning: {
@@ -1738,6 +1771,21 @@ function SceneCardScreen({ scene, profile, onBack }) {
         <span className="page-title">{data.sceneName}</span>
       </div>
       <div className="page">
+
+        {/* ④ 育つチャンス（この場面で育つ力）*/}
+        {(() => {
+          const gc = growthChance(scene.id);
+          if (!gc) return null;
+          return (
+            <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--border)' }}>
+              <div style={{ fontSize: 12, color: 'var(--primary-dark)', fontWeight: 700, marginBottom: 4 }}>この場面は</div>
+              <div style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.6, marginBottom: 8 }}>
+                「<span style={{ color: 'var(--primary-dark)' }}>{gc.power}</span>」が育つチャンスです
+              </div>
+              <div style={{ fontSize: 13.5, color: '#555', lineHeight: 1.9 }}>{gc.body}</div>
+            </div>
+          );
+        })()}
 
         {/* ① メガネ */}
         {glassBlocks.length > 0 && (
