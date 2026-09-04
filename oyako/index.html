@@ -396,6 +396,139 @@ const CHILD_TYPE_DETAIL = {
   },
 };
 
+/* ── ② 親タイプの詳細（出典：エニアグラム9タイプ資料／子育て文脈に書き換え）── */
+const PARENT_TYPE_DETAIL = {
+  shokunin: {
+    strengths: ['判断力と理解力に優れている', '責任感が強く、最後までやり遂げる', '正直で公正、筋を通す', '準備を惜しまず、段取りがいい', '仕事の精度が高い', '整理整頓が得意'],
+    tired: ['きちんとやろうとして、タスクを抱え込みすぎる', '問題を深刻に考えすぎて、ダメージが大きくなる', '細かい所に目が行き、本質が見えにくくなる', '自分にも人にも厳しくなり、褒めるのが苦手になる'],
+    hardWhen: ['人前で、直接批判されること', '「そんなの、どうでもいい」と細かさを軽く扱われること', '言ったことを実行してもらえない・時間を守ってもらえないこと'],
+    parentingHabit: ['できている所より、直したい所を先に言いやすい', '「もっとちゃんと」が口ぐせになり、加点より減点で見がち', 'お子さんの独自のやり方を「間違い」と受け取りやすい'],
+    selfMove: '「ねばならない」を「やりたい」に置き換えてみましょう。お子さんには、直す前に「ここまでできてるね」を1日1回だけ、先に。',
+  },
+  sewayaku: {
+    strengths: ['感受性が豊かで、人の気持ちに敏感', '親切で、人を助けられる', 'すぐに相手を理解できる', '気配りができ、順応性がある', '心が広くて温かい', '人を勇気づけられる'],
+    tired: ['頼まれると断れず、抱え込みすぎる', '人のために働きすぎて、自分のやりたいことが後回しに', '自分の評価を、低く見積もりがち', '追い込まれるまで、動けないことがある'],
+    hardWhen: ['やっていることを「当然」という態度を取られること', '友好的にしているのに、無視されること', '「おせっかい」「利己的」と非難されること'],
+    parentingHabit: ['お子さんが困る前に、先回りして手を出しやすい', 'よかれと思って子の領分にまで入り、自立を止めてしまうことがある', '感謝がないと少し寂しくなり、無理を重ねやすい'],
+    selfMove: '他人だけでなく、自分にも焦点を当てましょう。声かけは「これをすると、あなたのためになるよ」と、本人の動機に寄せて。',
+  },
+  kaitakusha: {
+    strengths: ['目標に向かって、努力を怠らない', '行動力があり、周りを引っ張れる', '自立心が強い', '情熱的な言葉で、人を触発できる', '前向きで、明るいイメージを与える', 'ミスしても、すぐ立ち直る'],
+    tired: ['一つのことに集中して、周りが見えなくなる', '他人からの評価を気にしすぎて、自分を見失うことがある', '失敗することを、極端に恐れる', '結果を急ぐあまり、細かさを犠牲にしがち'],
+    hardWhen: ['「成長していない」と感じさせられること', '他人と比べて、劣っている点を指摘されること', '欠点や失敗に、焦点を当てて話されること'],
+    parentingHabit: ['立ち止まっている時間を、もどかしく感じて急かしやすい', '成果や結果でお子さんを見がち（プロセスや気持ちは後回しに）', '「早く前へ」が強く、子のペースを待ちにくい'],
+    selfMove: '欠点の指摘は逆効果になりやすいタイプ。お子さんには「気にしないで」でなく、論理的に納得できる声かけを。プロセスも言葉に。',
+  },
+  hyogensha: {
+    strengths: ['創造的で、ユニークな発想', '洞察力が鋭い', '感受性が強く、繊細', '人の痛みを理解できる', '美的センスがある', '忍耐強く、支えられる'],
+    tired: ['昔の良い思い出にひたって、現実から離れたくなる', 'どう見られているかが気になり、よく見せようとしすぎる', '受け入れられないと感じると、気持ちを表現できなくなる', '感情の振れ幅が大きく、自分でも予測しにくい'],
+    hardWhen: ['理解しようとせず、雑に対応されること', '人前で、傷つくことを言われること', '自分の空間を、軽率に侵害されること'],
+    parentingHabit: ['お子さんの気持ちに共鳴しやすく、自分まで一緒に揺れて疲れやすい', '「特別でありたい」気持ちから、他と同じ扱いにモヤモヤしやすい', '気分の波が、子への接し方に出やすい'],
+    selfMove: 'ありのままの自分を、受け入れましょう。お子さんが分かりにくいことを言っても「おもしろい発想だね」と、まず受け止めて。',
+  },
+  tankyusha: {
+    strengths: ['聡明で、分析力に優れる', '集中力と忍耐力がある', '冷静沈着', '物事を見抜く知性がある', '簡潔明瞭に表現できる', '他人の失敗を責めない'],
+    tired: ['自分の時間や知識を、人と共有するのが負担になる', '理屈で納得しないと動けず、スピードが落ちがち', '自分の考えを、その場で発表するのが苦手', '一人で考え込むと、自分の気持ちすら分からなくなる'],
+    hardWhen: ['能力や専門性を、疑われること', 'やっていることを、中断・邪魔されること', 'むやみに権力を振りかざされること'],
+    parentingHabit: ['「なぜこうなるのか」を先に考えたくて、その場の対応が後回しに', '一人の時間が必要で、子とずっと一緒がしんどくなりやすい', '感情表現が控えめで、子に「聞いてる？」と思われやすい'],
+    selfMove: '恐れず、自分の気持ちをはっきり表現してみましょう。お子さんには理詰めの指示が効きます。感情の代弁（「くやしかったね」）をお手本に。',
+  },
+  mamorite: {
+    strengths: ['温厚で、愛情深い', '誠実で堅実、責任感が強い', '洞察力に優れる', 'ルールを守り、信頼される', '家族や友人を大切にする', '嘘をつかない'],
+    tired: ['「問題が起きないか」の不安に、駆られやすい', '不安が強いと、決断力が乏しくなる', '頼れる人を探して、依存しがち', '変化や、想定外のことに、ストレスを感じる'],
+    hardWhen: ['サポートを、途中で放棄されること', '秘密を持たれて、知らされないこと', '相談したときに、完全否定されること'],
+    parentingHabit: ['「もしものこと」が先に浮かんで、「危ないよ」で早めに止めがち', '心配が「愛情の形」で、つい先回りしやすい', '新しい挑戦に、ブレーキをかけやすい'],
+    selfMove: '「不安は、頑張っている裏返し」。自分を責めず「だから頑張ってる」と。お子さんには「一緒にやろう」「見てるから大丈夫」の安心を、先に。',
+  },
+  boukensha: {
+    strengths: ['発想力が豊か', '明るく、行動力がある', '困難にくじけない', '好奇心旺盛', '陽気な雰囲気を作れる', 'プレッシャーに強い'],
+    tired: ['興味が次々移り、集中が散りやすい', '一つのことが、長続きしにくい', '楽観的すぎて、課題の見立てが甘くなることがある', '都合の悪いことを、先延ばしにしがち'],
+    hardWhen: ['自由を失い、選択の幅を狭められること', '同じことを、何度も繰り返しやらされること', '悲観的なことを、言われること'],
+    parentingHabit: ['「大丈夫、なんとかなる」で、子の不安に気づきにくいことがある', '細かい段取りが苦手で、その場のノリで進めやすい', '決められた枠を、窮屈に感じて崩しやすい'],
+    selfMove: '楽しさを追うのはそのままで、「一つやり切る」経験を自分にも。お子さんには明るい未来のイメージで動かし、タスクは短く。',
+  },
+  leader: {
+    strengths: ['決断力があり、パワーにあふれている', '正義を重んじる', '独立心が旺盛', '面倒見がよい', '頼られると、人一倍支えようとする', '戦略に長けている'],
+    tired: ['白黒はっきりさせたくて、決着まで戦ってしまう', '人を認めて褒めるのが、苦手', '感情のコントロールが、難しいときがある', '相手の気持ちを考える視点が、抜けやすい'],
+    hardWhen: ['細かい指示を、たくさん出されること', '「大したことない」と感じさせられること', '自分に秘密で、何かをされること'],
+    parentingHabit: ['「はっきりさせたい」が強く、強い言い方・白黒つける言い方になりやすい', '頭ごなしの指示になりがち（お子さんは反発しやすい）', '弱みを見せるのが苦手で、子にもそれを求めやすい'],
+    selfMove: '命令でなく、選択肢を示して選ばせると、あなたも子もラクに。「○○の先生が言ってたけど」と、権威を借りる伝え方も効きます。',
+  },
+  kikite: {
+    strengths: ['穏やかで、寛大', '人の気持ちを理解できる', '協調性に富む', '忍耐力があり、受容力が高い', '情緒が安定している', '人の話を、傾聴できる'],
+    tired: ['自分を表現していくのが、苦手', '周囲の雰囲気に、同調してしまいやすい', '争いを避けて、優柔不断になりがち', '決断の時期を、逃しやすい'],
+    hardWhen: ['突然、不本意な変化を強いられること', '静けさを「怠けている」と決めつけられること', '存在を無視される・地味な頑張りを評価されないこと'],
+    parentingHabit: ['対立を避けたくて、言うべきことを飲み込みやすい', '「まあいいか」で、先延ばしにしやすい', 'のんびりペースで、期限の感覚が伝わりにくいことがある'],
+    selfMove: '期限は「目に見える形」で決めておくとラク。飲み込んだ気持ちに、自分で気づく練習を。子にも、あなた自身の「どうしたい」を少しずつ言葉に。',
+  },
+};
+
+const COMBO45 = {
+  shokunin: {
+    nikoniko: { sketch: '基準が高く丁寧な親 × 合わせる子。ダメ出しに敏感な子が顔色を見やすい。', mesh: '職人の丁寧できちんとした関わりに、にこにこは応えようとする。', clash: '職人の「もっとこうしたら」に、にこにこが合わせて頑張りすぎる／「ちゃんとしなきゃ」で自分を出せない。「これでいい？」と顔色を見る。' },
+    monoshiri: { sketch: '正確さ重視の親 × 納得で動く子。完璧を求めすぎると“間違うのが怖い子”に。', mesh: '手順・正確さ重視は、ものしりの「筋・仕組み」志向と噛み合う。', clash: '職人の「正しいやり方」と、ものしりの「自分で納得したやり方」が衝突。完璧を求めすぎて着手が遅くなる。' },
+    gungun: { sketch: '丁寧・完璧志向の親 × まず動く子。勢いを“雑”と減点しがち。', mesh: '職人の段取りは、ぐんぐんの勢いに枠を与えられる。', clash: 'ぐんぐんは雑でもまず動く、職人は丁寧・完璧を求める→「ちゃんとやりなさい」で衝突。挑戦が「雑」と減点される。' },
+    funwari: { sketch: '高い基準の親 × 評価に敏感な繊細な子。ダメ出しが強く刺さる。', mesh: '職人の丁寧さは、ふんわりの繊細な感覚と響き合う面がある。', clash: '職人の高い基準・ダメ出しが、評価に敏感なふんわりを強く傷つける。「ちゃんとできない自分」で萎縮。' },
+    tokoton: { sketch: '完璧志向の親 × やり抜く子。似た者同士ゆえ“正しいやり方”で衝突。', mesh: '職人の完璧志向と、とことんのやり抜く粘りは、質を追う点で強く噛み合う。', clash: 'どちらもこだわりが強く、「正しいやり方」を巡って正面衝突。職人の型と、とことんの自分流がぶつかり譲らず膠着。' },
+  },
+  sewayaku: {
+    nikoniko: { sketch: 'よく気づき先回りする親 × 合わせて動く子。温かいが“自分で決めない子”になりやすい。', mesh: '細やかな気配りに、にこにこは安心して応える。温かい関係を築きやすい。', clash: '親が着替え・準備を全部整え、にこにこも「やって」と甘える。二人とも心地よく、本人の「やってみる」が出ないまま固定。' },
+    monoshiri: { sketch: '先回りで支える親 × 納得で動く子。答えを渡しすぎに注意。', mesh: 'よく説明し寄り添えるので、ものしりの「なぜ？」に応えられる。', clash: 'ものしりが自分で考えたいのに、親が答え・手順を先に渡す。宿題で「ママ教えて」にすぐ全部答えるなど。' },
+    gungun: { sketch: '心配して世話する親 × 体当たりで学ぶ子。手を出す前に見守りを。', mesh: '世話役の手厚さは、ぐんぐんの挑戦を支える土台になれる。', clash: 'ぐんぐんは自分でやりたいのに、親が危ない・汚れると先回りで手を出す／やらせない。公園や「自分でやる！」の場面で衝突。' },
+    funwari: { sketch: '手厚い親 × 繊細な子。相性は良いが、共感が過保護に転じやすい。', mesh: '細やかな気づきが、ふんわりの繊細さを丁寧に支えられる。安心を渡せる。', clash: 'ふんわりがためらう→親が「大丈夫、やってあげる」と全部引き受ける→挑戦の芽・自分でやる自信が育たない。' },
+    tokoton: { sketch: '先回りの親 × 自分のやり方でやり抜く子。手や口の出しすぎに注意。', mesh: 'とことんのこだわりに寄り添い、丁寧に付き合える。', clash: 'とことんは自分の手順で最後までやりたいのに、親が良かれと手や口を出す・整えてしまう→こだわりを邪魔され反発。' },
+  },
+  kaitakusha: {
+    nikoniko: { sketch: 'どんどん進める親 × 合わせる子。親の目標を走らされやすい。', mesh: '前向きな推進力に、にこにこは明るく乗ってくる。一緒に楽しく進める。', clash: '「次はこれ、もっとできる」とペースを上げる→にこにこは合わせて頑張るが、いつしか自分のやりたいでなく親の目標を走っている。' },
+    monoshiri: { sketch: '段取りとゴールの親 × じっくり納得する子。急かしに注意。', mesh: '段取り・ゴール設定は、ものしりの筋道立てて進める力と噛み合う。', clash: 'ものしりは納得してから進みたいのに、「早く」「結論は？」と急かされ、考える時間を奪われて固まる。' },
+    gungun: { sketch: '前へ進む親 × 動く子。勢いは合うが、結果偏重に注意。', mesh: 'どちらも前に進む・行動する。勢いが合い、ぐいぐい挑戦できる好相性。', clash: '両方スピード重視で、成果・勝ち負けを急ぐ。ぐんぐんが「できないと価値がない」と学びやすい。過程・失敗を認めにくい。' },
+    funwari: { sketch: 'スピードと成果の親 × ゆっくり敏感な子。最も配慮が要る組み合わせ。', mesh: '推進力は、ふんわりを新しい世界へそっと連れ出せる（ペースを合わせれば）。', clash: 'スピード・成果志向が、ゆっくり敏感なふんわりには速すぎ・強すぎる。急かされ、比較され、萎縮する。' },
+    tokoton: { sketch: '次々進めたい親 × 1つを極めたい子。効率と徹底の衝突。', mesh: 'ゴール志向と、とことんのやり抜く力は、目標達成で強く噛み合う。', clash: '開拓者は次々進めたい、とことんは1つを納得いくまで極めたい。「早く次」と「まだ終わってない」で衝突。' },
+  },
+  hyogensha: {
+    nikoniko: { sketch: '感性豊かで共感的な親 × 合わせる子。親の気分に子が合わせやすい。', mesh: '豊かな感性・共感に、にこにこは温かく応え、感情豊かな交流ができる。', clash: '親の気分が良い日と悪い日で関わりが変わる→にこにこが機嫌を読んで合わせ、顔色をうかがう。' },
+    monoshiri: { sketch: '感覚で語る親 × 理由で動く子。「なんとなく」がすれ違いのもと。', mesh: '豊かな感性と、ものしりの探究は、面白がる心で響き合える。', clash: 'ものしりは理由で動くのに、親は感覚・気分で説明しがち。「なんとなく」では納得できず、日によって言うことが変わると混乱。' },
+    gungun: { sketch: '感性とノリの親 × 勢いの子。一貫性のなさが混乱を生む。', mesh: '感性・ノリと、ぐんぐんの行動力は、一緒に面白がって挑戦できる。', clash: '親の気分の波が、勢いのあるぐんぐんとぶつかる。昨日OKが今日NGになると、ぐんぐんが混乱・反発。' },
+    funwari: { sketch: '豊かな共感の親 × 繊細な子。深く感じ合えるが、感情が伝染しやすい。', mesh: '豊かな共感と、ふんわりの繊細さは、深く感じ合える美しい相性。', clash: '親の感情の波が、敏感なふんわりに強く伝染する。親が不安・落ち込むと、ふんわりも巻き込まれ、二人とも不安定に。' },
+    tokoton: { sketch: '感情豊かな親 × こだわりの子。感情のぶつかり合いに注意。', mesh: '「特別・こだわり」と、とことんの「自分のこだわり」は、独自性を尊ぶ点で響き合える。', clash: 'どちらもこだわり・感情が強く、親の気分の波と、とことんの譲らなさが正面衝突→感情的なぶつかり合いに。' },
+  },
+  tankyusha: {
+    nikoniko: { sketch: 'よく調べ考える親 × 合わせる子。理屈が先で気持ちが後回しに。', mesh: '知識・落ち着きに、にこにこは安心して寄り添える。', clash: '理屈・分析で関わり、気持ちの交流が薄いと、にこにこは合わせつつ寂しさを感じる。気持ちを聞かず正論・説明。' },
+    monoshiri: { sketch: '深く知りたい親 × 深く知りたい子。最高に噛み合うが“分析麻痺”に注意。', mesh: '深く知りたい同士で最高に噛み合う。知的な会話が弾む。', clash: '二人とも考えすぎ、分析が止まらず「完璧に調べてから」で動けない。行動より思考に偏る。' },
+    gungun: { sketch: 'まず説明の親 × まず動く子。長い前置きで勢いが止まる。', mesh: '探究者の知識が、ぐんぐんの「なぜ？ どうなる？」の実験心に燃料を与える。', clash: 'ぐんぐんはまず動きたい、探究者はまず説明・理屈。「その前に説明を」で勢いが止まり、長い説明は届かない。' },
+    funwari: { sketch: '理屈で返す親 × 気持ちを受け止めてほしい子。共感より解決が先に出る。', mesh: '落ち着き・観察力は、ふんわりの繊細さを静かに理解できる。', clash: 'ふんわりは気持ちを受け止めてほしいのに、理屈・解決策で返す→「分かってもらえない」と感じる。' },
+    tokoton: { sketch: '論理の親 × こだわりの子。理屈同士で“論破合戦”に注意。', mesh: '論理・深さと、とことんの粘り・こだわりは、一つを深く極める点で強く噛み合う。', clash: 'どちらも理屈・こだわりが強く、意見が違うと論破し合いに。親が正論で押し、とことんが意地で返す。' },
+  },
+  mamorite: {
+    nikoniko: { sketch: '心配性で先回りする親 × 人に合わせる子。二人とも安心を求め、挑戦から遠ざかりやすい。', mesh: '守り手の安定感と、にこにこの協調性で、家の中は穏やかで安心できる空気になりやすい。', clash: '親の「危ないよ」「やめておこう」に、にこにこが素直に従う→挑戦の機会が減り、「自分で決める」経験が積みにくい。' },
+    monoshiri: { sketch: '慎重に構える親 × 「なぜ？」を知りたい子。不安から止める親と、確かめたい子。', mesh: '守り手の「先を見て準備する」姿勢は、筋道を求めるものしりと相性がよい。', clash: '親が不安で「やめておこう」と結論を出す→ものしりの「なぜ？ どうなってる？」という探究のスイッチが、確かめる前に消される。' },
+    gungun: { sketch: '安全と段取りで安心を渡す親 × 動いて試して学ぶ子。', mesh: '守り手は「ここまでは安全」という枠と段取りを用意できる。ぐんぐんはその枠の中でなら、思いきり挑戦できる。', clash: '子は「まずやってみる」、親は危険を先に見て「危ないからダメ」。止められた子は不満で荒れる、またはこっそりやる。' },
+    funwari: { sketch: '心配性の親 × 繊細で慎重な子。二人とも危険に先に気づき、不安が増幅しやすい。', mesh: 'どちらも危険やリスクに敏感。丁寧に準備を整える点で、深く安心し合える。', clash: '親の不安が、繊細なふんわりに伝わって二乗になる。「危ないよ」の連発で、ふんわりの一歩がさらに重くなる。' },
+    tokoton: { sketch: '慎重に構える親 × 納得しないと動かない子。「予定どおり」を守りたい二人。', mesh: 'どちらも計画的で、手順と見通しを大切にする。ルールと段取りで、安定して回りやすい。', clash: '想定外や急な変更に、二人とも弱い。親の不安からの「やっぱりやめよう」が、手順を守りたいとことんの混乱・反発を招く。' },
+  },
+  boukensha: {
+    nikoniko: { sketch: '明るく楽観的な親 × 合わせる子。楽しいが、SOSを見逃しやすい。', mesh: '明るさに、にこにこは楽しく乗り、笑いの多い関係になる。', clash: '親が「大丈夫大丈夫」と流し＋にこにこも合わせて「平気」と言う→本当は困っているのに、二人とも明るく流してしまう。' },
+    monoshiri: { sketch: '楽観の親 × 慎重に納得したい子。「なんとかなる」が不安を刺激。', mesh: '行動力・明るさは、考えがちなものしりを前に押し出せる。', clash: 'ものしりは納得したいのに、「考えすぎ、やればいい」と楽観で押される→納得しないまま不安。見通しの甘さが不安を刺激。' },
+    gungun: { sketch: '明るく行動的な親 × 動く子。楽しいが、限度を見落としやすい。', mesh: 'どちらも明るく行動的。最高に楽しく、勢いよく挑戦する好相性。', clash: '両方見通しが甘く勢い任せで、危険・限度を見落としがち。ケガ・トラブルまで「なんとかなる」で突っ走る。' },
+    funwari: { sketch: '楽観の親 × 繊細な子。「平気平気」が疲れ・SOSを見落とす。', mesh: '明るさは、ふんわりの世界を軽くし、そっと背中を押せる（力加減が合えば）。', clash: '「大丈夫、平気平気」が、刺激に敏感なふんわりのSOSや疲れを見落とし、無理を重ねさせる。' },
+    tokoton: { sketch: '軽やかに切り替える親 × 納得いくまでの子。こだわりの軽視に注意。', mesh: '切り替えの軽やかさは、切替の苦手なとことんに「次も楽しいよ」と示せる。', clash: '親は軽く「次いこう」、とことんは「まだ納得してない」。楽観が、こだわりの軽視に見えて衝突。' },
+  },
+  leader: {
+    nikoniko: { sketch: '決断力があり引っ張る親 × 合わせる子。指示に従いやすく、意思が育ちにくい。', mesh: '頼れる決断力に、にこにこは安心してついていける。', clash: '親が全部決めて指示＋にこにこが素直に従う→本人が決める機会がなく「指示待ち」に。スムーズすぎて気づきにくい。' },
+    monoshiri: { sketch: '決断・指示の親 × 納得したい子。「こうしなさい」がなぜを飛ばす。', mesh: '決断・段取りは、筋道を求めるものしりに明快な枠を与える。', clash: 'ものしりは自分で納得したいのに、「こうしなさい」と結論を指示され、なぜが飛ばされて考える機会と納得を奪われる。' },
+    gungun: { sketch: '即断即行の親 × 動く子。主導権を巡ってパワー衝突。', mesh: 'どちらも即断・行動派。テンポが合い、ぐいぐい進める。', clash: '両方が主導権を握りたい→「こうしなさい」と「自分でやる！」で衝突。指示で押さえつけると反発。' },
+    funwari: { sketch: '強く引っ張る親 × 繊細でゆっくりな子。勢いと速さが圧倒しやすい。', mesh: '頼もしさ・決断は、迷いやすいふんわりに安心の枠を与えられる（強すぎなければ）。', clash: '強い指示・速いテンポが、繊細でゆっくりなふんわりを圧倒・萎縮させる。急かし＆命令口調が刺さる。' },
+    tokoton: { sketch: '仕切る親 × 譲らない子。主導権とこだわりで力比べに。', mesh: '決断力と、とことんのやり抜く力は、決めたら進む点で噛み合う。', clash: '「こうしなさい」と「自分はこうしたい」が、主導権とこだわりで正面衝突。どちらも譲らず力比べに。' },
+  },
+  kikite: {
+    nikoniko: { sketch: '穏やかで受け止め上手な親 × 合わせる子。波風は立たないが、必要な線が曖昧に。', mesh: '穏やかさに、にこにこは安心。平和で温かい関係。', clash: 'どちらも対立を避けるので、ダメなことも「まあいいか」で流れ、枠・けじめが曖昧に。にこにこが基準を掴めない。' },
+    monoshiri: { sketch: '傾聴の親 × 基準も欲しい子。「どっちでもいい」が迷いを生む。', mesh: '傾聴は、ものしりの考え・理由をじっくり受け止められる。', clash: 'ものしりは「どうすべきか」明確な基準も欲しいのに、「どっちでもいいよ」と決めてもらえず、基準がなく迷う。' },
+    gungun: { sketch: '穏やかな親 × 勢いの子。止めるべき場面で線を引けない。', mesh: '穏やかさは、勢いのあるぐんぐんを受け止め、頭ごなしにしない安心を与える。', clash: 'ぐんぐんは明確な線・止めが必要な場面があるのに、対立を避けて止められない→行動がエスカレート、危険や迷惑まで止まらない。' },
+    funwari: { sketch: '穏やかな傾聴の親 × 繊細な子。最高に安心だが、挑戦への一押しが不足しがち。', mesh: '穏やかさ・傾聴は、繊細なふんわりに最高の安心を与える。とても相性が良い。', clash: 'どちらも敏感で対立を避けるので、ふんわりが不安で避けても「無理しなくていいよ」と受け止めすぎ、背中を押す線がない→挑戦の機会が減る。' },
+    tokoton: { sketch: '受け止め上手な親 × 譲らない子。折れ続けると枠がなくなる。', mesh: '傾聴は、こだわりの強いとことんの言い分をじっくり受け止められる。', clash: 'とことんが譲らずこだわる場面で、対立を避けて折れ続ける→枠がなく、要求が際限なく通る／わがままに見える。' },
+  },
+};
+
 const GLASSES_BIAS = {
   move_A:      { seeing: 'お子さんが「考えている時間」を、「遅い・のろい」と誤読してしまいやすいときです', hand: '「今、考えてるんだね」と待つ' },
   move_B:      { seeing: 'お子さんの「まず動く」という動き方を、「落ち着きがない」と誤読してしまいやすいときです', hand: '動くのも学び方の一つと見る' },
@@ -1921,6 +2054,67 @@ function ChildTypeDetail({ sorted, nearest, blendWith }) {
   );
 }
 
+/* ── ② 親タイプの詳細 ── */
+function ParentTypeDetail({ pid, collapsible }) {
+  const [open, setOpen] = useState(!collapsible);
+  const p = PARENT_TYPES.find(x => x.id === pid);
+  const d = PARENT_TYPE_DETAIL[pid];
+  if (!p || !d) return null;
+  const Body = () => (
+    <div>
+      <div style={{ fontSize: 13, color: 'var(--primary-dark)', marginBottom: 12 }}>
+        いちばん大事にしていること … <b>{p.core}</b>
+      </div>
+      <div className="sec-num">あなたの強み</div>
+      {d.strengths.map((s, i) => <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>・{s}</div>)}
+      <div className="sec-num" style={{ marginTop: 14 }}>疲れやすいところ</div>
+      {d.tired.map((s, i) => <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>・{s}</div>)}
+      <div className="sec-num" style={{ marginTop: 14 }}>されると、しんどいこと</div>
+      {d.hardWhen.map((s, i) => <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>・{s}</div>)}
+      <div className="sec-num" style={{ marginTop: 14 }}>子育てで、出やすい癖</div>
+      {d.parentingHabit.map((s, i) => <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>・{s}</div>)}
+      <div className="sec-num" style={{ marginTop: 14 }}>自分への一手</div>
+      <div style={{ fontSize: 13.5, lineHeight: 1.9, background: 'var(--primary-bg)', borderRadius: 8, padding: '10px 12px' }}>{d.selfMove}</div>
+      <div style={{ fontSize: 11, color: '#AAA', marginTop: 10, lineHeight: 1.7 }}>
+        「悪い」ではなく「そうなりやすい」という目安です。気質は変えるものではなく、扱い方を知るためのものです。
+      </div>
+    </div>
+  );
+  if (!collapsible) return <div><div style={{ fontSize: 15, fontWeight: 800, marginBottom: 10 }}>{p.name}</div><Body /></div>;
+  return (
+    <div style={{ border: `1.5px solid ${open ? 'var(--primary)' : 'var(--border)'}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden', background: open ? '#FCFCFB' : '#FFF' }}>
+      <button onClick={() => setOpen(!open)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <span style={{ fontSize: 14, fontWeight: 800 }}>{p.name}</span>
+        <span style={{ fontSize: 12, color: '#888' }}>いちばん大事：{p.core}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 13, color: '#BBB' }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && <div style={{ padding: '0 14px 14px' }}><Body /></div>}
+    </div>
+  );
+}
+
+/* ── 親×子の組み合わせ（45通り）の要約 ── */
+function ComboSummary({ parentId, childId }) {
+  const c = (COMBO45[parentId] || {})[childId];
+  const p = PARENT_TYPES.find(x => x.id === parentId);
+  const ct = CHILD_TYPE_MAP[childId];
+  if (!c || !p || !ct) return null;
+  return (
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 800, marginBottom: 4 }}>{p.name} × {ct.name}</div>
+      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8, marginBottom: 12 }}>{c.sketch}</div>
+      <div className="sec-num">かみ合う所</div>
+      <div style={{ fontSize: 13, color: '#555', lineHeight: 1.9, marginBottom: 12 }}>{c.mesh}</div>
+      <div className="sec-num" style={{ color: 'var(--accent, #D96A2A)' }}>いちばん、すれ違いやすい所</div>
+      <div style={{ fontSize: 13.5, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '10px 12px', lineHeight: 1.9 }}>{c.clash}</div>
+      <div style={{ fontSize: 11, color: '#AAA', marginTop: 10, lineHeight: 1.7 }}>
+        45通り（親9×子5）のうちの1つです。「相性が悪い」ではなく「噛み合わせのズレ＝戻せる」で読んでください。
+        くわしい関わり方は「カード」タブの相性カードで。
+      </div>
+    </div>
+  );
+}
+
 /* ── SceneCardScreen ── */
 function SceneCardScreen({ scene, profile, onBack }) {
   const data = SCENE_DATA[scene.id];
@@ -2399,13 +2593,12 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
                     <ParentTypeChart sorted={pResult.sorted} />
                   </div>
                   <div className="card">
-                    <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{top1?.name}とは</div>
-                    <div style={{ fontSize: 14, color: '#555', lineHeight: 1.8 }}>{top1?.desc}</div>
+                    <div className="sec-num" style={{ marginBottom: 8 }}>あなたのタイプについて</div>
+                    <ParentTypeDetail pid={pResult.sorted[0].typeId} />
                     {top2 && (
-                      <>
-                        <div style={{ fontSize: 15, fontWeight: 700, marginTop: 14, marginBottom: 8 }}>{top2.name}とは</div>
-                        <div style={{ fontSize: 14, color: '#555', lineHeight: 1.8 }}>{top2.desc}</div>
-                      </>
+                      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+                        <ParentTypeDetail pid={pResult.sorted[1].typeId} />
+                      </div>
                     )}
                   </div>
                   <div className="card" style={{ fontSize: 13, color: '#888', lineHeight: 1.9 }}>
@@ -2910,6 +3103,60 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
         <span className="page-title">設定</span>
       </div>
       <div className="page">
+
+        {/* 診断結果まとめ（何度でも戻って見られる） */}
+        {(() => {
+          const pType = profile?.parentType || null;
+          const kid = profile?.children?.[profile?.currentChildIdx || 0] || null;
+          const cType = kid?.diagnosis?.nearest || null;
+          if (!pType && !cType) return null;
+          return (
+            <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--border)' }}>
+              <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4 }}>診断結果まとめ</div>
+              <div style={{ fontSize: 12, color: 'var(--primary-dark)', marginBottom: 12 }}>
+                {pType && `あなた：${PARENT_TYPES.find(p => p.id === pType)?.name}`}
+                {pType && cType && '　／　'}
+                {cType && `${kid?.name}：${CHILD_TYPE_MAP[cType]?.name}`}
+              </div>
+
+              {pType && (
+                <details style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                    ▸ あなた（親）のタイプ … {PARENT_TYPES.find(p => p.id === pType)?.name}
+                  </summary>
+                  <div style={{ padding: '0 14px 14px' }}><ParentTypeDetail pid={pType} /></div>
+                </details>
+              )}
+
+              {cType && (
+                <details style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                    ▸ {kid?.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}
+                  </summary>
+                  <div style={{ padding: '0 10px 10px' }}>
+                    <ChildTypeDetail sorted={kid.diagnosis.sorted} nearest={kid.diagnosis.nearest} blendWith={kid.diagnosis.blendWith} />
+                  </div>
+                </details>
+              )}
+
+              {pType && cType && COMBO45[pType] && COMBO45[pType][cType] && (
+                <details style={{ background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
+                  <summary style={{ padding: '11px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                    ▸ この親子の組み合わせ（45通りのうち）… {PARENT_TYPES.find(p => p.id === pType)?.name} × {CHILD_TYPE_MAP[cType]?.name}
+                  </summary>
+                  <div style={{ padding: '0 14px 14px' }}><ComboSummary parentId={pType} childId={cType} /></div>
+                </details>
+              )}
+
+              {(!pType || !cType) && (
+                <div style={{ fontSize: 11.5, color: 'var(--primary-dark)' }}>
+                  {!pType && '親タイプ診断'}{!pType && !cType && '・'}{!cType && 'お子さんの診断'}をすると、組み合わせの傾向（すれ違いやすい所）も出ます。
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {/* 親の設定 */}
         <div className="card">
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 12 }}>わたしの設定</div>
