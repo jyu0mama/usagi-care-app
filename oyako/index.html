@@ -297,6 +297,105 @@ const WHY_TAGS = {
   sequence:  { name: '発達の順序',     text: 'できるようになる時期には、幅があります' },
 };
 
+/* ── ① 子どもタイプの詳細（出典：伸びしろ声かけ図鑑）── */
+const CHILD_TYPE_DETAIL = {
+  gungun: {
+    subtitle: '「やってみた！」が、考えるスイッチになる子',
+    oneLine: [
+      ['人との関わり方', '人が多いほど、元気になる。初対面でもすぐ打ち解け、注目されると力が出る。にぎやかな場が、エネルギー源。'],
+      ['競争 or 協働', '競争・勝負が、大好き。勝ち負けや、人に見られることが、そのまま燃料になる。'],
+      ['物事への向き合い方', '考える前に、体が動く。まずやってみて、やりながら考える。待つ・我慢は、苦手。'],
+      ['心の動き方', '基本、明るく前向きで、切り替えが早い。刺激が足りない・退屈だと、そわそわ・おしゃべりが増える。'],
+      ['力が出るとき／止まるとき', '出る＝体を動かせる・競える・注目される・テンポが速いとき。止まる＝じっと座る・一人で黙々・長い説明を聞くとき。'],
+    ],
+    reframeNot: '落ち着きがない子', reframeBut: '動きながら、学ぶ子',
+    sprouts: [
+      'とりあえず、一歩を踏み出せる → 行動力・実行力',
+      '失敗しても、引きずらない → 立ち直りの速さ・タフさ',
+      '人を巻き込み、場を明るくする → リーダーシップ・ムードメーカー',
+      '経験から、体で覚える → 実践力・応用の早さ',
+      '本番・注目に、強い → 度胸・プレゼン力',
+    ],
+    stoppers: ['とにかく、じっとさせる', '勢いで失敗した瞬間に、叱る', '一人で、黙々とやらせる', '長い説明で、動きを止める'],
+  },
+  monoshiri: {
+    subtitle: '「分かった！」が、動くスイッチになる子',
+    oneLine: [
+      ['人との関わり方', '人数より、話の"中身"で繋がる。興味の合う相手とは夢中で話す。年上や大人との深い話を好むことも。'],
+      ['競争 or 協働', '勝ち負けには、あまり燃えない。燃料は「勝つ」より「知る・分かる」。'],
+      ['物事への向き合い方', '新しいこと・変わったことに、飛びつく。反復練習は退屈で苦手。飽きっぽく見えることも。'],
+      ['心の動き方', '比較的、安定していることが多い。ただし「退屈」に弱い。知的刺激が足りないと、不機嫌・脱線が増える。'],
+      ['力が出るとき／止まるとき', '出る＝新しい・意外・「あと少しで分かりそう」なとき。止まる＝決まりきった反復・答えを全部渡されたとき。'],
+    ],
+    reframeNot: '飽きっぽい子', reframeBut: '次々と、興味の枝を伸ばせる子',
+    sprouts: [
+      '「なぜ？」を、放っておけない → 探究心・問いを立てる力',
+      '知識と知識を、つなげる → 発想力・応用力',
+      '新しいこと・変化を、面白がる → 適応力・チャレンジ精神',
+      '人と違う見方をする → 独創性・オリジナリティ',
+      '美しいもの・不思議なものに、心が動く → 感性・表現力',
+    ],
+    stoppers: ['同じことを、ひたすら繰り返させる', '答えを、全部先に渡す', '一つに、無理やり絞らせる', '好きなこと"だけ"で、周りを固める'],
+  },
+  funwari: {
+    subtitle: '「安心できた」が、一歩のスイッチになる子',
+    oneLine: [
+      ['人との関わり方', '大勢・初対面は、消耗しやすい。少人数の、安心できる関係で、いちばん力を発揮する。'],
+      ['競争 or 協働', '相手の気持ちに敏感で、争いを好まない。競争の緊張は、力を奪う。「支え合う」場のほうが伸びる。'],
+      ['物事への向き合い方', 'まず「安全か」を確かめてから動く慎重派。丁寧で、細部によく気づく。完璧を求めて始められないことも。'],
+      ['心の動き方', 'うれしいも、こわいも、人より大きく感じる。危険や、相手の不機嫌に、人より早く気づく。'],
+      ['力が出るとき／止まるとき', '出る＝安心できる相手・場所・見通しが、そろったとき。止まる＝予測できない・見られている・急かされる・競争させられるとき。'],
+    ],
+    reframeNot: '臆病な子', reframeBut: '安全を確かめてから動く、慎重な子',
+    sprouts: [
+      '危険やリスクに、先に気づく → 慎重な判断力・危機管理',
+      '飛びつく前に、よく観察する → 深い洞察力・準備の丁寧さ',
+      '相手の気持ちに、敏感 → 共感力・思いやり・信頼される人柄',
+      '一度納得すると、着実に進む → 粘り強さ・安定感',
+      '細かな変化に、気づく → 丁寧さ・ものづくりや表現の繊細さ',
+    ],
+    stoppers: ['根拠のない「大丈夫」の、繰り返し', '大げさな「すごい！」の、盛りすぎ', '「競争」で、追い立てる', '大勢の前で、急に振る'],
+  },
+  tokoton: {
+    subtitle: '「納得できた」が、次へ進むスイッチになる子',
+    oneLine: [
+      ['人との関わり方', '少人数で、着実に関わる。約束やルールを、きちんと守る。信頼される安定感がある。'],
+      ['競争 or 協働', '他人と競うより、「自分の基準」を満たせるかで動く。「昨日の自分を超える」が、いちばんの燃料。'],
+      ['物事への向き合い方', '計画的で、几帳面。手順を守り、最後までやり抜く。急な変更・想定外に、弱い。'],
+      ['心の動き方', '普段は安定。ただし「ちゃんとできない」「予定が崩れる」ときに、不安定に。失敗を長く引きずりがち。'],
+      ['力が出るとき／止まるとき', '出る＝手順・見通しが明確で、納得して取り組めるとき。止まる＝いきなり変更・「まず適当でいい」と言われる・完璧を求めすぎるとき。'],
+    ],
+    reframeNot: '頑固な子', reframeBut: '納得して、とことんやり抜ける子',
+    sprouts: [
+      '最後まで、やり抜く → 粘り強さ・完遂力',
+      'コツコツ、積み上げる → 継続力・積み重ねの強さ',
+      '丁寧で、ミスが少ない → 正確さ・信頼される仕事',
+      '約束・ルールを守る → 誠実さ・責任感',
+      '深く掘り下げる → 探究力・専門性',
+    ],
+    stoppers: ['「適当でいいから、早く！」', '予告なしの、急な変更', 'できていない所ばかり、指摘する', '失敗を、引きずらせたまま次へ'],
+  },
+  nikoniko: {
+    subtitle: '「自分で選べた」が、力を出すスイッチになる子',
+    oneLine: [
+      ['人との関わり方', '共感力が高く、みんなの調整役。相手の気持ちを察し、場を和ませる。対立や、誰かが不機嫌なのが、苦手。'],
+      ['競争 or 協働', '競争より、協働。「勝ち負け」より「みんなで一緒に」。支え合いの場で、いちばん輝く。'],
+      ['物事への向き合い方', '人の期待に応えようと、まじめに取り組む。「自分がどうしたいか」より「どうすれば喜ばれるか」を優先しがち。'],
+      ['心の動き方', '人の感情に敏感。誰かの不機嫌・対立で、自分が消耗する。「嫌われたくない」で無理をして、あとで疲れが出ることも。'],
+      ['力が出るとき／止まるとき', '出る＝安心できる関係で、「自分で選んでいい」と委ねられたとき。止まる＝競争を強いられる・対立の中・自分の気持ちを無視されるとき。'],
+    ],
+    reframeNot: '自分がない子', reframeBut: '人の気持ちが、分かる子',
+    sprouts: [
+      '人の気持ちを、察する → 共感力・思いやり',
+      '場の空気を、和ませる → 調整力・チームをまとめる力',
+      '人と、協力できる → 協働力・信頼される人柄',
+      '相手の立場で、考えられる → 想像力・優しさ',
+      '約束や、和を大切にする → 誠実さ・安心感',
+    ],
+    stoppers: ['「競争で、追い立てる」', '「いい子だね」で、ほめ続ける', '気持ちを、聞かずに決めてあげる', '対立・不機嫌の中に、置き続ける'],
+  },
+};
+
 const GLASSES_BIAS = {
   move_A:      { seeing: 'お子さんが「考えている時間」を、「遅い・のろい」と誤読してしまいやすいときです', hand: '「今、考えてるんだね」と待つ' },
   move_B:      { seeing: 'お子さんの「まず動く」という動き方を、「落ち着きがない」と誤読してしまいやすいときです', hand: '動くのも学び方の一つと見る' },
@@ -1757,6 +1856,71 @@ function MiniTypeChart({ diag }) {
   );
 }
 
+/* ── ① 子どもタイプの詳細（診断結果の直下に表示）── */
+function ChildTypeDetail({ sorted, nearest, blendWith }) {
+  const openIds = new Set([nearest, blendWith].filter(Boolean));
+  const [open, setOpen] = useState(openIds);
+  const toggle = (id) => setOpen(prev => {
+    const n = new Set(prev);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const order = (sorted && sorted.length) ? sorted : CHILD_TYPES.map(t => t.id);
+  return (
+    <div style={{ marginTop: 4 }}>
+      <div className="notice-box" style={{ fontSize: 12, marginBottom: 12 }}>
+        これは「決めつけ」ではなく、「この傾向が出やすい」という目安です。
+        どの子も5つの要素を全部持っていて、高いところと低いところが違うだけです。
+      </div>
+      {order.map(tid => {
+        const t = CHILD_TYPE_MAP[tid];
+        const d = CHILD_TYPE_DETAIL[tid];
+        if (!t || !d) return null;
+        const isOpen = open.has(tid);
+        const isMain = tid === nearest;
+        return (
+          <div key={tid} style={{ border: `1.5px solid ${isOpen ? t.barColor : 'var(--border)'}`, borderRadius: 12, marginBottom: 8, overflow: 'hidden', background: isOpen ? '#FCFCFB' : '#FFF' }}>
+            <button onClick={() => toggle(tid)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <span className={`type-name-chip ${t.cls}`}>{t.name}</span>
+              {isMain && <span style={{ fontSize: 11, color: '#D96A2A', fontWeight: 700 }}>いちばん近い</span>}
+              <span style={{ marginLeft: 'auto', fontSize: 13, color: '#BBB' }}>{isOpen ? '▲' : '▼'}</span>
+            </button>
+            {isOpen && (
+              <div style={{ padding: '0 14px 14px' }}>
+                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.6, marginBottom: 12 }}>{d.subtitle}</div>
+
+                <div className="sec-num">この子を、一枚で</div>
+                {d.oneLine.map(([k, v]) => (
+                  <div key={k} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--primary-dark)' }}>{k}</div>
+                    <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{v}</div>
+                  </div>
+                ))}
+
+                <div className="sec-num" style={{ marginTop: 14 }}>この子の「伸びる捉え方」</div>
+                <div style={{ fontSize: 13.5, lineHeight: 1.9, background: 'var(--primary-bg)', borderRadius: 8, padding: '10px 12px' }}>
+                  「<s style={{ color: '#999' }}>{d.reframeNot}</s>」ではなく、<br />
+                  「<b style={{ color: 'var(--primary-dark)' }}>{d.reframeBut}</b>」
+                </div>
+
+                <div className="sec-num" style={{ marginTop: 14 }}>伸びる芽</div>
+                {d.sprouts.map((s, i) => (
+                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>🌱 {s}</div>
+                ))}
+
+                <div className="sec-num" style={{ marginTop: 14 }}>気をつけたい関わり</div>
+                {d.stoppers.map((s, i) => (
+                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>{['①','②','③','④','⑤'][i]} {s}</div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* ── SceneCardScreen ── */
 function SceneCardScreen({ scene, profile, onBack }) {
   const data = SCENE_DATA[scene.id];
@@ -1848,6 +2012,12 @@ function SceneCardScreen({ scene, profile, onBack }) {
                     {PARENT_TYPES.find(p => p.id === parentType)?.name}
                   </span>
                   <div className="text-sm" style={{ color: '#555', marginTop: 4 }}>{PARENT_BIAS[parentType]}</div>
+                </div>
+              )}
+
+              {!parentType && (
+                <div style={{ fontSize: 11.5, color: 'var(--primary-dark)', marginBottom: 12 }}>
+                  ＋ 親タイプ診断をすると、あなたの気質がこの場面でどう出やすいかも、ここに並びます。
                 </div>
               )}
 
@@ -2527,6 +2697,10 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
               })}
             </div>
           </div>
+          <div className="card">
+            <div className="sec-num" style={{ marginBottom: 8 }}>{child?.name}のタイプについて</div>
+            <ChildTypeDetail sorted={result.sorted} nearest={result.nearest} blendWith={result.blendWith} />
+          </div>
           <button className="btn btn-secondary" onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
             やり直す（再診断）
           </button>
@@ -2568,6 +2742,10 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
                 );
               })}
             </div>
+          </div>
+          <div className="card">
+            <div className="sec-num" style={{ marginBottom: 8 }}>{child?.name}のタイプについて</div>
+            <ChildTypeDetail sorted={result.sorted} nearest={result.nearest} blendWith={result.blendWith} />
           </div>
           <div className="notice-box" style={{ fontSize: 12 }}>
             これは"今の傾向のスナップショット"。場面・体調・相手によって変わります。1つに決めずに、分布全体を参考にしてください。
