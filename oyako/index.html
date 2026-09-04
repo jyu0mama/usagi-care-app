@@ -94,6 +94,9 @@
 
     /* SECTION HEADER */
     .sec-num { font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+    /* 場面カードは項目見出しを大きめ・間隔広めに */
+    .scene-page .card { margin-bottom: 20px; }
+    .scene-page .sec-num { font-size: 14px; text-transform: none; letter-spacing: 0; margin-bottom: 12px; color: var(--primary-dark); }
     .bias-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; vertical-align: 2px; }
     .bias-tag-glass { background: #FFF4E8; color: #B45309; border: 1px solid #F0C9A0; }
     .bias-tag-parent { background: var(--primary-bg); color: var(--primary-dark); border: 1px solid var(--border); }
@@ -634,11 +637,11 @@ const SCENE_DATA = {
       whyLine: 'こちらが決めた順番より、自分で選んだ順番のほうが、体が動きます。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒に着替えよ、どっちからいく？」',          note: 'つながり＋選択' },
-      monoshiri: { say: '「あと何分で出る？ 何からやると間に合う？」',   note: '見通しと理由を先に' },
-      gungun:    { say: '「先に着替えと歯みがき、どっちからいく？」',    note: '短く・すぐ動ける形で' },
-      funwari:   { say: '「まず靴下だけ、はいてみようか」',              note: '安心＋最小の一歩' },
-      tokoton:   { say: '「どっちから始める？ 自分で決めていいよ」',      note: '本人が決める' },
+      nikoniko:  { say: '「一緒に着替えよ、どっちからいく？」',          note: '「一人で」より「一緒に」で体が動く。選択肢を添えるとさらに動きやすい。' },
+      monoshiri: { say: '「あと何分で出る？ 何からやると間に合う？」',   note: '「あと何分」と見通し・段取りが分かると動ける。理由を先に。' },
+      gungun:    { say: '「先に着替えと歯みがき、どっちからいく？」',    note: '長い説明より、すぐ動ける短い二択。テンポよく。' },
+      funwari:   { say: '「まず靴下だけ、はいてみようか」',              note: 'いきなり全部だと固まる。「まず靴下だけ」と一歩を最小に。' },
+      tokoton:   { say: '「どっちから始める？ 自分で決めていいよ」',      note: '指示より「自分で決めた」ほうが動く。順番を本人に。' },
     },
     sayEasier: {
       nikoniko:  '「靴下だけ、一緒にはこう」',
@@ -672,11 +675,11 @@ const SCENE_DATA = {
       whyLine: '終わりが見えて、次が見えると、切り替えやすくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒に次のこと決めよう。あと何分？」',       note: 'つながり＋見通し' },
-      monoshiri: { say: '「あと何回で自分で止められそう？」',            note: '自分で決める＋見通し' },
-      gungun:    { say: '「あと1回でいこう。タイマー押してみて」',       note: '短く・すぐ動ける形で' },
-      funwari:   { say: '「あと1回ね。タイマー鳴ったら一緒におしまい」', note: '安心＋見通し' },
-      tokoton:   { say: '「あと何回で止める？ 自分で決めていいよ」',    note: '本人が決める' },
+      nikoniko:  { say: '「一緒に次のこと決めよう。あと何分？」',       note: '一緒に決めると動きやすい。次の見通しもセットで。' },
+      monoshiri: { say: '「あと何回で自分で止められそう？」',            note: '自分で回数を決めて見通しが立つと切り替えやすい。' },
+      gungun:    { say: '「あと1回でいこう。タイマー押してみて」',       note: '短く区切って、すぐできる操作（タイマー）を渡す。' },
+      funwari:   { say: '「あと1回ね。タイマー鳴ったら一緒におしまい」', note: '「鳴ったら終わり」と先に分かると安心して切り替えられる。' },
+      tokoton:   { say: '「あと何回で止める？ 自分で決めていいよ」',    note: '終わりを本人が決めると納得して止められる。' },
     },
     sayEasier: {
       nikoniko:  '「一緒にタイマーセットしよう」',
@@ -710,11 +713,11 @@ const SCENE_DATA = {
       whyLine: '「宿題全部」より「1問だけ」のほうが、始めやすくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒に最初の1問だけやろう」',               note: 'つながり＋最小化' },
-      monoshiri: { say: '「どの教科から始めたら早く終わると思う？」',   note: '見通し・理由を先に' },
-      gungun:    { say: '「1問だけやってみ、どれが簡単そう？」',        note: '短く・すぐ動ける' },
-      funwari:   { say: '「一番やりやすいの、1問だけでいいよ」',        note: '安心＋最小の一歩' },
-      tokoton:   { say: '「どこから始める？ 1問選んでいいよ」',         note: '本人が決める' },
+      nikoniko:  { say: '「一緒に最初の1問だけやろう」',               note: '「自分でやってごらん」より、最初の一歩を一緒に。つながりで動きやすい。量が多いと止まるので1問だけに。' },
+      monoshiri: { say: '「どの教科から始めたら早く終わると思う？」',   note: '「どれが早いか」と見通し・理由を先に置くと動ける。' },
+      gungun:    { say: '「1問だけやってみ、どれが簡単そう？」',        note: '短く「1問だけ」。すぐ手が動く形にして選ばせる。' },
+      funwari:   { say: '「一番やりやすいの、1問だけでいいよ」',        note: '「1問だけ」「やりやすいの」で安心。ハードルを最小に。' },
+      tokoton:   { say: '「どこから始める？ 1問選んでいいよ」',         note: 'どこから手をつけるか本人に選ばせると取りかかれる。' },
     },
     sayEasier: {
       nikoniko:  '「ランドセル開けるだけでいいよ、一緒にやろう」',
@@ -748,11 +751,11 @@ const SCENE_DATA = {
       whyLine: '「寝る」は大きなゴール。「横になる」だけなら、体が動きやすくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒に横になろう。お話ししながらでいいよ」',   note: 'つながり＋安心' },
-      monoshiri: { say: '「横になると、脳が整理を始めるんだよ」',         note: '理由・仕組みを先に' },
-      gungun:    { say: '「電気消して横になるだけでいい、やってみ」',     note: '短く・すぐできる' },
-      funwari:   { say: '「電気を暗くするね。横になるだけでいいよ」',     note: '安心＋強制しない' },
-      tokoton:   { say: '「目を閉じるか横になるか、どっちからにする？」', note: '本人が決める' },
+      nikoniko:  { say: '「一緒に横になろう。お話ししながらでいいよ」',   note: '一緒＋安心があると横になれる。完全に寝なくてOK。' },
+      monoshiri: { say: '「横になると、脳が整理を始めるんだよ」',         note: '「なぜ横になるといいか」理由・仕組みが分かると納得して動く。' },
+      gungun:    { say: '「電気消して横になるだけでいい、やってみ」',     note: '「寝る」でなく「横になるだけ」。短く・すぐできる形に。' },
+      funwari:   { say: '「電気を暗くするね。横になるだけでいいよ」',     note: '「〜だけ」「無理に寝なくていい」で安心すると体が緩む。' },
+      tokoton:   { say: '「目を閉じるか横になるか、どっちからにする？」', note: '入り方を本人に選ばせると受け入れやすい。' },
     },
     sayEasier: {
       nikoniko:  '「一緒にベッドに行くだけでいいよ」',
@@ -786,11 +789,11 @@ const SCENE_DATA = {
       whyLine: '気持ちが爆発しているときは、言葉より先に「受け止め」が届きます。',
     },
     byChildType: {
-      nikoniko:  { say: '「悔しかったね。一緒にいるよ」',             note: 'つながり・受け止め' },
-      monoshiri: { say: '「何が嫌だったか、落ち着いたら教えてね」',  note: '受け止め→言語化' },
-      gungun:    { say: '「ここにいるよ。落ち着いたら話そう」',      note: '短く・待つ' },
-      funwari:   { say: '「悔しかったね。ゆっくりでいいよ」',        note: '受け止め・強制しない' },
-      tokoton:   { say: '「そっか。どうしたかったか、あとで聞かせて」', note: '受け止め→自律' },
+      nikoniko:  { say: '「悔しかったね。一緒にいるよ」',             note: 'まず気持ちを受け止め、そばにいると伝えると落ち着きやすい。' },
+      monoshiri: { say: '「何が嫌だったか、落ち着いたら教えてね」',  note: '受け止めが先。落ち着いてから言葉にできる。' },
+      gungun:    { say: '「ここにいるよ。落ち着いたら話そう」',      note: '言葉は短く。おさまるまで待つのが近道。' },
+      funwari:   { say: '「悔しかったね。ゆっくりでいいよ」',        note: '受け止めて、急かさない。「ゆっくりでいい」で緩む。' },
+      tokoton:   { say: '「そっか。どうしたかったか、あとで聞かせて」', note: '受け止めてから、本人のタイミングで話させる。' },
     },
     sayEasier: {
       nikoniko:  '「そっか。そばにいるね」',
@@ -824,11 +827,11 @@ const SCENE_DATA = {
       whyLine: '注意されたとき、恥ずかしさや悔しさで気持ちが高ぶると、言葉が入りにくくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「そっか、嫌だったね。一緒に考えようか」',     note: '受け止め・つながり' },
-      monoshiri: { say: '「何が引っかかったか、落ち着いたら教えてね」', note: '受け止め→言語化' },
-      gungun:    { say: '「そっか。落ち着いたら話そう」',              note: '短く・待つ' },
-      funwari:   { say: '「嫌だったね。ゆっくりでいいよ」',            note: '受け止め・安心' },
-      tokoton:   { say: '「そっか。何が嫌だったか、あとで聞かせて」',  note: '受け止め→自律' },
+      nikoniko:  { say: '「そっか、嫌だったね。一緒に考えようか」',     note: '気持ちを受け止め、「一緒に」で防御が下がる。' },
+      monoshiri: { say: '「何が引っかかったか、落ち着いたら教えてね」', note: '先に受け止め、落ち着いてから理由を言葉に。' },
+      gungun:    { say: '「そっか。落ち着いたら話そう」',              note: 'その場で畳みかけない。短く、間を置く。' },
+      funwari:   { say: '「嫌だったね。ゆっくりでいいよ」',            note: 'まず受け止め。急かさないと安心して聞ける。' },
+      tokoton:   { say: '「そっか。何が嫌だったか、あとで聞かせて」',  note: '受け止めてから、本人のペースで振り返らせる。' },
     },
     sayEasier: {
       nikoniko:  '「そっか。そばにいるよ」',
@@ -862,11 +865,11 @@ const SCENE_DATA = {
       whyLine: '責めずに受け止めてから聞くと、自分で考える余地が生まれます。',
     },
     byChildType: {
-      nikoniko:  { say: '「そっか。一緒に次どうするか考えようか」',  note: '受け止め・つながり' },
-      monoshiri: { say: '「何があったか、順番に教えてくれる？」',    note: '受け止め→言語化' },
-      gungun:    { say: '「そっか。次はどうする？」',               note: '短く・前向き' },
-      funwari:   { say: '「嫌だったね。ゆっくり話してくれる？」',   note: '安心・受け止め' },
-      tokoton:   { say: '「そっか。どうしたかったか、聞かせてくれる？」', note: '受け止め→自律' },
+      nikoniko:  { say: '「そっか。一緒に次どうするか考えようか」',  note: '責めずに受け止め、一緒に次を考えると前を向ける。' },
+      monoshiri: { say: '「何があったか、順番に教えてくれる？」',    note: '事実を順番に整理すると、自分の関わりも見えてくる。' },
+      gungun:    { say: '「そっか。次はどうする？」',               note: '短く受け止めて、すぐ「次」に向ける。' },
+      funwari:   { say: '「嫌だったね。ゆっくり話してくれる？」',   note: '責められないと分かると、安心して話せる。' },
+      tokoton:   { say: '「そっか。どうしたかったか、聞かせてくれる？」', note: '受け止めてから「どうしたかったか」を本人に語らせる。' },
     },
     sayEasier: {
       nikoniko:  '「そっか、大変だったね」',
@@ -900,11 +903,11 @@ const SCENE_DATA = {
       whyLine: '安心の土台があってはじめて、外に出る一歩が出やすくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒に玄関まで行こう。大丈夫だよ」',       note: 'つながり・安心' },
-      monoshiri: { say: '「何が一番嫌か、聞いてもいいかな」',         note: '理由を先に' },
-      gungun:    { say: '「靴だけ履いてみて。それだけでいい」',       note: '小さい一歩・短く' },
-      funwari:   { say: '「行きたくないんだね。玄関まで一緒に行こう」', note: '受け止め・最小' },
-      tokoton:   { say: '「今日、どこまでなら行けそう？」',           note: '本人が決める' },
+      nikoniko:  { say: '「一緒に玄関まで行こう。大丈夫だよ」',       note: '一緒＋安心で、最初の一歩が出やすい。' },
+      monoshiri: { say: '「何が一番嫌か、聞いてもいいかな」',         note: '何が不安か言葉にできると、対処しやすくなる。' },
+      gungun:    { say: '「靴だけ履いてみて。それだけでいい」',       note: '「靴だけ」と一歩を最小に。短く。' },
+      funwari:   { say: '「行きたくないんだね。玄関まで一緒に行こう」', note: '気持ちを受け止め、「玄関まで」と範囲を最小に。' },
+      tokoton:   { say: '「今日、どこまでなら行けそう？」',           note: 'どこまで行くか本人が決めると動きやすい。' },
     },
     sayEasier: {
       nikoniko:  '「玄関まで一緒に行くだけでいい」',
@@ -938,11 +941,11 @@ const SCENE_DATA = {
       whyLine: '安心できる場所でしか、声は出にくいものです。無理に出させると、より出にくくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「会えたね。笑顔だけでいいよ」',           note: '安心・小さい一歩' },
-      monoshiri: { say: '「会釈だけでいい。挨拶は声でなくてもいい」', note: '理由＋別の選択肢' },
-      gungun:    { say: '「うなずくだけでいい」',                  note: '短く・小さい一歩' },
-      funwari:   { say: '「会釈だけでいいよ。無理しなくていい」',   note: '安心・強制しない' },
-      tokoton:   { say: '「会釈か笑顔か、どっちにする？」',         note: '本人が決める' },
+      nikoniko:  { say: '「会えたね。笑顔だけでいいよ」',           note: '声でなく「笑顔だけ」に下げると出しやすい。' },
+      monoshiri: { say: '「会釈だけでいい。挨拶は声でなくてもいい」', note: '「声じゃなくてもいい」と理由と別の手段を示す。' },
+      gungun:    { say: '「うなずくだけでいい」',                  note: '短く、すぐできる最小の形に。' },
+      funwari:   { say: '「会釈だけでいいよ。無理しなくていい」',   note: '「〜だけ」「無理しなくていい」で安心すると動ける。' },
+      tokoton:   { say: '「会釈か笑顔か、どっちにする？」',         note: 'やり方を本人に選ばせると応じやすい。' },
     },
     sayEasier: {
       nikoniko:  '「私の後ろにいていいよ」',
@@ -976,11 +979,11 @@ const SCENE_DATA = {
       whyLine: '責められると防御に入ります。まず話を聞くことで、次の一歩が見えてきます。',
     },
     byChildType: {
-      nikoniko:  { say: '「何があったか、一緒に整理しようか」',    note: 'つながり・受け止め' },
-      monoshiri: { say: '「順番に教えて。何から起きたの？」',     note: '言語化・整理' },
-      gungun:    { say: '「何があった？ 聞かせて」',             note: '短く・聞く' },
-      funwari:   { say: '「辛かったね。ゆっくり話してくれる？」', note: '受け止め・安心' },
-      tokoton:   { say: '「どうしたかったか、聞かせてくれる？」', note: '受け止め→自律' },
+      nikoniko:  { say: '「何があったか、一緒に整理しようか」',    note: '「一緒に」で安心して話せる。まず受け止め。' },
+      monoshiri: { say: '「順番に教えて。何から起きたの？」',     note: '順番に整理すると、状況を落ち着いて見られる。' },
+      gungun:    { say: '「何があった？ 聞かせて」',             note: '短く聞く。まず話させる。' },
+      funwari:   { say: '「辛かったね。ゆっくり話してくれる？」', note: '受け止めて急かさないと、安心して話せる。' },
+      tokoton:   { say: '「どうしたかったか、聞かせてくれる？」', note: '受け止めてから、本人の思いを語らせる。' },
     },
     sayEasier: {
       nikoniko:  '「大変だったね」',
@@ -1014,11 +1017,11 @@ const SCENE_DATA = {
       whyLine: '「試す」を「実験」として見ると、失敗が情報になり、動きやすくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒にやってみよう、1回だけ」',              note: 'つながり・最小化' },
-      monoshiri: { say: '「1回試すと、何が分かると思う？」',            note: '理由・見通しを先に' },
-      gungun:    { say: '「とりあえず1回だけいってみ」',               note: '短く・すぐ動ける形で' },
-      funwari:   { say: '「見てるだけでもいいよ。やりたくなったら1回だけ」', note: '安心・強制しない' },
-      tokoton:   { say: '「どこからなら始めやすい？ 1つ選んでいいよ」', note: '本人が決める' },
+      nikoniko:  { say: '「一緒にやってみよう、1回だけ」',              note: '一緒＋「1回だけ」で怖さが下がる。' },
+      monoshiri: { say: '「1回試すと、何が分かると思う？」',            note: '「試す＝情報が得られる」と意味づけると動ける。' },
+      gungun:    { say: '「とりあえず1回だけいってみ」',               note: '短く「1回だけ」。考える前に動ける形に。' },
+      funwari:   { say: '「見てるだけでもいいよ。やりたくなったら1回だけ」', note: '「見るだけでOK」で安心。強制しない。' },
+      tokoton:   { say: '「どこからなら始めやすい？ 1つ選んでいいよ」', note: '始める場所を本人に選ばせると踏み出せる。' },
     },
     sayEasier: {
       nikoniko:  '「私と一緒に見るだけでいいよ」',
@@ -1052,11 +1055,11 @@ const SCENE_DATA = {
       whyLine: '「やってごらん」を脳は"大仕事"と見積もります。最小サイズに切ると"簡単・安全"と判断して動けます。',
     },
     byChildType: {
-      nikoniko:  { say: '「一緒にやろう、まず1個だけ」',               note: 'つながり＋最小化' },
-      monoshiri: { say: '「まず1個試すと、何が分かると思う？」',        note: '理由・見通しを先に' },
-      gungun:    { say: '「とりあえずここ触ってみ、どうなる？」',       note: '短く・すぐ動ける形で' },
-      funwari:   { say: '「見てるだけでもいいよ。やりたくなったら1個だけね」', note: '安心・強制しない' },
-      tokoton:   { say: '「どこからなら始めやすい？ 1個選んでいいよ」', note: '本人が決める' },
+      nikoniko:  { say: '「一緒にやろう、まず1個だけ」',               note: '一緒＋「1個だけ」で動き出せる。' },
+      monoshiri: { say: '「まず1個試すと、何が分かると思う？」',        note: '「試すと分かることがある」と見通しを持たせる。' },
+      gungun:    { say: '「とりあえずここ触ってみ、どうなる？」',       note: '短く、すぐ触れる形に。やりながら分かる。' },
+      funwari:   { say: '「見てるだけでもいいよ。やりたくなったら1個だけね」', note: '「見るだけでOK」で安心。無理に誘わない。' },
+      tokoton:   { say: '「どこからなら始めやすい？ 1個選んでいいよ」', note: '入り口を本人に選ばせると近づける。' },
     },
     sayEasier: {
       nikoniko:  '「一緒に見るだけでいいよ」',
@@ -1090,11 +1093,11 @@ const SCENE_DATA = {
       whyLine: '言葉が出てくるには、まず「安全」が必要です。急かすほど、言葉は出にくくなります。',
     },
     byChildType: {
-      nikoniko:  { say: '「言えなくてもいいよ。一緒にいるね」',      note: 'つながり・安心' },
-      monoshiri: { say: '「言葉にならなくていい。うなずきでもいいよ」', note: '別の表現手段・安心' },
-      gungun:    { say: '「うん、そっか。分かった」',               note: '短く・受け止め' },
-      funwari:   { say: '「言えなくていいよ。ゆっくりでいい」',     note: '安心・強制しない' },
-      tokoton:   { say: '「言葉じゃなくていい。うなずくだけでもいいよ」', note: '本人のペース尊重' },
+      nikoniko:  { say: '「言えなくてもいいよ。一緒にいるね」',      note: '「言えなくてもいい」＋そばにいる、で安心すると言葉が出やすい。' },
+      monoshiri: { say: '「言葉にならなくていい。うなずきでもいいよ」', note: '声以外の手段を示すと、反応のハードルが下がる。' },
+      gungun:    { say: '「うん、そっか。分かった」',               note: '問い詰めず、短く受け止める。' },
+      funwari:   { say: '「言えなくていいよ。ゆっくりでいい」',     note: '急かさないほど言葉は出やすい。「ゆっくりでいい」。' },
+      tokoton:   { say: '「言葉じゃなくていい。うなずくだけでもいいよ」', note: '本人のペースを尊重。表現の形は任せる。' },
     },
     sayEasier: {
       nikoniko:  '「うんって言えたらいいよ」',
@@ -1128,11 +1131,11 @@ const SCENE_DATA = {
       whyLine: '外で頑張るぶん、家では解放します。家で出るのは、安全のサインです。',
     },
     byChildType: {
-      nikoniko:  { say: '「今日も頑張ったね。ここはゆっくりしていい」',   note: '受け止め・安心' },
-      monoshiri: { say: '「外で頑張ったぶんを、ここで出しているんだよ」', note: '理由・受け止め' },
-      gungun:    { say: '「帰ってきたね。今日も動いたね」',             note: '短く・受け止め' },
-      funwari:   { say: '「今日疲れたね。ここにいていいよ」',           note: '受け止め・安心' },
-      tokoton:   { say: '「外で頑張ったのは分かってる。ここは好きにしていい」', note: '受け止め・自律' },
+      nikoniko:  { say: '「今日も頑張ったね。ここはゆっくりしていい」',   note: '頑張りを認め、家は緩んでいい場所と伝える。' },
+      monoshiri: { say: '「外で頑張ったぶんを、ここで出しているんだよ」', note: '「なぜ家で荒れるか」の理由を言葉にすると、本人も親も楽になる。' },
+      gungun:    { say: '「帰ってきたね。今日も動いたね」',             note: '短く迎える。問い詰めない。' },
+      funwari:   { say: '「今日疲れたね。ここにいていいよ」',           note: '疲れを受け止め、居ていい場所だと伝えると落ち着く。' },
+      tokoton:   { say: '「外で頑張ったのは分かってる。ここは好きにしていい」', note: '頑張りを認め、家での過ごし方は本人に任せる。' },
     },
     sayEasier: {
       nikoniko:  '「おかえり、ゆっくりしていいよ」',
@@ -2337,7 +2340,7 @@ function SceneCardScreen({ scene, profile, onBack }) {
         <button className="back-btn" onClick={onBack}>‹</button>
         <span className="page-title">{data.sceneName}</span>
       </div>
-      <div className="page">
+      <div className="page scene-page">
 
         {/* ④ 育つチャンス（この場面で育つ力）*/}
         {(() => {
@@ -2362,14 +2365,12 @@ function SceneCardScreen({ scene, profile, onBack }) {
             <>
               {topGlasses.map((gid) => {
                 const g = ALL_GLASSES.find(x => x.id === gid);
-                const b = GLASSES_BIAS[gid];
-                if (!g || !b) return null;
+                if (!g || !GLASS_SCENE_PHRASE[gid]) return null;
                 return (
-                  <div key={gid} style={{ marginBottom: 12 }}>
+                  <div key={gid} style={{ marginBottom: 16 }}>
                     <span className="bias-tag bias-tag-glass">メガネ</span>
                     <span style={{ fontSize: 14, fontWeight: 700, marginLeft: 6 }}>{g.name}</span>
-                    <div className="text-sm" style={{ color: '#555', marginTop: 4 }}>{b.seeing}</div>
-                    <div style={{ marginTop: 5, fontSize: 13, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '6px 10px' }}>
+                    <div style={{ marginTop: 6, fontSize: 14, color: '#7A3500', background: '#FFF4E8', borderRadius: 8, padding: '8px 11px', lineHeight: 1.7 }}>
                       → {GLASS_SCENE_PHRASE[gid]}
                     </div>
                   </div>
@@ -2377,23 +2378,25 @@ function SceneCardScreen({ scene, profile, onBack }) {
               })}
 
               {parentType && PARENT_BIAS[parentType] && (
-                <div style={{ marginBottom: 12 }}>
+                <div style={{ marginBottom: 16 }}>
                   <span className="bias-tag bias-tag-parent">あなたのタイプ</span>
                   <span style={{ fontSize: 14, fontWeight: 700, marginLeft: 6 }}>
                     {PARENT_TYPES.find(p => p.id === parentType)?.name}
                   </span>
-                  <div className="text-sm" style={{ color: '#555', marginTop: 4 }}>{PARENT_BIAS[parentType]}</div>
+                  <div style={{ marginTop: 6, fontSize: 14, color: 'var(--primary-dark)', background: 'var(--primary-bg)', borderRadius: 8, padding: '8px 11px', lineHeight: 1.7 }}>
+                    → {PARENT_BIAS[parentType]}
+                  </div>
                 </div>
               )}
 
               {!parentType && (
-                <div style={{ fontSize: 11.5, color: 'var(--primary-dark)', marginBottom: 12 }}>
+                <div style={{ fontSize: 12, color: 'var(--primary-dark)', marginBottom: 16 }}>
                   ＋ 親タイプ診断をすると、あなたの気質がこの場面でどう出やすいかも、ここに並びます。
                 </div>
               )}
 
-              <div style={{ fontSize: 13, color: '#888', margin: '10px 0 6px' }}>だから、つい出てしまうのが</div>
-              <div className="ng-ok-box" style={{ marginBottom: 8 }}>
+              <div style={{ fontSize: 13, color: '#888', margin: '4px 0 6px' }}>だから、つい出てしまうのが</div>
+              <div className="ng-ok-box" style={{ marginBottom: 10 }}>
                 <div className="ng-row">
                   <span className="ngok-label ng-label">✕</span>
                   <span className="ngok-text">{data.common.ng}</span>
@@ -2401,16 +2404,6 @@ function SceneCardScreen({ scene, profile, onBack }) {
               </div>
               <div style={{ fontSize: 13, color: 'var(--primary-dark)', fontWeight: 700 }}>
                 → 変え方は、下の「うちの子には、こう届く」で ▼
-              </div>
-
-              <div className="why-box" style={{ marginTop: 12 }}>
-                <div className="why-brain">🧠 {WHY_TAGS[data.common.whyTag]?.text}</div>
-                <div style={{ marginTop: 4, fontSize: 13, color: '#555' }}>{data.common.whyLine}</div>
-              </div>
-
-              <div style={{ fontSize: 11, color: '#AAA', marginTop: 10, lineHeight: 1.7 }}>
-                <span className="bias-tag bias-tag-glass">メガネ</span> は、その瞬間に何が見えるか（あとから整えられます）。
-                <span className="bias-tag bias-tag-parent" style={{ marginLeft: 4 }}>あなたのタイプ</span> は、もともとの気質（変えなくて大丈夫）。
               </div>
             </>
           ) : (
@@ -2517,7 +2510,20 @@ function SceneCardScreen({ scene, profile, onBack }) {
             { key: 'body',    num: '②', title: '体の状態', content: data.review?.body || '寝不足・空腹・疲れ。この日は、何をしても入らない日かもしれません。', action: '言葉は変えない。明日、整えてから同じ言葉を。' },
             { key: 'mental',  num: '③', title: '心の状態', content: data.review?.mental || '感情が揺れていて、言葉が届かない状態かもしれません。', action: '言葉は変えない。落ち着いてから、同じ言葉を。' },
             { key: 'timing',  num: '④', title: 'タイミング', content: data.review?.timing || '言葉は合っていて、言うのが早すぎた／遅すぎたかもしれません。', action: '言葉は変えない。5分早く／遅く、同じ言葉を。' },
-            { key: 'develop', num: '⑤', title: '発達', content: data.review?.develop || 'そもそも、まだできない年齢だったかもしれません。', action: '③の「もっと小さい一歩」へ。' },
+            (() => {
+              const age09 = (currentChild?.ageGroup || '0_9') === '0_9';
+              const power = SCENE_POWER[scene.id] || 'この力';
+              const base = data.review?.develop || 'そもそも、まだできない年齢だったかもしれません。';
+              return {
+                key: 'develop', num: '⑤', title: '発達（年齢の目安）',
+                content: age09
+                  ? `${base}\nいまは0〜9歳。「できなくて当たり前」の時期で、「${power}」はまさに練習の真っ最中です。`
+                  : `${base}\n10歳以降で、できる力は育ってきています。うまくいかない日は「発達」より先に、体・心・タイミングの3つを見直すと当たることが多いです。`,
+                action: age09
+                  ? '③の「もっと小さい一歩」を、今日のゴールに。できたら少しずつ戻す。'
+                  : '③の「もっと小さい一歩」に一段だけ下げて試し、できたら元に戻す。',
+              };
+            })(),
           ].map(item => (
             <div
               key={item.key}
@@ -2530,7 +2536,7 @@ function SceneCardScreen({ scene, profile, onBack }) {
               </div>
               {openReview === item.key && (
                 <div>
-                  <div className="review-content">{item.content}</div>
+                  <div className="review-content" style={{ whiteSpace: 'pre-line' }}>{item.content}</div>
                   <div className="review-action">→ {item.action}</div>
                 </div>
               )}
