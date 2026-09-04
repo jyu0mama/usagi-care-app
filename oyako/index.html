@@ -2047,10 +2047,6 @@ function ChildTypeDetail({ sorted, nearest, blendWith }) {
   const order = (sorted && sorted.length) ? sorted : CHILD_TYPES.map(t => t.id);
   return (
     <div style={{ marginTop: 4 }}>
-      <div className="notice-box" style={{ fontSize: 12, marginBottom: 12 }}>
-        これは「決めつけ」ではなく、「この傾向が出やすい」という目安です。
-        どの子も5つの要素を全部持っていて、高いところと低いところが違うだけです。
-      </div>
       {order.map(tid => {
         const t = CHILD_TYPE_MAP[tid];
         const d = CHILD_TYPE_DETAIL[tid];
@@ -2065,32 +2061,49 @@ function ChildTypeDetail({ sorted, nearest, blendWith }) {
               <span style={{ marginLeft: 'auto', fontSize: 13, color: '#BBB' }}>{isOpen ? '▲' : '▼'}</span>
             </button>
             {isOpen && (
-              <div style={{ padding: '0 14px 14px' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.6, marginBottom: 12 }}>{d.subtitle}</div>
+              <div style={{ padding: '2px 14px 14px' }}>
+                {/* 主役：ひとことキャッチ＋捉え直し */}
+                <div style={{ fontSize: 15, fontWeight: 800, lineHeight: 1.55, color: t.barColor, marginBottom: 12 }}>“{d.subtitle}”</div>
 
-                <div className="sec-num">この子を、一枚で</div>
-                {d.oneLine.map(([k, v]) => (
-                  <div key={k} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--primary-dark)' }}>{k}</div>
-                    <div style={{ fontSize: 13, color: '#555', lineHeight: 1.8 }}>{v}</div>
+                <div style={{ background: 'var(--primary-bg)', borderRadius: 10, padding: '12px 14px', marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: '#999', marginBottom: 4 }}>💡 見方を変えると</div>
+                  <div style={{ fontSize: 14.5, lineHeight: 1.8 }}>
+                    <span style={{ color: '#AAA' }}>「{d.reframeNot}」ではなく</span><br />
+                    「<b style={{ color: 'var(--primary-dark)' }}>{d.reframeBut}</b>」
                   </div>
-                ))}
-
-                <div className="sec-num" style={{ marginTop: 14 }}>この子の「伸びる捉え方」</div>
-                <div style={{ fontSize: 13.5, lineHeight: 1.9, background: 'var(--primary-bg)', borderRadius: 8, padding: '10px 12px' }}>
-                  「<s style={{ color: '#999' }}>{d.reframeNot}</s>」ではなく、<br />
-                  「<b style={{ color: 'var(--primary-dark)' }}>{d.reframeBut}</b>」
                 </div>
 
-                <div className="sec-num" style={{ marginTop: 14 }}>伸びる芽</div>
-                {d.sprouts.map((s, i) => (
-                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>🌱 {s}</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#4A8C3C', marginBottom: 6 }}>🌱 伸びる芽</div>
+                {d.sprouts.slice(0, 3).map((s, i) => (
+                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.85 }}>・{s}</div>
                 ))}
 
-                <div className="sec-num" style={{ marginTop: 14 }}>気をつけたい関わり</div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: '#C25B2A', margin: '14px 0 6px' }}>⚠️ 気をつけたい関わり</div>
                 {d.stoppers.map((s, i) => (
-                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.9 }}>{['①','②','③','④','⑤'][i]} {s}</div>
+                  <div key={i} style={{ fontSize: 13, color: '#555', lineHeight: 1.85 }}>・{s}</div>
                 ))}
+
+                <details style={{ marginTop: 12 }}>
+                  <summary style={{ fontSize: 12, color: '#999', cursor: 'pointer' }}>くわしく：この子を一枚で（5つの見方）</summary>
+                  <div style={{ marginTop: 8 }}>
+                    {d.oneLine.map(([k, v]) => (
+                      <div key={k} style={{ marginBottom: 8 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)' }}>{k}</div>
+                        <div style={{ fontSize: 12.5, color: '#666', lineHeight: 1.75 }}>{v}</div>
+                      </div>
+                    ))}
+                    {d.sprouts.length > 3 && (
+                      <div style={{ fontSize: 12.5, color: '#666', lineHeight: 1.8, marginTop: 4 }}>
+                        <b>伸びる芽（続き）</b><br />
+                        {d.sprouts.slice(3).map((s, i) => <span key={i}>・{s}<br /></span>)}
+                      </div>
+                    )}
+                  </div>
+                </details>
+
+                <div style={{ fontSize: 10.5, color: '#BBB', marginTop: 10, lineHeight: 1.6 }}>
+                  どの子も5つの要素を全部持っていて、高い所と低い所が違うだけ。「決めつけ」ではなく今の傾向です。
+                </div>
               </div>
             )}
           </div>
@@ -2990,6 +3003,49 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
   return null;
 }
 
+/* ── カード本文を読みやすく整形（【見出し】は行分け／それ以外は。で箇条書き）── */
+function CardBody({ text }) {
+  if (!text) return null;
+  if (text.includes('【')) {
+    const parts = text.split(/(?=【)/).filter(s => s.trim());
+    return (
+      <div>
+        {parts.map((p, i) => {
+          const m = p.match(/^【([^】]+)】([\s\S]*)$/);
+          if (!m) return <div key={i} style={{ fontSize: 14, lineHeight: 1.8, marginBottom: 8 }}>{p.trim()}</div>;
+          return (
+            <div key={i} style={{ marginBottom: 9, lineHeight: 1.8 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 800, color: 'var(--primary)', background: 'var(--primary-bg)', borderRadius: 4, padding: '2px 8px', marginRight: 7 }}>{m[1]}</span>
+              <span style={{ fontSize: 14 }}>{m[2].trim()}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+  const endsP = text.trim().endsWith('。');
+  const raw = text.split('。').map(s => s.trim()).filter(Boolean);
+  if (raw.length <= 1) return <div style={{ fontSize: 14, lineHeight: 1.8 }}>{text}</div>;
+  return (
+    <div>
+      {raw.map((s, i) => (
+        <div key={i} style={{ fontSize: 14, lineHeight: 1.8, marginBottom: 5, paddingLeft: 15, textIndent: -15 }}>
+          ・{s}{(i < raw.length - 1 || endsP) ? '。' : ''}
+        </div>
+      ))}
+    </div>
+  );
+}
+const CARD45_SECTIONS = [
+  { key: 'good',   emoji: '🤝', title: 'かみ合う所',            color: '#4A8C3C' },
+  { key: 'clash',  emoji: '⚡', title: 'いちばんぶつかる所',      color: '#C25B2A' },
+  { key: 'signs',  emoji: '🔔', title: 'うまく回ってないサイン',  color: '#B8860B' },
+  { key: 'praise', emoji: '⭐', title: '効くほめ方',            color: '#C79A00' },
+  { key: 'scold',  emoji: '💬', title: '効く伝え方',            color: '#3B7BB0' },
+  { key: 'scene',  emoji: '🎬', title: 'あるある場面 → 届く言い方', color: '#8A5CB0' },
+  { key: 'long',   emoji: '🌱', title: '伸びしろの育て方',        color: '#4A8C3C' },
+];
+
 /* ── Card45Screen ── */
 function Card45Screen({ profile, onBack }) {
   const [selectedParent, setSelectedParent] = useState(null);
@@ -3020,31 +3076,25 @@ function Card45Screen({ profile, onBack }) {
           ) : (
             <>
               <div className="card" style={{ fontSize: 15, color: '#555', lineHeight: 1.7 }}>{c.sketch}</div>
-              {[
-                { title: '① かみ合う所', body: c.good },
-                { title: '② いちばんぶつかる所', body: c.clash },
-                { title: '③ うまく回ってないサイン', body: c.signs },
-                { title: '④ 効くほめ方', body: c.praise },
-                { title: '⑤ 効く伝え方', body: c.scold },
-                { title: '⑥ あるある場面 → 届く言い方', body: c.scene },
-                { title: '⑦ 中長期の伸ばし方', body: c.long },
-              ].map(sec => (
-                <div key={sec.title} className="card">
-                  <div className="card45-section-title">{sec.title}</div>
-                  <div className="card45-text">{sec.body}</div>
+              {CARD45_SECTIONS.map((sec, idx) => c[sec.key] ? (
+                <div key={sec.key} className="card">
+                  <div style={{ fontSize: 14, fontWeight: 800, color: sec.color, marginBottom: 10, paddingBottom: 6, borderBottom: `1.5px solid ${sec.color}22` }}>
+                    <span style={{ color: '#BBB', fontWeight: 700, marginRight: 4 }}>{['①','②','③','④','⑤','⑥','⑦'][idx]}</span>{sec.emoji} {sec.title}
+                  </div>
+                  <CardBody text={c[sec.key]} />
                 </div>
-              ))}
+              ) : null)}
               {c.stopTech && (
                 <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--primary)' }}>
-                  <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 8, color: 'var(--primary-dark)' }}>🛑 止める技術ミニ</div>
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10, color: 'var(--primary-dark)' }}>🛑 やりすぎたな、と思ったら</div>
                   {[
-                    { l: 'サイン', v: c.stopTech.sign },
-                    { l: '合図', v: c.stopTech.stop },
-                    { l: '差し替え', v: c.stopTech.replace },
+                    { l: '気づくサイン', v: c.stopTech.sign },
+                    { l: 'かける一言', v: c.stopTech.stop },
+                    { l: '代わりにやること', v: c.stopTech.replace },
                   ].map(r => (
-                    <div key={r.l} style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
-                      <span style={{ fontSize: 13, color: '#888', width: 48, flexShrink: 0 }}>{r.l}</span>
-                      <span style={{ fontSize: 14 }}>{r.v}</span>
+                    <div key={r.l} style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--primary-dark)', marginBottom: 2 }}>{r.l}</div>
+                      <div style={{ fontSize: 14, lineHeight: 1.7 }}>{r.v}</div>
                     </div>
                   ))}
                 </div>
