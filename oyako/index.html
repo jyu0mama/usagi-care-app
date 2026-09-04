@@ -2001,6 +2001,7 @@ const PARENT_BAR_COLORS = {
 
 /* ── タイプ別イラスト（親9・子5）── */
 const TYPE_IMG = {
+  nikoniko: './img/child-nikoniko.png',
   gungun: './img/child-gungun.png', funwari: './img/child-funwari.png',
   monoshiri: './img/child-monoshiri.png', tokoton: './img/child-tokoton.png',
   shokunin: './img/parent-shokunin.png', sewayaku: './img/parent-sewayaku.png',
@@ -2325,6 +2326,186 @@ function ComboSummary({ parentId, childId }) {
   );
 }
 
+/* ── ⑤ 発達（年齢別）｜出典：有料note本文 第3章の図解6枚 ── */
+const DEV_AGES = [
+  { key: 'age_3_5', label: '3〜5歳' },
+  { key: 'age_6_8', label: '6〜8歳' },
+  { key: 'age_9_12', label: '9〜12歳' },
+];
+/* 場面の「育つ力（9つの力の呼び名）」→ 発達データの列 */
+const POWER_TO_DEVCOL = {
+  '見通しを立てる力': 'time',
+  '切り替える力': 'switch',
+  '気持ちを扱う力': 'emotion', '伝える力': 'emotion', '立て直す力': 'emotion',
+  '安心して、外でも出せる力': 'outside',
+  '自分を見る力': 'self', '自分で決める力': 'self',
+};
+const DEV_DATA = {
+  age_3_5: {
+    label: '3〜5歳',
+    center: 'この時期の中心は「大人と一緒なら、できる」',
+    time: {
+      can: ['「さっき」「あとで」「明日」を使う', '「片づけたら公園」など、出来事を基準にした順番が分かる', '明日に必要な物を選ぶ'],
+      notyet: ['「10分後」「来週」の距離感', '楽しい10分と退屈な10分を、同じ長さに感じる', '先の楽しみのために、今を止める'],
+      ng: '「あと5分ね。」', ok: '「この歌が終わったらね。」',
+    },
+    switch: {
+      can: ['簡単な「待って」が少しできる', '歌や合図があれば切り替えられる', '大人と一緒なら立て直せる'],
+      notyet: ['楽しい活動を、突然止める', '怒りの最中に、言葉で考える', '疲れ・空腹・興奮の中で、自分を止める'],
+      ng: '「自分で切り替えて。」', ok: '「終わったら、お風呂ね。」',
+    },
+    emotion: {
+      can: ['うれしい・悲しい・怒り・怖いが分かる', '4〜5歳で、悔しい・寂しい・恥ずかしいも', '「取られたから怒った」と原因と結べる'],
+      notyet: ['怒りの下にある不安や恥を見分ける', '興奮中に、感情の言葉を取り出す', '複数の気持ちを、同時に説明する'],
+      ng: '（泣いている最中に）「どうしたの？」', ok: '（落ち着いてから）「悔しかったのかな。」',
+    },
+    outside: {
+      can: ['安心できる大人を足場に、外へ出る', '園では、家と違うルールに従える', '相手によって、話し方を少し変える'],
+      notyet: ['自分が外で緊張していると気づく', '帰宅後の爆発と、外での我慢を結びつける', '集団の中で、助けを求める'],
+      ng: '「ほら、ご挨拶は？」', ok: '（先に親が挨拶して、隣にいる）',
+    },
+    self: {
+      can: ['見える特徴で、自分を語る', '自己評価が、全体に肯定的', '「何でもできる」と思いやすい'],
+      notyet: ['得意と不得意を、まとめて理解する', '「失敗した自分」と「価値のある自分」を分ける', '場面によって、力が違うと分かる'],
+      ng: '「そんなことないよ、上手だよ。」', ok: '「くやしかったね。」',
+    },
+  },
+  age_6_8: {
+    label: '6〜8歳',
+    center: 'この時期の中心は「分かるけれど、安定して使えない」',
+    time: {
+      can: ['1日の流れを思い浮かべる', '時間割を見て、持ち物を用意する', '「先に宿題をすれば、後で遊べる」と考える'],
+      notyet: ['かかる時間を、見積もる', '宿題や予定に、優先順位をつける', '楽しいことの最中に、自分から時計を見る'],
+      ng: '「明日のこと、分かってるでしょ。」', ok: '「明日の1時間目は何？ まず何を机に置く？」',
+    },
+    switch: {
+      can: ['学校の合図で、行動を変える', '「今は我慢」を、短時間なら保てる', '失敗しても、再開できる'],
+      notyet: ['没頭したもの（ゲーム・動画）からの切り替え', '負けた直後に、次へ移る', '注意されたときに、言い返しを止める'],
+      ng: '「いつまでやってるの。」', ok: '「あと何回で終わる？」',
+    },
+    emotion: {
+      can: ['気持ちの強さを、少し区別できる', '人によって感じ方が違うと分かる', '本当の気持ちを隠すことがあると分かる'],
+      notyet: ['不安・緊張・怖い・心配の区別', '自分の解釈と、事実を分ける', '相手を責めずに、気持ちを伝える'],
+      ng: '「どんな気持ちだったの？」', ok: '「怖かった？ それとも、恥ずかしかった？」',
+    },
+    outside: {
+      can: ['学校で期待される役割が分かる', '家族・先生・友達で、態度を変える', '他人からどう見えるかを意識する'],
+      notyet: ['ちょうどいい場面で、助けを求める', '「迷惑をかける」と「相談する」を区別する', '外で抑えた疲れを、穏やかに出す'],
+      ng: '「今日、困ったことあった？」', ok: '「今日、ちょっと嫌だったこと、ひとつある？」',
+    },
+    self: {
+      can: ['勉強・運動・友達など、分野ごとに自分を見る', '過去の結果から、得意不得意を判断する', '努力と能力を、少しずつ区別する'],
+      notyet: ['一度の失敗を、そこだけの話にする', '比べて負けても、自分の価値を保つ', '先生や友達の評価を、一つの意見として扱う'],
+      ng: '「もっとがんばれば、できるよ。」', ok: '「今日の3問目が、難しかったんだね。」',
+    },
+  },
+  age_9_12: {
+    label: '9〜12歳',
+    center: 'この時期の中心は「自分で考えられる。でも、比較と感情に揺れる」',
+    time: {
+      can: ['数日〜数週間の予定を扱う', 'かかる時間を、経験から直す', '「今はしたくないが、後で困る」と自覚する'],
+      notyet: ['誘惑がある中で、計画を守る', '余白の時間を、現実的に入れる', '遅れを、感情的にならず立て直す'],
+      ng: '「そんな時間で、できるわけないでしょ。」', ok: '「その時間で、前はどうだった？」',
+    },
+    switch: {
+      can: ['切り替えにくい自分を、自覚する', '自分なりの対策を考える', '誘惑を避ける環境を選ぶ'],
+      notyet: ['仲間の中で、止める', 'オンラインから、自分で離れる', '恥・劣等感・怒りが絡む場面で、切り替える'],
+      ng: '「いい加減にしなさい。」', ok: '「キリのいいところ、どこ？」',
+    },
+    emotion: {
+      can: ['矛盾した気持ちを、同時に認める', '表向きと本音を区別する', '過去の経験が、今に影響すると分かる'],
+      notyet: ['恥・嫉妬・劣等感を、人に話す', '「理由が分からない」状態に耐える', '親に知られたくない気持ちを共有する'],
+      ng: '「何かあったなら、言いなさい。」', ok: '「話したくなったら、いつでも聞くね。」',
+    },
+    outside: {
+      can: ['集団ごとの自分を認識する', '親と友達で、見せる自分を分ける', '本音を出す相手を選ぶ'],
+      notyet: ['隠したまま、抱えすぎない', '評価と、自分の価値を切り離す'],
+      ng: '「学校では大丈夫なんでしょ。」', ok: '「学校、疲れる日ある？」',
+    },
+    self: {
+      can: ['矛盾する自分を、同時に持てる', '分野ごとに、自分を評価する', '得意を、自分らしさにし始める'],
+      notyet: ['評価されない自分にも、価値を感じる', '失敗と、自分の価値を切り離す', '今の力は変えられると実感する'],
+      ng: '「もっと自信を持ちなさい。」', ok: '「今日、いてくれてよかった。」',
+    },
+  },
+};
+const DEVAGE_KEY = 'oyako_v1_devage';
+function getDevAge(childId) {
+  try { return (JSON.parse(localStorage.getItem(DEVAGE_KEY) || '{}'))[childId || '_'] || null; } catch (e) { return null; }
+}
+function setDevAge(childId, ageKey) {
+  try {
+    const m = JSON.parse(localStorage.getItem(DEVAGE_KEY) || '{}');
+    m[childId || '_'] = ageKey;
+    localStorage.setItem(DEVAGE_KEY, JSON.stringify(m));
+  } catch (e) {}
+}
+function DevelopPanel({ sceneId, childId }) {
+  const [ageKey, setAgeKeyState] = useState(() => getDevAge(childId));
+  const [editing, setEditing] = useState(false);
+  const power = SCENE_POWER[sceneId];
+  const col = POWER_TO_DEVCOL[power];
+  const choose = (k) => { setDevAge(childId, k); setAgeKeyState(k); setEditing(false); };
+
+  if (!ageKey || editing) {
+    return (
+      <div style={{ padding: '2px 0 4px' }}>
+        <div style={{ fontSize: 13, color: '#555', marginBottom: 10 }}>お子さんの年齢を選んでください</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {DEV_AGES.map(a => (
+            <button key={a.key} onClick={() => choose(a.key)}
+              style={{ flex: 1, padding: '10px 4px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                borderRadius: 8, border: `1.5px solid ${ageKey === a.key ? 'var(--primary)' : '#DDE8E5'}`,
+                background: ageKey === a.key ? 'var(--primary-bg)' : '#fff' }}>
+              {a.label}
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: '#AAA', marginTop: 8 }}>12歳を超える場合も「9〜12歳」を選んでください。</div>
+      </div>
+    );
+  }
+
+  const d = DEV_DATA[ageKey];
+  const cell = d && col ? d[col] : null;
+  if (!cell) return <div style={{ fontSize: 13, color: '#888' }}>この場面の発達データは準備中です。</div>;
+
+  return (
+    <div style={{ fontSize: 13, lineHeight: 1.85 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+        <div>
+          お子さんは <b>{d.label}</b> ／ この場面で育つのは<br />
+          「<b style={{ color: 'var(--primary-dark)' }}>{power}</b>」です
+        </div>
+        <button onClick={() => setEditing(true)}
+          style={{ flexShrink: 0, fontSize: 11, color: 'var(--primary)', background: 'none',
+            border: '1px solid var(--border)', borderRadius: 6, padding: '3px 8px', cursor: 'pointer' }}>
+          年齢を変える
+        </button>
+      </div>
+      <div style={{ fontSize: 11.5, color: '#999', margin: '4px 0 14px' }}>{d.center}</div>
+
+      <div style={{ fontWeight: 800, color: '#4A8C3C', marginBottom: 4 }}>もう、できるようになっていること</div>
+      {cell.can.map((s, i) => <div key={i} style={{ paddingLeft: 15, textIndent: -15 }}>・{s}</div>)}
+
+      <div style={{ fontWeight: 800, color: '#C25B2A', marginTop: 14, marginBottom: 2 }}>まだ、難しいこと</div>
+      <div style={{ fontSize: 11.5, color: '#999', marginBottom: 4 }}>できていないのではなく、まだ育っている途中です。</div>
+      {cell.notyet.map((s, i) => <div key={i} style={{ paddingLeft: 15, textIndent: -15 }}>・{s}</div>)}
+
+      <div style={{ fontWeight: 800, marginTop: 14, marginBottom: 6 }}>この年齢の、今日の一手</div>
+      <div className="ng-ok-box">
+        <div className="ng-row"><span className="ngok-label ng-label">✕</span><span className="ngok-text">{cell.ng}</span></div>
+        <div className="ng-row" style={{ marginTop: 4 }}><span className="ngok-label ok-label">◯</span><span className="ngok-text">{cell.ok}</span></div>
+      </div>
+
+      <div style={{ fontSize: 11, color: '#999', marginTop: 14, lineHeight: 1.75, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+        これは「その年齢なら必ずできること」の表ではありません。その年齢で、伸びやすいことを示した地図です。凸凹は、ふつうにあります。<br />
+        表を見て「うちの子、できていないことばかりだ」と思われたかもしれません。できていないのではなく、まだ育っている途中です。今、手をかけた分、そこは伸びしろになります。
+      </div>
+    </div>
+  );
+}
+
 /* ── SceneCardScreen ── */
 function SceneCardScreen({ scene, profile, onBack }) {
   const data = SCENE_DATA[scene.id];
@@ -2537,23 +2718,10 @@ function SceneCardScreen({ scene, profile, onBack }) {
           </div>
           {[
             { key: 'type',    num: '①', title: '子どものタイプの読み違い', content: '今日は、別のタイプの面が出ていたかもしれません。', action: childType ? `別タイプで見てみる → ③を見直す` : '③の全タイプを見比べてみてください' },
-            { key: 'body',    num: '②', title: '体の状態', content: data.review?.body || '寝不足・空腹・疲れ。この日は、何をしても入らない日かもしれません。', action: '言葉は変えない。明日、整えてから同じ言葉を。' },
-            { key: 'mental',  num: '③', title: '心の状態', content: data.review?.mental || '感情が揺れていて、言葉が届かない状態かもしれません。', action: '言葉は変えない。落ち着いてから、同じ言葉を。' },
-            { key: 'timing',  num: '④', title: 'タイミング', content: data.review?.timing || '言葉は合っていて、言うのが早すぎた／遅すぎたかもしれません。', action: '言葉は変えない。5分早く／遅く、同じ言葉を。' },
-            (() => {
-              const age09 = (currentChild?.ageGroup || '0_9') === '0_9';
-              const power = SCENE_POWER[scene.id] || 'この力';
-              const base = data.review?.develop || 'そもそも、まだできない年齢だったかもしれません。';
-              return {
-                key: 'develop', num: '⑤', title: '発達（年齢の目安）',
-                content: age09
-                  ? `${base}\nいまは0〜9歳。「できなくて当たり前」の時期で、「${power}」はまさに練習の真っ最中です。`
-                  : `${base}\n10歳以降で、できる力は育ってきています。うまくいかない日は「発達」より先に、体・心・タイミングの3つを見直すと当たることが多いです。`,
-                action: age09
-                  ? '③の「もっと小さい一歩」を、今日のゴールに。できたら少しずつ戻す。'
-                  : '③の「もっと小さい一歩」に一段だけ下げて試し、できたら元に戻す。',
-              };
-            })(),
+            { key: 'body',    num: '②', title: '体の状態', content: data.review?.body || '寝不足・空腹・疲れ。この日は、何をしても入らない日かもしれません。', action: '明日、整えてから同じ言葉を。' },
+            { key: 'mental',  num: '③', title: '心の状態', content: data.review?.mental || '感情が揺れていて、言葉が届かない状態かもしれません。', action: '落ち着いてから、同じ言葉を。' },
+            { key: 'timing',  num: '④', title: 'タイミング', content: data.review?.timing || '言葉は合っていて、言うのが早すぎた／遅すぎたかもしれません。', action: '5分早く／遅く、同じ言葉を。' },
+            { key: 'develop', num: '⑤', title: '発達（年齢別）' },
           ].map(item => (
             <div
               key={item.key}
@@ -2565,10 +2733,16 @@ function SceneCardScreen({ scene, profile, onBack }) {
                 <span style={{ color: '#AAA' }}>{openReview === item.key ? '▲' : '▼'}</span>
               </div>
               {openReview === item.key && (
-                <div>
-                  <div className="review-content" style={{ whiteSpace: 'pre-line' }}>{item.content}</div>
-                  <div className="review-action">→ {item.action}</div>
-                </div>
+                item.key === 'develop' ? (
+                  <div onClick={e => e.stopPropagation()} style={{ marginTop: 10 }}>
+                    <DevelopPanel sceneId={scene.id} childId={currentChild?.id || null} />
+                  </div>
+                ) : (
+                  <div>
+                    <div className="review-content" style={{ whiteSpace: 'pre-line' }}>{item.content}</div>
+                    <div className="review-action">→ {item.action}</div>
+                  </div>
+                )
               )}
             </div>
           ))}
