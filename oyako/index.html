@@ -1787,6 +1787,94 @@ function RadarChart({ pct }) {
   );
 }
 
+/* ── CompareRadarChart：本人の回答 × 保護者の回答を重ね、15pt以上離れた軸にマーカー ── */
+const RADAR_DIFF_THRESHOLD = 15;
+const clamp01 = (n) => Math.max(0, Math.min(1, n));
+function CompareRadarChart({ childPct, parentPct }) {
+  const size = 200;
+  const cx = size / 2, cy = size / 2;
+  const r = 70;
+  const types = CHILD_TYPES;
+  const n = types.length;
+  const pts = types.map((_, i) => {
+    const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
+    return { bx: cx + r * Math.cos(angle), by: cy + r * Math.sin(angle), angle };
+  });
+  const pathFor = (pct) => types.map((t, i) => {
+    const p = clamp01((pct[t.id] || 0) / 100);
+    const { angle } = pts[i];
+    return `${cx + r * p * Math.cos(angle)},${cy + r * p * Math.sin(angle)}`;
+  }).join(' ');
+  const flagged = new Set(types.filter(t => Math.abs((childPct[t.id] || 0) - (parentPct[t.id] || 0)) >= RADAR_DIFF_THRESHOLD).map(t => t.id));
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {[1, 0.75, 0.5, 0.25].map(scale => (
+        <polygon key={scale}
+          points={pts.map(p => `${cx + (p.bx - cx) * scale},${cy + (p.by - cy) * scale}`).join(' ')}
+          fill="none" stroke="#DDD" strokeWidth="1"
+        />
+      ))}
+      {pts.map((p, i) => (
+        <line key={i} x1={cx} y1={cy} x2={p.bx} y2={p.by} stroke="#DDD" strokeWidth="1" />
+      ))}
+      <polygon points={pathFor(parentPct)} fill="rgba(90,160,208,0.16)" stroke="#5AA0D0" strokeWidth="2" />
+      <polygon points={pathFor(childPct)} fill="rgba(217,106,42,0.16)" stroke="#D96A2A" strokeWidth="2" />
+      {types.map((t, i) => {
+        const { angle } = pts[i];
+        const cp = clamp01((childPct[t.id] || 0) / 100);
+        const pp = clamp01((parentPct[t.id] || 0) / 100);
+        const cdx = cx + r * cp * Math.cos(angle), cdy = cy + r * cp * Math.sin(angle);
+        const pdx = cx + r * pp * Math.cos(angle), pdy = cy + r * pp * Math.sin(angle);
+        const lx = cx + (r + 20) * Math.cos(angle), ly = cy + (r + 20) * Math.sin(angle);
+        const isFlag = flagged.has(t.id);
+        return (
+          <g key={t.id}>
+            <circle cx={pdx} cy={pdy} r="3.5" fill="#5AA0D0" />
+            <circle cx={cdx} cy={cdy} r="3.5" fill="#D96A2A" />
+            {isFlag && <circle cx={cx + (r + 9) * Math.cos(angle)} cy={cy + (r + 9) * Math.sin(angle)} r="6.5" fill="#fff" stroke="#D96A2A" strokeWidth="1.5" />}
+            {isFlag && <text x={cx + (r + 9) * Math.cos(angle)} y={cy + (r + 9) * Math.sin(angle)} textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="#D96A2A">✔</text>}
+            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+              fontSize="11" fontWeight="700" fill="#444" style={{ fontFamily: 'inherit' }}>{t.name}</text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+function ChildParentDiffPanel({ child }) {
+  if (!child?.diagnosis || !child?.parentDiagnosis) return null;
+  const cPct = child.diagnosis.pct, pPct = child.parentDiagnosis.pct;
+  const diffs = CHILD_TYPES.map(t => ({ t, d: (cPct[t.id] || 0) - (pPct[t.id] || 0) }))
+    .filter(x => Math.abs(x.d) >= RADAR_DIFF_THRESHOLD)
+    .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div className="sec-num">本人と保護者、見え方のズレ</div>
+      <div style={{ fontSize: 12, color: '#888', lineHeight: 1.7, marginBottom: 10 }}>
+        お子さんが答えたものと、保護者が答えたもので、レーダーが2枚重なります。{RADAR_DIFF_THRESHOLD}ポイント以上離れた軸に、マーカー（✔）が付きます。
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <CompareRadarChart childPct={cPct} parentPct={pPct} />
+      </div>
+      <div style={{ display: 'flex', gap: 16, fontSize: 11, color: '#777', justifyContent: 'center', marginTop: 4 }}>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#D96A2A', verticalAlign: 'middle', marginRight: 4 }} />本人の回答</span>
+        <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#5AA0D0', verticalAlign: 'middle', marginRight: 4 }} />保護者の回答</span>
+      </div>
+      {diffs.length > 0 ? (
+        <div style={{ marginTop: 10 }}>
+          {diffs.map(({ t, d }) => (
+            <div key={t.id} style={{ fontSize: 12.5, color: '#555', lineHeight: 1.9, paddingLeft: 15, textIndent: -15 }}>
+              ✔ <b>{t.name}</b>：本人{Math.round(cPct[t.id] || 0)}% ／ 保護者{Math.round(pPct[t.id] || 0)}%（差 {Math.round(Math.abs(d))}pt）
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: '#4A8C3C', marginTop: 8 }}>{RADAR_DIFF_THRESHOLD}ポイント以上離れた軸はありません。見え方はよく一致しています。</div>
+      )}
+    </div>
+  );
+}
+
 /* ── NavBar ── */
 function NavBar({ tab, onTab }) {
   const items = [
@@ -3739,6 +3827,11 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                   <MiniTypeChart diag={c.diagnosis} />
                 ) : (
                   <div style={{ fontSize: 13, color: '#AAA' }}>未診断 — 診断タブから診断できます</div>
+                )}
+                {c.ageGroup === '10plus' && c.diagnosis && (
+                  c.parentDiagnosis
+                    ? <ChildParentDiffPanel child={c} />
+                    : <div style={{ fontSize: 11.5, color: 'var(--primary-dark)', marginTop: 8 }}>診断タブの「保護者の目でも見る」で回答すると、本人との見え方の違いを比較できます。</div>
                 )}
                 {i < profile.children.length - 1 && <div className="divider" style={{ marginTop: 12 }} />}
               </div>
