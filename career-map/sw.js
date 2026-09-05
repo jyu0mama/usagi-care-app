@@ -1,5 +1,7 @@
-/* なづなのキャリアMAP — Service Worker（このフォルダscopeのみ・キャッシュ名は careermap- プレフィックス） */
-const CACHE = 'careermap-v7';
+/* なづなのキャリアMAP — Service Worker
+   ネットワーク優先（オンライン時は必ず最新を表示、オフライン時のみキャッシュ）。
+   キャッシュ名は careermap- プレフィックスのみ削除する。 */
+const CACHE = 'careermap-v8';
 const ASSETS = [
   './', './index.html', './manifest.json', './app.js',
   './vendor/react.production.min.js', './vendor/react-dom.production.min.js',
@@ -21,18 +23,16 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
-  if (e.request.method !== 'GET') return;
-  if (url.origin !== location.origin) return; // CDN等クロスオリジンは触らない
+  if (e.request.method !== 'GET' || url.origin !== location.origin) return;
   e.respondWith(
-    caches.match(e.request).then((hit) =>
-      hit ||
-      fetch(e.request)
-        .then((res) => {
+    fetch(e.request)
+      .then((res) => {
+        if (res && res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy));
-          return res;
-        })
-        .catch(() => caches.match('./index.html'))
-    )
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request).then((hit) => hit || caches.match('./index.html')))
   );
 });
