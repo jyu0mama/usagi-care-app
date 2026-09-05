@@ -3603,12 +3603,13 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
       </div>
       <div className="page">
 
-        {/* 診断結果まとめ（何度でも戻って見られる） */}
+        {/* 診断結果まとめ（何度でも戻って見られる／お子さん全員分） */}
         {(() => {
           const pType = profile?.parentType || null;
-          const kid = profile?.children?.[profile?.currentChildIdx || 0] || null;
-          const cType = kid?.diagnosis?.nearest || null;
-          if (!pType && !cType) return null;
+          const allKids = profile?.children || [];
+          const diagnosedKids = allKids.filter(k => k?.diagnosis?.nearest);
+          const undiagnosedKids = allKids.filter(k => !k?.diagnosis?.nearest);
+          if (!pType && diagnosedKids.length === 0) return null;
           return (
             <div className="card" style={{ background: 'var(--primary-bg)', border: '1.5px solid var(--border)' }}>
               <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 12 }}>診断結果まとめ</div>
@@ -3628,36 +3629,46 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                 </details>
               )}
 
-              {cType && (
-                <details style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
-                    <span>{kid?.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}</span>
-                    <span style={{ color: 'var(--primary)', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>▼</span>
-                  </summary>
-                  <div style={{ padding: '4px 12px 12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingLeft: 2 }}>
-                      <TypeAvatar id={cType} size={44} />
-                      <div style={{ fontSize: 15, fontWeight: 800 }}>{CHILD_TYPE_MAP[cType]?.name}</div>
+              {diagnosedKids.map(kid => {
+                const cType = kid.diagnosis.nearest;
+                return (
+                  <details key={kid.id} style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
+                    <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                      <span>{kid.name}のタイプ … {CHILD_TYPE_MAP[cType]?.name}</span>
+                      <span style={{ color: 'var(--primary)', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>▼</span>
+                    </summary>
+                    <div style={{ padding: '4px 12px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, paddingLeft: 2 }}>
+                        <TypeAvatar id={cType} size={44} />
+                        <div style={{ fontSize: 15, fontWeight: 800 }}>{CHILD_TYPE_MAP[cType]?.name}</div>
+                      </div>
+                      <div style={{ marginBottom: 14 }}><StatusBars rows={childStatusRows(kid.diagnosis)} compact /></div>
+                      <ChildTypeDetail sorted={kid.diagnosis.sorted} nearest={kid.diagnosis.nearest} blendWith={kid.diagnosis.blendWith} />
                     </div>
-                    <div style={{ marginBottom: 14 }}><StatusBars rows={childStatusRows(kid.diagnosis)} compact /></div>
-                    <ChildTypeDetail sorted={kid.diagnosis.sorted} nearest={kid.diagnosis.nearest} blendWith={kid.diagnosis.blendWith} />
-                  </div>
-                </details>
-              )}
+                  </details>
+                );
+              })}
 
-              {pType && cType && COMBO45[pType] && COMBO45[pType][cType] && (
-                <details style={{ background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
-                  <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
-                    <span>親子の組み合わせ</span>
-                    <span style={{ color: 'var(--primary)', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>▼</span>
-                  </summary>
-                  <div style={{ padding: '0 14px 14px' }}><ComboSummary parentId={pType} childId={cType} /></div>
-                </details>
-              )}
+              {pType && diagnosedKids.map(kid => {
+                const cType = kid.diagnosis.nearest;
+                if (!COMBO45[pType] || !COMBO45[pType][cType]) return null;
+                return (
+                  <details key={kid.id + '-combo'} style={{ marginBottom: 8, background: '#fff', borderRadius: 10, border: '1px solid var(--border)' }}>
+                    <summary style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 14px', fontWeight: 700, fontSize: 14, cursor: 'pointer', listStyle: 'none' }}>
+                      <span>親子の組み合わせ{diagnosedKids.length > 1 ? `（${kid.name}）` : ''}</span>
+                      <span style={{ color: 'var(--primary)', fontSize: 13, flexShrink: 0, marginLeft: 8 }}>▼</span>
+                    </summary>
+                    <div style={{ padding: '0 14px 14px' }}><ComboSummary parentId={pType} childId={cType} /></div>
+                  </details>
+                );
+              })}
 
-              {(!pType || !cType) && (
+              {(!pType || undiagnosedKids.length > 0 || diagnosedKids.length === 0) && (
                 <div style={{ fontSize: 11.5, color: 'var(--primary-dark)' }}>
-                  {!pType && '親タイプ診断'}{!pType && !cType && '・'}{!cType && 'お子さんの診断'}をすると、組み合わせの傾向（すれ違いやすい所）も出ます。
+                  {!pType && '親タイプ診断'}
+                  {!pType && undiagnosedKids.length > 0 && '・'}
+                  {undiagnosedKids.length > 0 && `${undiagnosedKids.map(k => k.name).join('・')}の診断`}
+                  をすると、組み合わせの傾向（すれ違いやすい所）も出ます。
                 </div>
               )}
             </div>
