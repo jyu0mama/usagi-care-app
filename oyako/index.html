@@ -3277,6 +3277,18 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
     setResult(r);
     setPhase('result');
   }
+  function startQuiz(who) {
+    if (who) setAnswerer(who);
+    setAnswers({});
+    setCurrentQ(0);
+    setPhase('questions');
+  }
+  /* この画面のメイン診断ボタンの文言（「再」誤解を避ける） */
+  function quizButtonLabel() {
+    if (ageGroup !== '10plus') return child?.diagnosis ? 'やり直す（再診断）' : `診断スタート（${total}問）`;
+    if (answerer === 'parent') return child?.parentDiagnosis ? `保護者の回答をやり直す（${total}問）` : `保護者の目で診断する（${total}問）`;
+    return child?.diagnosis ? `本人の回答をやり直す（${total}問）` : `本人の診断をはじめる（${total}問）`;
+  }
 
   if (children.length === 0) {
     return (
@@ -3325,14 +3337,22 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           </div>
           {child?.ageGroup === '10plus' && (
             <div className="card">
-              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>回答者を選んでください</div>
-              {[{ v: 'child', l: '本人が回答する', d: '子ども自身が答えます' }, { v: 'parent', l: '保護者の目でも見る', d: 'すでに本人の回答がある場合に、比較用に使います' }].map(opt => (
+              <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 12 }}>誰が答えますか？</div>
+              {[
+                { v: 'child', l: '本人が答える', d: '子ども自身が答えます', done: !!child?.diagnosis },
+                { v: 'parent', l: '保護者の目でも答える', d: '保護者が観察した印象で答えます。本人の結果とズレを比較できます', done: !!child?.parentDiagnosis },
+              ].map(opt => (
                 <div key={opt.v} onClick={() => setAnswerer(opt.v)}
                   style={{ padding: '14px', borderRadius: 12, border: `2px solid ${answerer === opt.v ? 'var(--primary)' : '#DDE8E5'}`, background: answerer === opt.v ? 'var(--primary-bg)' : '#FFF', marginBottom: 8, cursor: 'pointer' }}>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{opt.l}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{opt.l}{opt.done && <span style={{ fontSize: 11, color: 'var(--primary)', marginLeft: 6 }}>回答済み</span>}</div>
                   <div style={{ fontSize: 13, color: '#888', marginTop: 2 }}>{opt.d}</div>
                 </div>
               ))}
+              {child?.diagnosis && !child?.parentDiagnosis && (
+                <div style={{ fontSize: 12, color: 'var(--primary-dark)', marginTop: 2 }}>
+                  本人の回答は保存済みです。<b>「保護者の目でも答える」</b>を選ぶと、見え方のズレを比較できます。
+                </div>
+              )}
             </div>
           )}
           <div className="notice-box" style={{ fontSize: 13 }}>
@@ -3340,15 +3360,15 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
           </div>
           {child?.diagnosis && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>前回の結果：<strong>{CHILD_TYPE_MAP[child.diagnosis.nearest]?.name}</strong>（{child.diagnosis.label}）</div>
+              <div style={{ fontSize: 13, color: '#666', marginBottom: 8 }}>本人の結果：<strong>{CHILD_TYPE_MAP[child.diagnosis.nearest]?.name}</strong>（{child.diagnosis.label}）{child?.parentDiagnosis && <span> ／ 保護者から見て：<strong>{CHILD_TYPE_MAP[child.parentDiagnosis.nearest]?.name}</strong></span>}</div>
               <MiniTypeChart diag={child.diagnosis} />
               <button className="btn btn-secondary" style={{ marginTop: 8 }} onClick={() => { setResult(child.diagnosis); setPhase('saved'); }}>
                 保存済みの結果を詳しく見る
               </button>
             </div>
           )}
-          <button className="btn btn-primary" style={{ marginTop: 4 }} onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
-            {child?.diagnosis ? 'やり直す（再診断）' : `診断スタート（${total}問）`}
+          <button className="btn btn-primary" style={{ marginTop: 4 }} onClick={() => startQuiz()}>
+            {quizButtonLabel()}
           </button>
           <div style={{ height: 20 }} />
           <button className="btn btn-secondary" onClick={onBack}>← ホームに戻る</button>
@@ -3428,10 +3448,28 @@ function DiagnosisScreen({ profile, onBack, onDone }) {
             <div className="sec-num" style={{ marginBottom: 8 }}>{child?.name}のタイプについて</div>
             <ChildTypeDetail sorted={result.sorted} nearest={result.nearest} blendWith={result.blendWith} />
           </div>
-          <button className="btn btn-secondary" onClick={() => { setAnswers({}); setCurrentQ(0); setPhase('questions'); }}>
-            やり直す（再診断）
-          </button>
-          <button className="btn btn-ghost" onClick={() => setPhase('select')}>← 戻る</button>
+          {child?.ageGroup === '10plus' ? (
+            <>
+              {!child?.parentDiagnosis && (
+                <button className="btn btn-primary" onClick={() => startQuiz('parent')}>
+                  保護者の目でも診断する（{total}問）
+                </button>
+              )}
+              <button className="btn btn-secondary" style={{ marginTop: !child?.parentDiagnosis ? 8 : 0 }} onClick={() => startQuiz('child')}>
+                本人の回答をやり直す
+              </button>
+              {child?.parentDiagnosis && (
+                <button className="btn btn-secondary" style={{ marginTop: 8 }} onClick={() => startQuiz('parent')}>
+                  保護者の回答をやり直す
+                </button>
+              )}
+            </>
+          ) : (
+            <button className="btn btn-secondary" onClick={() => startQuiz('child')}>
+              やり直す（再診断）
+            </button>
+          )}
+          <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => setPhase('select')}>← 戻る</button>
           <div style={{ height: 20 }} />
         </div>
       </div>
@@ -3831,7 +3869,7 @@ function SettingsScreen({ profile, onEdit, onEditChild, onBack }) {
                 {c.ageGroup === '10plus' && c.diagnosis && (
                   c.parentDiagnosis
                     ? <ChildParentDiffPanel child={c} />
-                    : <div style={{ fontSize: 11.5, color: 'var(--primary-dark)', marginTop: 8 }}>診断タブの「保護者の目でも見る」で回答すると、本人との見え方の違いを比較できます。</div>
+                    : <div style={{ fontSize: 11.5, color: 'var(--primary-dark)', marginTop: 8 }}>診断タブで「保護者の目でも答える」を選んで回答すると、本人との見え方の違いを比較できます。</div>
                 )}
                 {i < profile.children.length - 1 && <div className="divider" style={{ marginTop: 12 }} />}
               </div>
