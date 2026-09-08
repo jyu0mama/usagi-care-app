@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アプリの使い方</title>
+<style>
+:root{
+  --bg:#FBF8F3;
+  --card:#FFFFFF;
+  --line:#E5DAC9;
+  --text:#3F3A34;
+  --sub:#6B6259;
+  --pale:#8C8378;
+  --accent:#D98E73;
+  --green:#8FB08C;
+  --beige:#F3EADF;
+  --marker:#F6D98E;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  font-size:16px;
+  line-height:1.9;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:600px;margin:0 auto;padding:0 20px 80px;}
+
+/* ヘッダー */
+header{
+  background:var(--beige);
+  padding:44px 20px 36px;
+  text-align:center;
+  margin-bottom:40px;
+}
+header .eyebrow{font-size:13px;color:var(--pale);letter-spacing:.1em;margin-bottom:10px;}
+header h1{font-size:26px;font-weight:700;line-height:1.5;}
+
+/* 見出し */
+h2{
+  font-size:22px;
+  font-weight:700;
+  line-height:1.5;
+  margin:56px 0 20px;
+  padding-bottom:12px;
+  border-bottom:2px solid var(--line);
+}
+h3{
+  font-size:18px;
+  font-weight:700;
+  line-height:1.5;
+  margin:36px 0 14px;
+}
+h4{
+  font-size:16px;
+  font-weight:700;
+  margin:26px 0 10px;
+  color:var(--sub);
+}
+p{margin:0 0 16px;}
+strong{font-weight:700;}
+.sub{color:var(--sub);}
+.small{font-size:14px;color:var(--pale);line-height:1.8;}
+
+/* 区切り */
+hr{
+  border:0;
+  border-top:1px solid var(--line);
+  margin:28px 0;
+}
+hr.thin{width:40px;border-top:2px solid var(--line);margin:24px 0;}
+
+/* ステップ番号 */
+.stepnum{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;height:30px;
+  border-radius:50%;
+  background:var(--green);
+  color:#fff;
+  font-size:15px;
+  font-weight:700;
+  margin-right:10px;
+  flex-shrink:0;
+}
+.steptitle{display:flex;align-items:center;margin:36px 0 14px;}
+.steptitle span.t{font-size:18px;font-weight:700;line-height:1.4;}
+
+/* カード */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:20px;
+  margin:20px 0;
+}
+.card p:last-child{margin-bottom:0;}
+
+/* 効果ボックス */
+.effect{
+  background:var(--beige);
+  border-radius:14px;
+  padding:20px;
+  margin:20px 0;
+}
+.effect h4{margin-top:0;color:var(--accent);}
+.effect p:last-child{margin-bottom:0;}
+
+/* 注意 */
+.note{
+  border-left:3px solid var(--line);
+  padding:4px 0 4px 16px;
+  margin:20px 0;
+  font-size:14px;
+  color:var(--pale);
+  line-height:1.85;
+}
+
+/* 強調 */
+.point{
+  background:var(--card);
+  border:2px solid var(--accent);
+  border-radius:14px;
+  padding:22px;
+  margin:26px 0;
+  text-align:center;
+}
+.point p{margin-bottom:8px;}
+.point p:last-child{margin-bottom:0;}
+.point .big{font-size:18px;font-weight:700;line-height:1.6;}
+
+/* リスト */
+ul{margin:0 0 16px;padding-left:0;list-style:none;}
+ul li{
+  position:relative;
+  padding-left:18px;
+  margin-bottom:10px;
+}
+ul li::before{
+  content:"";
+  position:absolute;
+  left:0;top:.75em;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:var(--green);
+}
+ol{margin:0 0 16px;padding-left:1.4em;}
+ol li{margin-bottom:10px;}
+
+/* インデント（画面の文言など） */
+.quote{
+  padding-left:16px;
+  color:var(--sub);
+  margin:0 0 16px;
+  line-height:2;
+}
+
+/* ボタン */
+.btn{
+  display:block;
+  background:var(--green);
+  color:#fff;
+  text-decoration:none;
+  text-align:center;
+  padding:16px;
+  border-radius:12px;
+  font-weight:700;
+  font-size:16px;
+  margin:22px 0;
+}
+.btn.line{background:#06C755;}
+.btn.sub{background:var(--card);color:var(--text);border:1px solid var(--line);}
+
+/* スクショ */
+figure{margin:24px 0;text-align:center;}
+figure img{
+  max-width:100%;
+  width:280px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  display:block;
+  margin:0 auto;
+}
+figcaption{font-size:13px;color:var(--pale);margin-top:8px;}
+
+/* まとめ */
+.summary{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:24px 20px;
+  margin:24px 0;
+}
+.summary ol{padding-left:0;list-style:none;counter-reset:s;}
+.summary ol li{
+  counter-increment:s;
+  position:relative;
+  padding-left:38px;
+  margin-bottom:18px;
+  line-height:1.8;
+}
+.summary ol li::before{
+  content:counter(s);
+  position:absolute;left:0;top:2px;
+  width:26px;height:26px;
+  background:var(--accent);color:#fff;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+}
+
+/* Q&A */
+.qa{border-bottom:1px solid var(--line);padding:22px 0;}
+.qa:last-of-type{border-bottom:0;}
+.qa .q{font-weight:700;margin-bottom:12px;}
+.qa .q::before{content:"Q. ";color:var(--accent);}
+.qa p:last-child{margin-bottom:0;}
+
+/* フッター */
+footer{
+  margin-top:60px;
+  padding-top:32px;
+  border-top:1px solid var(--line);
+  text-align:center;
+}
+
+@media print{
+  body{background:#fff;}
+  header{background:#fff;border-bottom:2px solid var(--line);}
+  h2{page-break-after:avoid;}
+  .card,.effect,.point,.summary,figure{page-break-inside:avoid;}
+  .btn{border:1px solid var(--line);color:var(--text)!important;background:#fff!important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">親子まるごと診断</div>
+  <h1>アプリの使い方</h1>
+</header>
+
+<div class="wrap">
+
+<!-- ============ はじめに ============ -->
+<h2>全部やらなくて、大丈夫です</h2>
+
+<p>このアプリ、けっこう中身が多いです。</p>
+<p>でも、<strong>今日ぜんぶ読む必要はありません。</strong></p>
+
+<hr class="thin">
+
+<p>まず、<strong>設定だけ</strong>。ここまでで5分くらいです。</p>
+<p>あとは、困ったときに開けば大丈夫です。</p>
+
+<hr class="thin">
+
+<p><strong>入力した内容は、保存されます。</strong></p>
+<p>一度やっておけば、次からは開くだけ。<br>
+何度でも見返せますし、あとから変えることもできます。</p>
+
+<figure>
+  <img src="shots/01-top.jpg" alt="トップ画面">
+  <figcaption>トップ画面</figcaption>
+</figure>
+
+
+<!-- ============ 設定 ============ -->
+<h2>まずは、設定から</h2>
+
+<p>トップの<strong>「設定」</strong>を開いてください。</p>
+<p><strong>「設定を変更する」</strong>を押すと、次の3つを順番に設定できます。</p>
+
+<div class="card">
+  <ul>
+    <li>あなたのメガネ</li>
+    <li>あなたのタイプ</li>
+    <li>お子さんの登録</li>
+  </ul>
+  <p class="small">順番に進むだけなので、5分もかかりません。</p>
+</div>
+
+
+<div class="steptitle"><span class="stepnum">1</span><span class="t">あなたの「強いメガネ」を選ぶ</span></div>
+
+<figure>
+  <img src="shots/02-glasses.jpg" alt="初期設定・メガネ選択">
+</figure>
+
+<p>無料noteの「思考の癖」診断で出た結果を、<strong>最大2つ</strong>選んでください。</p>
+
+<h4>まだ診断を受けていない方</h4>
+<p>画面の中に、<strong>「無料診断を受ける」</strong>というリンクがあります。<br>
+そこから受けられるので、先に済ませてください。3分ほどです。</p>
+
+<div class="effect">
+  <h4>これをやると</h4>
+  <p><strong>あなたの口から、自然と出てくる言葉のクセ</strong>が分かります。</p>
+  <p>そして、それが<strong>この子にどう届いているか</strong>まで見えるようになります。</p>
+</div>
+
+<div class="note">
+  選ばずに進むこともできますが、その場合、<strong>メガネに関する内容は表示されません。</strong><br>
+  もったいないので、できれば選んでおいてください。
+</div>
+
+
+<div class="steptitle"><span class="stepnum">2</span><span class="t">あなたのタイプを選ぶ</span></div>
+
+<p>続けて、<strong>親タイプ診断（27問）</strong>に進みます。</p>
+<p>出てくるのは、<strong>9つのタイプ</strong>のうち、あなたに近いもの。</p>
+<p>これは、育ってきた中で身についたクセ（メガネ）ではなく、<strong>もともとの気質</strong>のほうです。</p>
+
+<div class="effect">
+  <h4>これをやると</h4>
+  <p><strong>この子とぶつかりやすい場所</strong>が、先に分かります。</p>
+  <p>「なんで、ここでいつも揉めるんだろう」の答えです。</p>
+</div>
+
+
+<div class="steptitle"><span class="stepnum">3</span><span class="t">お子さんを登録する</span></div>
+
+<figure>
+  <img src="shots/03-child-setup.jpg" alt="お子さんの設定">
+</figure>
+
+<p><strong>最大3人</strong>まで登録できます。あとから追加・変更もできます。</p>
+<p>入れるのは、2つだけ。</p>
+
+<ul>
+  <li><strong>お名前</strong>（ニックネームでもOK）</li>
+  <li><strong>年齢</strong>（0〜9歳／10歳〜）</li>
+</ul>
+
+<h4>年齢の選び方</h4>
+<p class="quote"><strong>0〜9歳</strong>　……保護者が観察して答えます<br>
+<strong>10歳〜</strong>　……お子さん本人にも答えてもらえます</p>
+
+<div class="effect">
+  <h4>これをやると</h4>
+  <p><strong>年齢に合った内容が出るようになります。</strong></p>
+  <p>同じ「宿題をやらない」でも、6歳と10歳では、できることが違います。</p>
+  <p><strong>いま求めていいこと／まだ求めなくていいこと</strong>が、分かれて出てくるようになります。</p>
+</div>
+
+
+<!-- ============ 子どもの診断 ============ -->
+<h2>次に、お子さんの診断</h2>
+
+<p>設定が終わったら、トップの<strong>「診断する」</strong>へ。</p>
+
+<figure>
+  <img src="shots/04-diagnosis-result.jpg" alt="子ども診断の結果">
+</figure>
+
+<p>質問に答えると、<strong>5つのタイプの分布</strong>が出ます。</p>
+<p class="quote">にこにこ／ものしり／ぐんぐん／ふんわり／とことん</p>
+
+<p><strong>1つに決めつけません。</strong><br>
+「今日は、この面が強く出ているな」を見るためのものです。</p>
+
+<hr>
+
+<h3>ここまでやると、何が変わるか</h3>
+
+<p><strong>あなたと、お子さん。2つが揃います。</strong></p>
+<p>同じ言葉でも、<strong>言う側と、受け取る側の組み合わせ</strong>で、届き方が変わります。</p>
+
+<div class="point">
+  <p>だから、2つ揃ってはじめて</p>
+  <p class="big">「うちの親子だと、<br>どう言えば届くか」</p>
+  <p>が出せるようになります。</p>
+</div>
+
+<p><strong>ここが、ふつうの診断アプリと違うところです。</strong></p>
+<p>「あなたのお子さんは◯◯タイプです」で、終わらせません。</p>
+
+
+<!-- ============ 使い方 ============ -->
+<h2>困ったときの使い方</h2>
+
+<p>トップの<strong>「場面を引く」</strong>を開いてください。</p>
+
+<figure>
+  <img src="shots/05-scenes.jpg" alt="場面の一覧">
+</figure>
+
+<p>いま困っていることを選ぶだけです。</p>
+<p class="quote">朝、動かない<br>
+宿題に取りかからない<br>
+切り替えられない（ゲーム・動画）<br>
+かんしゃく・爆発<br>
+……全14場面</p>
+
+<hr>
+
+<h3>その場では、ここだけ見てください</h3>
+
+<p>カードを開くと、いくつか項目が並んでいます。</p>
+<p>でも、<strong>バタバタしているときは、ここだけで大丈夫です。</strong></p>
+
+<figure>
+  <img src="shots/06-card-top.jpg" alt="カード上部（② うちの子には、こう届く）">
+</figure>
+
+<p><strong>「② うちの子には、こう届く」</strong>に、お子さんのタイプに合わせた言葉が出ています。そのまま使ってみてください。</p>
+
+<div class="point">
+  <p class="big">今日は、それで十分です。</p>
+</div>
+
+
+<!-- ============ あとで読む ============ -->
+<h2>時間があるときに、読んでほしいところ</h2>
+
+<p>落ち着いたときに、同じカードの<strong>ほかの項目</strong>も開いてみてください。</p>
+
+<figure>
+  <img src="shots/07-card-bottom.jpg" alt="カード下部（⑥ 効かなかったときは）">
+</figure>
+
+<h3>「① あなたのメガネでは、こう見えやすい」</h3>
+<p><strong>自分が、いつも何をしているか</strong>が書いてあります。</p>
+<p>「あ、これうちだ」で終わらせず、<strong>その一言が、どのメガネから出ていたか</strong>まで見てみてください。</p>
+
+<h3>「⑤ うちの組み合わせの、注意点」</h3>
+<p><strong>あなたが言いやすい形</strong>と、<strong>この子が受け取りやすい形</strong>。</p>
+<p>そのズレが、どこにあるかが分かります。</p>
+
+<h3>「⑥ 効かなかったときは」</h3>
+<p><strong>効かなかったときに、どこを見るか</strong>です。</p>
+<p>やってみて効かなかった日、つい別の言い方を探したくなりますよね。</p>
+<p>でも、たいてい外れていたのは、<strong>言葉ではなく、条件のほう</strong>です。</p>
+
+<hr>
+
+<h3>ここを読むと、何が変わるか</h3>
+
+<p>正直に言うと、<strong>その日は何も変わりません。</strong></p>
+<p>でも、何度か読んでいると、だんだん、<strong>口から出てくる言葉が変わりはじめます。</strong></p>
+<p>がんばって言い換えるのではなく、<strong>見えているものが変わるから、出てくる言葉が変わる</strong>んです。</p>
+
+<div class="note">
+  全部読もうとしなくて大丈夫です。時間があるとき、1つずつで。
+</div>
+
+
+<!-- ============ カード ============ -->
+<h2>カードを見る</h2>
+
+<p>トップの<strong>「カードを見る」</strong>には、<strong>あなた × お子さんの組み合わせ</strong>が出ます。</p>
+
+<figure>
+  <img src="shots/08-compat-card.jpg" alt="相性カード">
+</figure>
+
+<p>書いてあるのは、7つ。</p>
+
+<div class="card">
+  <ul>
+    <li><strong>① かみ合う所</strong>｜そのままで、うまくいくところ</li>
+    <li><strong>② いちばんぶつかる所</strong>｜あなたの強みが、この子には届きにくい場面</li>
+    <li><strong>③ うまく回ってないサイン</strong>｜崩れる前のサイン</li>
+    <li><strong>④ 効くほめ方</strong></li>
+    <li><strong>⑤ 効く伝え方</strong></li>
+    <li><strong>⑥ あるある場面 → 届く言い方</strong></li>
+    <li><strong>⑦ 伸びしろの育て方</strong>｜この子の伸びしろを、どう育てるか</li>
+  </ul>
+  <p class="small">カードによっては、この下に<strong>「やりすぎたな、と思ったら」</strong>も出ます。</p>
+</div>
+
+<h3>「いちばんぶつかる所」は、欠点ではありません</h3>
+
+<p><strong>あなたの強みが、この子には、そのままの形では届かない。</strong></p>
+<p>それだけです。</p>
+<p>守り方が足りないのでも、愛情が足りないのでもありません。<strong>渡し方を、少し変えるだけ</strong>です。</p>
+
+<h3>きょうだいがいる方へ</h3>
+
+<p><strong>組み合わせが変わるので、別のカードになります。</strong></p>
+<p>上の子に効いた言い方が、下の子に効かないのは、当たり前です。<br>
+あなたの言い方が下手になったわけではありません。</p>
+<p>きょうだいの人数ぶん、引いてみてください。</p>
+
+
+<!-- ============ まとめ ============ -->
+<h2>まとめ｜今日やること</h2>
+
+<div class="summary">
+  <ol>
+    <li><strong>「設定」</strong>で、3つ済ませる<br>
+      <span class="small">あなたのメガネ → あなたのタイプ → お子さんの登録</span></li>
+    <li><strong>「診断する」</strong>で、お子さんの診断</li>
+    <li><strong>「場面を引く」</strong>で、いま困っている場面を1つだけ</li>
+  </ol>
+  <hr class="thin">
+  <p>ここまでで、5分です。</p>
+  <p><strong>あとは、困ったときに開けば大丈夫です。</strong></p>
+</div>
+
+<a class="btn" href="https://jyu0mama.github.io/usagi-care-app/oyako/">▶ アプリを開く</a>
+
+
+<!-- ============ Q&A ============ -->
+<h2>よくある質問</h2>
+
+<div class="qa">
+  <p class="q">診断結果は、あとから変えられますか</p>
+  <p>はい。何度でもやり直せます。</p>
+  <p>お子さんは育つので、<strong>半年〜1年に一度</strong>、やり直してみると変化が見えます。</p>
+</div>
+
+<div class="qa">
+  <p class="q">きょうだいの分も登録できますか</p>
+  <p>できます。<strong>最大3人</strong>まで、「設定」から追加してください。</p>
+</div>
+
+<div class="qa">
+  <p class="q">子どもに、タイプを伝えてもいいですか</p>
+  <p><strong>「あなたは◯◯タイプだから」という伝え方は、しないでください。</strong></p>
+  <p>その言葉に、自分を合わせていくことがあります。</p>
+  <hr class="thin">
+  <p>伝えるなら、<strong>決めつけない形</strong>で。</p>
+  <p class="quote">「こんないいところがあるよ」<br>
+  「そこ、〇〇ちゃんの強いところだね」</p>
+  <p><strong>伸びしろのほう</strong>を渡してあげてください。</p>
+</div>
+
+<div class="qa">
+  <p class="q">診断が当たっていない気がします</p>
+  <p>「思っていたのと違う」ということは、<strong>まだ見えていなかった面がある</strong>ということかもしれません。</p>
+  <p>しっくりこない場合は、いちばん近いものを選び直して大丈夫です。</p>
+</div>
+
+<div class="qa">
+  <p class="q">効かないときは、どうすれば</p>
+  <p>カードの下にある<strong>「⑥ 効かなかったときは」</strong>を、上から見てください。</p>
+  <p>たいてい、外れているのは<strong>言葉ではなく条件</strong>です。</p>
+</div>
+
+
+<!-- ============ フッター ============ -->
+<footer>
+  <h3>困ったときは</h3>
+  <p>公式LINEから、ご連絡ください🌱</p>
+  <a class="btn line" href="https://lin.ee/VuWRgLD">▶ 公式LINEを開く</a>
+</footer>
+
+</div>
+</body>
+</html>
