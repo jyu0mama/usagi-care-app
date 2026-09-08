@@ -1841,9 +1841,63 @@ function CompareRadarChart({ childPct, parentPct }) {
     </svg>
   );
 }
+/* ── ズレ方の4パターン（出典：有料note本編「ズレ方は、4つ」）── */
+const ZURE_PATTERNS = {
+  outside: {
+    n: '① 外では違う顔',
+    sub: '家と外で、出ている面が違うだけ。',
+    how: 'どちらの姿も、実際に見たことがある',
+    act: '「どっちが本当？」ではなく「どこでの話？」と考えます。家と外で、入口を使い分けます。',
+  },
+  notyet: {
+    n: '② 出せていない',
+    sub: 'その子の中にはあるのに、家では出す場所がなかった部分。',
+    how: 'どこか1か所でも、その姿を見たことがある',
+    act: 'まだ使っていない入口です。今日から、ここを使います。家で試したことのない入口を1つ。',
+  },
+  want: {
+    n: '③ なりたい自分',
+    sub: 'まだそうではなく、憧れているところ。',
+    how: 'その姿を、まだ一度も見たことがない',
+    act: '否定せず、小さく試せる場を1つ用意します。',
+  },
+  glasses: {
+    n: '④ 親のメガネ',
+    sub: 'あなたの見方が、混ざっているかもしれません。',
+    how: 'その軸の場面を、3つ思い出せない',
+    act: '第1章（メガネ診断）に戻って、自分の6本のメガネを確認します。',
+  },
+};
+const ZURE_KEY = 'oyako_v1_zure';
+function getZure(childId) {
+  try { return (JSON.parse(localStorage.getItem(ZURE_KEY) || '{}'))[childId || '_'] || {}; } catch (e) { return {}; }
+}
+function setZure(childId, axisId, pattern) {
+  try {
+    const m = JSON.parse(localStorage.getItem(ZURE_KEY) || '{}');
+    const c = m[childId || '_'] || {};
+    if (pattern) c[axisId] = pattern; else delete c[axisId];
+    m[childId || '_'] = c;
+    localStorage.setItem(ZURE_KEY, JSON.stringify(m));
+  } catch (e) {}
+}
+function ZurePatternCard({ p }) {
+  return (
+    <div style={{ marginTop: 8, background: '#FCFCFB', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
+      <div style={{ fontSize: 13.5, fontWeight: 800 }}>{p.n}</div>
+      <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{p.sub}</div>
+      <div style={{ fontSize: 11.5, color: '#999', marginTop: 6 }}>見分け方：{p.how}</div>
+      <div style={{ fontSize: 12.5, color: 'var(--primary-dark)', background: 'var(--primary-bg)', borderRadius: 8, padding: '7px 10px', marginTop: 6, lineHeight: 1.8 }}>
+        <b>どうするか</b>　{p.act}
+      </div>
+    </div>
+  );
+}
 function ChildParentDiffPanel({ child }) {
+  const [judg, setJudg] = useState(() => getZure(child?.id));
   if (!child?.diagnosis || !child?.parentDiagnosis) return null;
   const cPct = child.diagnosis.pct, pPct = child.parentDiagnosis.pct;
+  const answer = (axisId, pattern) => { setZure(child.id, axisId, pattern); setJudg({ ...getZure(child.id) }); };
   const diffs = CHILD_TYPES.map(t => ({ t, d: (cPct[t.id] || 0) - (pPct[t.id] || 0) }))
     .filter(x => Math.abs(x.d) >= RADAR_DIFF_THRESHOLD)
     .sort((a, b) => Math.abs(b.d) - Math.abs(a.d));
@@ -1852,6 +1906,7 @@ function ChildParentDiffPanel({ child }) {
       <div className="sec-num">本人と保護者、見え方のズレ</div>
       <div style={{ fontSize: 12, color: '#888', lineHeight: 1.7, marginBottom: 10 }}>
         お子さんが答えたものと、保護者が答えたもので、レーダーが2枚重なります。{RADAR_DIFF_THRESHOLD}ポイント以上離れた軸に、マーカー（✔）が付きます。
+        一致した軸に、新しい情報はありません。<b>ズレた軸だけ</b>が、明日の声かけを変えます。
       </div>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
         <CompareRadarChart childPct={cPct} parentPct={pPct} />
@@ -1860,16 +1915,58 @@ function ChildParentDiffPanel({ child }) {
         <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#D96A2A', verticalAlign: 'middle', marginRight: 4 }} />本人の回答</span>
         <span><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: '#5AA0D0', verticalAlign: 'middle', marginRight: 4 }} />保護者の回答</span>
       </div>
-      {diffs.length > 0 ? (
-        <div style={{ marginTop: 10 }}>
-          {diffs.map(({ t, d }) => (
-            <div key={t.id} style={{ fontSize: 12.5, color: '#555', lineHeight: 1.9, paddingLeft: 15, textIndent: -15 }}>
-              ✔ <b>{t.name}</b>：本人{Math.round(cPct[t.id] || 0)}% ／ 保護者{Math.round(pPct[t.id] || 0)}%（差 {Math.round(Math.abs(d))}pt）
-            </div>
-          ))}
-        </div>
-      ) : (
+
+      {diffs.length === 0 ? (
         <div style={{ fontSize: 12, color: '#4A8C3C', marginTop: 8 }}>{RADAR_DIFF_THRESHOLD}ポイント以上離れた軸はありません。見え方はよく一致しています。</div>
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          <div className="sec-num" style={{ marginBottom: 6 }}>ズレた軸の「ズレ方」</div>
+          {diffs.map(({ t, d }) => {
+            const childHigher = d > 0; // 子どもが高く、保護者が低い
+            const pat = judg[t.id];
+            return (
+              <div key={t.id} style={{ marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 13, fontWeight: 700 }}>✔ {t.name}</div>
+                <div style={{ fontSize: 11.5, color: '#999', marginTop: 2 }}>
+                  本人 {Math.round(cPct[t.id] || 0)}％ ／ 保護者 {Math.round(pPct[t.id] || 0)}％（差 {Math.round(Math.abs(d))}pt・{childHigher ? '本人が高い' : '保護者が高い'}）
+                </div>
+
+                {!childHigher ? (
+                  <>
+                    <ZurePatternCard p={ZURE_PATTERNS.glasses} />
+                    <div style={{ fontSize: 11.5, color: '#888', marginTop: 6, lineHeight: 1.7 }}>
+                      「{t.name}」らしい場面を、具体的に3つ思い出せますか？　思い出せなければ、あなたのメガネの見方が混ざっているかもしれません。
+                    </div>
+                  </>
+                ) : pat ? (
+                  <>
+                    <ZurePatternCard p={ZURE_PATTERNS[pat]} />
+                    <button onClick={() => answer(t.id, null)} style={{ fontSize: 11, color: 'var(--primary)', background: 'none', border: 'none', cursor: 'pointer', marginTop: 4, padding: 0 }}>選び直す</button>
+                  </>
+                ) : (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 12.5, color: '#555', marginBottom: 6 }}>
+                      この子の「<b>{t.name}</b>」らしい面を、家や外で見たことはありますか？
+                    </div>
+                    {[
+                      ['outside', '家でも外でも、はっきり見たことがある'],
+                      ['notyet', '一度か二度、どこかで見たことがある'],
+                      ['want', 'まだ一度も見たことがない'],
+                    ].map(([k, l]) => (
+                      <button key={k} onClick={() => answer(t.id, k)}
+                        style={{ display: 'block', width: '100%', textAlign: 'left', fontSize: 12.5, padding: '9px 12px', marginBottom: 6, borderRadius: 8, border: '1.5px solid #DDE8E5', background: '#fff', cursor: 'pointer' }}>
+                        {l}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <div style={{ fontSize: 11.5, color: '#888', lineHeight: 1.8, marginTop: 4 }}>
+            声かけは、子どもの結果に合わせます。環境づくりは、あなたの観察に合わせます。
+          </div>
+        </div>
       )}
     </div>
   );
