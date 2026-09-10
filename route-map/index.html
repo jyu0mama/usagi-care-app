@@ -197,6 +197,36 @@ const CHILD_TYPE_TAGS = {
   tokoton: ['step', 'wait'],
 };
 
+/* メガネごとの「行動しがちなクセ」と、それを抑える一手（記録タグ） */
+const GLASSES_INSIGHT = {
+  move_A:      { tendency: 'つい先に動いて、急かしてしまう', counter: ['wait', 'leave', 'shorten', 'together'], counterName: '待つ・間を置く・小さく区切る' },
+  move_B:      { tendency: 'つい手や口を出しすぎてしまう', counter: ['choice', 'wait', 'leave', 'step'], counterName: '選んでもらう・待つ' },
+  focus_A:     { tendency: '結果を急いで、できている途中を見落としてしまう', counter: ['receive', 'together', 'wait'], counterName: '気持ちを受け止める・一緒にやる' },
+  focus_B:     { tendency: '危ないことを先回りして、早めに止めてしまう', counter: ['choice', 'wait', 'reason', 'shorten'], counterName: '選んでもらう・待つ' },
+  judge_A:     { tendency: '自分の感覚を基準にして、子どもの違いに気づきにくい', counter: ['receive', 'choice'], counterName: '子ども自身の感じ方を先に聞く' },
+  judge_B:     { tendency: '「まわりはどうか」で比べてしまう', counter: ['receive', 'reason', 'choice'], counterName: '受け止める・理由を伝える' },
+  process_A:   { tendency: '「そのやり方は違う」と口を出してしまう', counter: ['choice', 'wait'], counterName: '選んでもらう・待つ' },
+  process_B:   { tendency: '選択肢を渡しすぎて、かえって動きにくくしてしまう', counter: ['step', 'shorten', 'together'], counterName: '何から始めるかを示す・小さく区切る' },
+  feel_A:      { tendency: '理由を言わずに動かそうとしてしまう', counter: ['reason', 'step'], counterName: '理由を伝える・順番を示す' },
+  feel_B:      { tendency: '結果だけで見て、途中の粘りや工夫を見落としてしまう', counter: ['receive', 'together'], counterName: '受け止める・一緒にやる' },
+  outlook_A:   { tendency: '「大丈夫」で、子どもの不安を流してしまう', counter: ['receive', 'reason', 'wait'], counterName: '不安を受け止める・理由を添える' },
+  outlook_B:   { tendency: '小さなつまずきを、大きく心配してしまう', counter: ['wait', 'choice', 'reason', 'leave'], counterName: '待つ・選んでもらう' },
+};
+function meganeInsight(records, childId, glassId) {
+  const info = GLASSES_INSIGHT[glassId];
+  if (!info) return null;
+  const recs = records.filter(r => r.childId === childId);
+  const total = recs.length;
+  const hit = recs.filter(r => info.counter.includes(r.tag)).length;
+  const ratio = total ? hit / total : 0;
+  let level;
+  if (total < MIN_RECORDS) level = 'few';
+  else if (ratio >= MIN_RATIO) level = 'strong';
+  else if (hit >= 1) level = 'some';
+  else level = 'chance';
+  return { info, total, hit, ratio, level };
+}
+
 /* ============================================================
    UTILS
    ============================================================ */
@@ -624,6 +654,28 @@ function HistoryScreen({ profile, records }) {
   );
 }
 
+function MeganeInsightCard({ glassId, records, childId, childName }) {
+  const gl = GLASSES.find(g => g.id === glassId);
+  const ins = meganeInsight(records, childId, glassId);
+  if (!gl || !ins) return null;
+  const { info, total, hit, level } = ins;
+  let body;
+  if (level === 'strong') {
+    body = <><b>「{gl.name}」</b>は、{info.tendency}メガネ。でも {total}件のうち<b>{hit}件</b>で「{info.counterName}」ができています。<b style={{ color: 'var(--primary-dark)' }}>メガネのクセを、うまく抑えられています。</b></>;
+  } else if (level === 'some') {
+    body = <><b>「{gl.name}」</b>は、{info.tendency}メガネ。{total}件のうち{hit}件で「{info.counterName}」ができています。<b>その一手が、効いています。</b></>;
+  } else if (level === 'chance') {
+    body = <><b>「{gl.name}」</b>は、{info.tendency}メガネです。{childName}には別の一手が効いているのかもしれません。手づまりのときは「{info.counterName}」も1回、試してみてください。</>;
+  } else {
+    body = <><b>「{gl.name}」</b>は、{info.tendency}メガネ。記録がたまると、このメガネとの付き合い方も見えてきます。</>;
+  }
+  return (
+    <div className={level === 'strong' ? 'trend-box' : 'card'} style={{ marginBottom: 8 }}>
+      <div style={{ fontSize: 13, lineHeight: 1.9 }}>{body}</div>
+    </div>
+  );
+}
+
 /* ============================================================
    TREND SCREEN
    ============================================================ */
@@ -678,6 +730,16 @@ function TrendScreen({ profile, records }) {
                 {selectedChild.name}には、{TAGS.find(t => t.id === trend.tag)?.label}ときの方が、動いているようです。
               </div>
             </div>
+          )}
+
+          {profile.parent.glasses.length > 0 && (
+            <>
+              <div className="section-title mt12">あなたのメガネと、いま</div>
+              {profile.parent.glasses.map(gid => (
+                <MeganeInsightCard key={gid} glassId={gid} records={records} childId={selectedChildId} childName={selectedChild.name} />
+              ))}
+              <div className="trend-sub" style={{ marginBottom: 4 }}>メガネは「悪いクセ」ではありません。強みでもあります。出ている・抑えられている、を知るための目印です。</div>
+            </>
           )}
 
           {tagsSorted.length > 0 && (
