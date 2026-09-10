@@ -288,7 +288,11 @@ function SetupScreen({ onComplete }) {
   const [parentType, setParentType] = React.useState('');
 
   function toggleGlass(id) {
-    setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
+    setGlasses(prev => {
+      if (prev.includes(id)) return prev.filter(g => g !== id);
+      if (prev.length < 2) return [...prev, id];
+      return [prev[1], id]; // 2個選択済みで別を選んだら、古いほうと入れ替え
+    });
   }
 
   function finish() {
@@ -341,7 +345,7 @@ function SetupScreen({ onComplete }) {
       {step === 1 && (
         <div>
           <div className="section-title">わたしの強いメガネ（1〜2個）</div>
-          <div className="text-sub mb12">本編アプリで診断したメガネを選んでください</div>
+          <div className="text-sub mb12">本編アプリで診断したメガネを選んでください。2個選んだあと別を選ぶと、古いほうと入れ替わります。</div>
           <div className="card">
             <div className="grid-2">
               {GLASSES.map(g => (
@@ -716,7 +720,11 @@ function SettingsScreen({ profile, records, onProfileUpdate, onRecordsUpdate }) 
   function showMsg(text) { setMsg(text); setTimeout(() => setMsg(''), 4000); }
 
   function toggleEditGlass(id) {
-    setEditGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
+    setEditGlasses(prev => {
+      if (prev.includes(id)) return prev.filter(g => g !== id);
+      if (prev.length < 2) return [...prev, id];
+      return [prev[1], id]; // 2個選択済みで別を選んだら、古いほうと入れ替え
+    });
   }
 
   function saveGlasses() {
@@ -799,6 +807,7 @@ function SettingsScreen({ profile, records, onProfileUpdate, onRecordsUpdate }) 
       {editing && (
         <div className="card mb12">
           <label className="label">選び直す（1〜2個）</label>
+          <div className="text-sub" style={{ fontSize: 12, marginBottom: 8 }}>2個選んだあと別を選ぶと、古いほうと入れ替わります。減らすときは選択中のメガネをもう一度タップ。</div>
           <div className="grid-2 mt8 mb8">
             {GLASSES.map(g => (
               <div key={g.id} className={'type-btn' + (editGlasses.includes(g.id) ? ' selected' : '')} onClick={() => toggleEditGlass(g.id)}>{g.name}</div>
