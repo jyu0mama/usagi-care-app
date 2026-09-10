@@ -189,6 +189,18 @@ const TAG_TRENDS = {
   leave: '一度間を置くほうが、戻ってきやすい',
 };
 
+/* 傾向（タグ）ごとに合う声かけの例 */
+const TAG_VOICE = {
+  step:     ['「まず、これだけやってみよう」', '「最初にやるのは○○だけでいいよ」', '「はじめの一歩は、ここから」'],
+  choice:   ['「AとB、どっちからやる？」', '「これとこれ、どっちがいい？」', '「先にやるの、自分で決めていいよ」'],
+  wait:     ['（せかさず、そばで待つ）', '「できたら教えてね」と言って、様子を見る', '先に自分のことをして、見すぎない'],
+  receive:  ['「そっか、いやだったんだね」', '「うまくいかなくて、くやしかったね」', '「その気持ち、わかるよ。まずそれだけ」'],
+  reason:   ['「これは○○だから、大丈夫だよ」', '「もし失敗しても、こうすれば戻せるからね」', '「前もできたから、今日もいけるよ」'],
+  together: ['「最初の1問だけ、一緒にやろう」', '「はじめだけ手伝うね。あとは任せる」', '「せーの、で一緒にスタート」'],
+  shorten:  ['「まず5分だけやってみよう」', '「1ページだけでいいよ」', '「ここからここまで、それだけ」'],
+  leave:    ['「ちょっと休憩して、あとでね」', '「5分たったら、また声かけるね」', '「今はやめて、ごはんのあとにしよう」'],
+};
+
 const CHILD_TYPE_TAGS = {
   nikoniko: ['choice', 'receive'],
   monoshiri: ['reason', 'step'],
@@ -714,6 +726,14 @@ function TrendScreen({ profile, records }) {
               <div className="text-sub" style={{ fontSize: 11, marginBottom: 4 }}>いま見えている傾向</div>
               <div className="trend-text">{selectedChild.name}には、{TAG_TRENDS[trend.tag]}ようです</div>
               <div className="trend-sub">{trend.count}件 / {trend.total}件の記録から</div>
+              {TAG_VOICE[trend.tag] && (
+                <div style={{ marginTop: 10, background: 'rgba(255,255,255,0.65)', borderRadius: 8, padding: '10px 12px' }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--primary-dark)', marginBottom: 6 }}>こんな声かけが合っています</div>
+                  {TAG_VOICE[trend.tag].map((v, i) => (
+                    <div key={i} style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.9 }}>・{v}</div>
+                  ))}
+                </div>
+              )}
               <div className="trend-sub mt8">これは今の記録から見えている傾向です。場面や体調で変わります</div>
             </div>
           ) : (
@@ -744,10 +764,10 @@ function TrendScreen({ profile, records }) {
 
           {tagsSorted.length > 0 && (
             <>
-              <div className="section-title mt12">記録の内訳</div>
+              <div className="section-title mt12">記録の内訳と、合う声かけ</div>
               <div className="card">
                 {tagsSorted.map(t => (
-                  <div key={t.id} style={{ marginBottom: 12 }}>
+                  <div key={t.id} style={{ marginBottom: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
                       <span style={{ fontSize: 13 }}>{t.label}</span>
                       <span style={{ fontSize: 13, fontWeight: 700 }}>{t.count}件</span>
@@ -755,6 +775,14 @@ function TrendScreen({ profile, records }) {
                     <div className="bar-wrap">
                       <div className="bar-fill" style={{ width: (childRecords.length > 0 ? Math.round(t.count / childRecords.length * 100) : 0) + '%' }} />
                     </div>
+                    {TAG_VOICE[t.id] && (
+                      <div style={{ marginTop: 6 }}>
+                        <span style={{ fontSize: 11, color: 'var(--primary-dark)', fontWeight: 700 }}>こんな声かけも：</span>
+                        {TAG_VOICE[t.id].slice(0, 2).map((v, i) => (
+                          <span key={i} style={{ fontSize: 12, color: 'var(--text-sub)' }}>{i > 0 ? ' ／ ' : ' '}{v}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
