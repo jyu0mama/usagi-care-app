@@ -3258,7 +3258,9 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
   const [pFallback, setPFallback] = useState(null);
 
   function toggleGlass(id) {
-    setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : prev);
+    // 最大2つ。2つ選んだ状態で別のを押すと「変更できない」に見えないよう、
+    // 一番古い選択と入れ替える（常にクリックが効くようにする）。
+    setGlasses(prev => prev.includes(id) ? prev.filter(g => g !== id) : prev.length < 2 ? [...prev, id] : [prev[1], id]);
   }
   function finish() {
     // 「+ 追加」を押さずに名前だけ入力して完了したケースも取りこぼさない
@@ -3309,6 +3311,9 @@ function SetupWizard({ profile, onSave, onBack, initialStep = 1 }) {
               </div>
               {glasses.length === 0 && (
                 <div className="text-xs mt8">選ばずに進むと、メガネのブロックは表示されません</div>
+              )}
+              {glasses.length === 2 && (
+                <div className="text-xs mt8">最大2つまで。別のメガネを選ぶと、一番古い選択と入れ替わります</div>
               )}
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
