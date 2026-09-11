@@ -3860,8 +3860,8 @@ function Card45Screen({ profile, onBack }) {
   const [selectedParent, setSelectedParent] = useState(null);
   const [selected, setSelected] = useState(null);
   const myParentType = profile?.parentType || null;
-  const myChild = profile?.children?.[profile?.currentChildIdx || 0] || null;
-  const myChildType = myChild?.diagnosis?.nearest || null;
+  // 登録済みの子ども全員（診断済みのみ）。1人目だけに固定しない。
+  const myChildren = (profile?.children || []).filter(c => c?.diagnosis?.nearest);
 
   /* カード詳細 */
   if (selected) {
@@ -3945,31 +3945,39 @@ function Card45Screen({ profile, onBack }) {
             <TypeAvatar id={selectedParent} size={40} />
             <div style={{ fontSize: 15, color: '#666' }}>{pt?.name} × お子さんのタイプを選んでください</div>
           </div>
-          {myParentType === selectedParent && myChildType && (
+          {myParentType === selectedParent && myChildren.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, marginBottom: 6 }}>▼ あなたとこの子のカード</div>
-              <button className="scene-btn" style={{ border: '2px solid var(--primary)', background: 'var(--primary-bg)' }}
-                onClick={() => setSelected(`${selectedParent}_${myChildType}`)}>
+              <div style={{ fontSize: 12, color: 'var(--primary)', fontWeight: 700, marginBottom: 6 }}>▼ あなたとお子さんのカード</div>
+              {myChildren.map(child => {
+                const ctId = child.diagnosis.nearest;
+                return (
+                  <button key={child.id} className="scene-btn" style={{ border: '2px solid var(--primary)', background: 'var(--primary-bg)', marginBottom: 8 }}
+                    onClick={() => setSelected(`${selectedParent}_${ctId}`)}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                      <TypeAvatar id={ctId} size={46} ring="var(--primary)" />
+                      <div>
+                        <div className="scene-btn-label">{CHILD_TYPE_MAP[ctId]?.name}</div>
+                        <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{child.name}</div>
+                      </div>
+                    </div>
+                    <span className="scene-arrow">›</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {CHILD_TYPES.map(ct => {
+            const matchNames = myChildren.filter(c => c.diagnosis.nearest === ct.id).map(c => c.name);
+            return (
+              <button key={ct.id} className="scene-btn" onClick={() => setSelected(`${selectedParent}_${ct.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                  <TypeAvatar id={myChildType} size={46} ring="var(--primary)" />
-                  <div>
-                    <div className="scene-btn-label">{CHILD_TYPE_MAP[myChildType]?.name}</div>
-                    <div style={{ fontSize: 12, color: '#888', marginTop: 2 }}>{myChild?.name}</div>
-                  </div>
+                  <TypeAvatar id={ct.id} size={46} ring={matchNames.length > 0 ? 'var(--primary)' : null} />
+                  <div className="scene-btn-label">{ct.name}{matchNames.length > 0 ? `（${matchNames.join('・')}）` : ''}</div>
                 </div>
                 <span className="scene-arrow">›</span>
               </button>
-            </div>
-          )}
-          {CHILD_TYPES.map(ct => (
-            <button key={ct.id} className="scene-btn" onClick={() => setSelected(`${selectedParent}_${ct.id}`)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                <TypeAvatar id={ct.id} size={46} ring={myChildType === ct.id ? 'var(--primary)' : null} />
-                <div className="scene-btn-label">{ct.name}{myChildType === ct.id ? '（この子）' : ''}</div>
-              </div>
-              <span className="scene-arrow">›</span>
-            </button>
-          ))}
+            );
+          })}
           <div style={{ height: 16 }} />
           <button className="btn btn-secondary" onClick={() => setSelectedParent(null)}>← 親タイプ選択に戻る</button>
           <div style={{ height: 20 }} />
